@@ -2,7 +2,7 @@
 
 - Reuniões com o cliente
 - Elicitação de requisitos
-- Requisitos Funcionais (abaixo)
+- Requisitos funcionais (abaixo)
 - Requisitos não funcionais (abaixo)
 - Prototipação do figma do 0
 - Documentação simples do projeto
