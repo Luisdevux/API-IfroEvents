@@ -1,6 +1,6 @@
 # Sprint 2
 
-## Início 15/04/2025 - Termino 30/04/2025
+## Início 15/04/2025 - Termino 29/04/2025
 
 - Tarefas:
 - Reuniões com o cliente (Kauã, Luis, Deivid)
