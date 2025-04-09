@@ -29,8 +29,8 @@ A tabela a seguir contém a relação com os Requisitos Não Funcionais identifi
 
 - Reuniões com o cliente
 - Elicitação de requisitos
-- Requisitos funcionais (abaixo)
-- Requisitos não funcionais (abaixo)
+- Requisitos funcionais
+- Requisitos não funcionais
 - Prototipação do figma do 0
 - Documentação simples do projeto
 - Modelagem do Banco de Dados não relacional (MongoDB)
