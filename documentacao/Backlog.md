@@ -1,15 +1,3 @@
-# Milestone 1
-
-- Reuniões com o cliente
-- Elicitação de requisitos
-- Requisitos funcionais (abaixo)
-- Requisitos não funcionais (abaixo)
-- Prototipação do figma do 0
-- Documentação simples do projeto
-- Modelagem do Banco de Dados não relacional (MongoDB)
-- Documentar cada rota (incluindo regras de negócio)
-
-
 ## REQUISITOS FUNCIONAIS
 A tabela a seguir contém a relação dos Requisitos Funcionais elicitados, com as colunas: identificador, nome e descrição:
 
@@ -36,3 +24,14 @@ A tabela a seguir contém a relação com os Requisitos Não Funcionais identifi
 | **RNF-006**  | Elementos Interativos   | A interface deve conter elementos interativos como, botões para visualizar fotos, inscrições e informações sobre os eventos. |
 ---  
 
+
+# Milestone 1
+
+- Reuniões com o cliente
+- Elicitação de requisitos
+- Requisitos funcionais (abaixo)
+- Requisitos não funcionais (abaixo)
+- Prototipação do figma do 0
+- Documentação simples do projeto
+- Modelagem do Banco de Dados não relacional (MongoDB)
+- Documentar cada rota (incluindo regras de negócio)
