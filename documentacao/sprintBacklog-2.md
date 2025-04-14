@@ -8,3 +8,4 @@
 - Documentação das Rotas ()
 - Revisão completa do Figma final e cada tela ()
 - Elaboração do gráfico de Burndown ()
+- Revisão modelagem banco de dados MongoDB ()
