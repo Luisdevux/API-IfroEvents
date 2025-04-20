@@ -28,17 +28,13 @@ Endpoints principais responsáveis pelas operações de CRUD (Create, Read, Upda
 ## 3.2.2 GET /eventos
 
 **Caso de Uso**  
-- Listar todos os eventos disponíveis no sistema, com variações conforme o tipo de usuário (painel ou totem).
+- Listar todos os eventos disponíveis no sistema, com variações conforme o tipo de acesso (painel administrativo ou totem).
 
 **Regras de Negócio**
-- **Exibição Condicional:** No totem, apenas eventos com data atual ou futura devem ser exibidos.
-- **Segmentação e Filtros:** No painel, o sistema pode oferecer filtros por data, status, local e título.
-- **Paginação:** Aplicação de limites e paginação na interface administrativa.
+- **A Definir**
 
 **Resultado Esperado**
-- Lista paginada e organizada de eventos com dados resumidos (título, data, local, status).
-
----
+- Lista paginada de eventos conforme a origem da requisição.
 
 ## 3.2.3 GET /eventos/:id
 
@@ -47,12 +43,9 @@ Endpoints principais responsáveis pelas operações de CRUD (Create, Read, Upda
 
 **Regras de Negócio**
 - **Validação de Existência:** Verificar se o evento existe antes de retornar os dados.
-- **Privacidade de Dados:** No totem, ocultar dados sensíveis como organizadorId.
 
 **Resultado Esperado**
 - Objeto contendo todos os dados detalhados do evento selecionado, incluindo mídias.
-
----
 
 ## 3.2.4 PUT /eventos/:id
 
@@ -61,27 +54,21 @@ Endpoints principais responsáveis pelas operações de CRUD (Create, Read, Upda
 
 **Regras de Negócio**
 - **Permissão de Edição:** Somente o usuário criador (ou autorizado) pode alterar.
-- **Validação de Conflitos:** Garantir que não existam eventos conflitantes no mesmo local e horário.
-- **Rastreamento de Atualização:** Atualizar campo `dataAtualizacao`.
+- **Validação de Conflitos:** Garantir que não existam eventos conflitantes com mesmo nome, local e horário.
 
 **Resultado Esperado**
 - Evento atualizado com sucesso e confirmação de modificação.
 
----
-
 ## 3.2.5 DELETE /eventos/:id
 
 **Caso de Uso**  
-- Excluir ou inativar um evento, dependendo das regras de segurança e contexto.
+- Excluir ou inativar um evento.
 
 **Regras de Negócio**
 - **Avaliação de Inscrições:** Caso o evento tenha inscrições, ele deve ser apenas inativado.
-- **Remoção Física:** Permitida apenas se não houver vínculo.
 
 **Resultado Esperado**
 - Evento removido ou marcado como inativo. Registro gerado em log do sistema.
-
----
 
 ## 3.3 Endpoints Adicionais
 
@@ -97,8 +84,6 @@ Endpoints principais responsáveis pelas operações de CRUD (Create, Read, Upda
 **Resultado Esperado**
 - Lista de mídias com seus respectivos tipos e URLs.
 
----
-
 ### 3.3.2 POST /eventos/:id/midias
 
 **Caso de Uso**  
@@ -110,8 +95,6 @@ Endpoints principais responsáveis pelas operações de CRUD (Create, Read, Upda
 
 **Resultado Esperado**
 - Mídia adicionada com sucesso ao evento.
-
----
 
 ### 3.3.3 GET /eventos/:id/qrcode
 
@@ -125,8 +108,6 @@ Endpoints principais responsáveis pelas operações de CRUD (Create, Read, Upda
 **Resultado Esperado**
 - Link ou imagem base64 do QR Code com o endereço do formulário.
 
----
-
 ### 3.3.4 GET /eventos/anteriores/slideshow
 
 **Caso de Uso**  
@@ -138,8 +119,6 @@ Endpoints principais responsáveis pelas operações de CRUD (Create, Read, Upda
 
 **Resultado Esperado**
 - Lista de eventos com mídias (imagens e vídeos) em ordem decrescente de data.
-
----
 
 ## 3.4 /inscricoes
 
@@ -154,20 +133,16 @@ Endpoints principais responsáveis pelas operações de CRUD (Create, Read, Upda
 **Resultado Esperado**
 - Lista dos participantes inscritos com nome e e-mail.
 
----
-
 ### 3.4.2 POST /inscricoes
 
 **Caso de Uso**  
 - Registrar uma nova inscrição internamente (caso não seja feita via formulário externo).
 
 **Regras de Negócio**
-- **Dados Obrigatórios:** Nome, e-mail, eventoId.
+- **Dados Obrigatórios:** Nome, e-mail.
 
 **Resultado Esperado**
 - Inscrição registrada com sucesso.
-
----
 
 ## 3.5 /logs
 
@@ -182,14 +157,9 @@ Endpoints principais responsáveis pelas operações de CRUD (Create, Read, Upda
 **Resultado Esperado**
 - Log gravado com dados de ação, data e usuário responsável.
 
----
-
 ## Considerações Finais
 
-- O totem utiliza apenas rotas públicas (GET).
-- Toda gestão de dados é feita via painel autenticado.
-- As ações administrativas são protegidas por autenticação (JWT ou sessão).
-- Logs garantem rastreabilidade e transparência.
-
-
-
+- **Totem:** O totem utiliza apenas rotas públicas (GET).
+- **Manipulação de Dados:** Toda gestão de dados é feita via painel autenticado.
+- **Segurança:** Logs garantem rastreabilidade e transparência.
+- **Documentação e Monitoramento:** Manter uma documentação atualizada dos endpoints e monitorar as requisições para garantir a integridade e disponibilidade do sistema.
