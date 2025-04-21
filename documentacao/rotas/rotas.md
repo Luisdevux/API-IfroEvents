@@ -1,165 +1,187 @@
-# Endpoints com Foco em Casos de Uso
+# Documentação de Endpoints – IFRO EVENTS  
+
+**Endpoints com Foco em Casos de Uso**
+
+---
 
 ## 3.1 /login (ou endpoint de autenticação)
 
 ### Função de Negócio
-- Permitir que os usuários administrativos (professores, técnicos, alunos autorizados) acessem o sistema administrativo.
+Permitir que os usuários administrativos (professores, técnicos e alunos autorizados) acessem o sistema administrativo (painel) com suas credenciais vinculadas ao SUAP IFRO.
 
 ### Regras de Negócio Envolvidas
-- **Verificação de Credenciais:** Validação da matrícula e senha.
-- **Bloqueio de Usuários:** Impedir o acesso de usuários inativos ou não autorizados.
+- **Verificação de Credenciais:** Matrícula e senha válidas.
+- **Perfil do Usuário via SUAP:** As informações sobre os usuários são extraídas diretamente do SUAP.
+- **Bloqueio de Usuários:** Negar acesso a usuários inativos ou não autenticados ao SUAP.
 
 ### Resultado Esperado
-- Dados básicos do usuário, como nome, status (ativo/inativo).
+- Token JWT de autenticação.
+- Dados básicos do usuário: nome, tipo (professor, técnico, aluno), status.
 
-## 3.2 / (CRUD Principal)
-Endpoints principais responsáveis pelas operações de CRUD (Create, Read, Update, Delete) do recurso central do sistema.
+---
 
-## 3.2.1 POST /eventos
+## 3.2 /eventos (CRUD Principal)
 
-**Caso de Uso** 
--Criar um novo evento no sistema (painel de administração).
+### 3.2.1 POST /eventos
 
-**Regras de Negócio**
-- **Validação de Atributos Obrigatórios:** Garantir que dados essenciais (título, data, local, forma de inscrição) sejam fornecidos.
-- **Vinculação de Cadastro:** O cadastro de um evento é vinculado ao usuario que criou na plataforma.
-- **Definição de Status:** Atribuir um status ao evento (ativo, concluído).
+#### Caso de Uso
+Cadastrar um novo evento no sistema pelo painel administrativo.
 
-## 3.2.2 GET /eventos
+#### Regras de Negócio
+- **Campos obrigatórios:** título, data, local, forma de inscrição.
+- **Vinculação ao Usuário:** associar o evento ao usuário autenticado.
+- **QR Code:** pode ser gerado posteriormente.
+- **Status Inicial:** evento ativo por padrão.
 
-**Caso de Uso**  
-- Listar todos os eventos disponíveis no sistema, com variações conforme o tipo de acesso (painel administrativo ou totem).
+#### Resultado
+- Evento criado com ID único.
+- Confirmação de cadastro.
 
-**Regras de Negócio**
-- **A Definir**
+---
 
-**Resultado Esperado**
-- Lista paginada de eventos conforme a origem da requisição.
+### 3.2.2 GET /eventos
 
-## 3.2.3 GET /eventos/:id
+#### Caso de Uso
+Listar todos os eventos do sistema, variando a resposta conforme a origem (painel ou totem).
 
-**Caso de Uso**  
-- Obter os detalhes completos de um evento específico.
+#### Regras de Negócio
+- **Totem:** Eventos passados, atuais e futuros, sem campos administrativos.
+- **Painel:** todos os eventos (anteriores, atuais e futuros), com filtros e paginação.
+<!-- - **Identificação da Origem:** via header (`x-client-type: painel` ou ausência para totem). -->
 
-**Regras de Negócio**
-- **Validação de Existência:** Verificar se o evento existe antes de retornar os dados.
+#### Resultado
+- Lista de eventos segmentada.
+- Dados visuais com informações para o totem ou completos para o painel.
 
-**Resultado Esperado**
-- Objeto contendo todos os dados detalhados do evento selecionado, incluindo mídias.
+---
 
-## 3.2.4 PUT /eventos/:id
+### 3.2.3 GET /eventos/:id
 
-**Caso de Uso**  
-- Editar os dados de um evento existente através do painel administrativo.
+#### Caso de Uso
+Obter os detalhes de um evento específico.
 
-**Regras de Negócio**
-- **Permissão de Edição:** Somente o usuário criador (ou autorizado) pode alterar.
-- **Validação de Conflitos:** Garantir que não existam eventos conflitantes com mesmo nome, local e horário.
+#### Regras de Negócio
+- **Totem:** exibe apenas dados públicos do evento.
+- **Painel:** exibe todos os campos (incluindo quem cadastrou, status, etc.).
 
-**Resultado Esperado**
-- Evento atualizado com sucesso e confirmação de modificação.
+#### Resultado
+- Objeto completo do evento.
+- Mensagem de erro se o ID não for encontrado.
 
-## 3.2.5 DELETE /eventos/:id
+---
 
-**Caso de Uso**  
-- Excluir ou inativar um evento.
+### 3.2.4 PUT /eventos/:id
 
-**Regras de Negócio**
-- **Avaliação de Inscrições:** Caso o evento tenha inscrições, ele deve ser apenas inativado.
+#### Caso de Uso
+Editar um evento cadastrado.
 
-**Resultado Esperado**
-- Evento removido ou marcado como inativo. Registro gerado em log do sistema.
+#### Regras de Negócio
+- **Acesso Restrito:** apenas o usuário criador pode editar ou se o mesmo permitir que outro usuário edite.
+- **Validação de Conflito:** não permitir sobreposição de data e local.
+
+#### Resultado
+- Evento atualizado.
+- Mensagem de sucesso ou erro de permissão.
+
+---
+
+### 3.2.5 DELETE /eventos/:id
+
+#### Caso de Uso
+Excluir ou inativar um evento existente.
+
+#### Regras de Negócio
+- **Verificação de Inscrições:** se houver, tornar inativo.
+- **Sem vínculos:** permitir exclusão direta.
+- **Registro em Log:** ação registrada para fins de auditoria.
+
+#### Resultado
+- Evento removido ou marcado como inativo.
+- Log gerado.
+
+---
 
 ## 3.3 Endpoints Adicionais
 
-### 3.3.1 GET /eventos/:id/midias
+### 3.3.1 POST /eventos/:id/midias
 
-**Caso de Uso**  
-- Obter todas as mídias (fotos e vídeos) associadas a um evento.
+#### Caso de Uso
+Cadastrar imagem ou vídeo em um evento.
 
-**Regras de Negócio**
-- **Verificação de Existência:** Retornar erro se o evento não for encontrado.
-- **Mídias Públicas:** Apenas conteúdos autorizados devem ser exibidos no totem.
+#### Regras de Negócio
+- **Tipos aceitos:** JPG, PNG, MP4.
+- **Tamanho máximo:** 25MB.
+- **Metadados:** data, tipo e descrição da mídia.
 
-**Resultado Esperado**
-- Lista de mídias com seus respectivos tipos e URLs.
+#### Resultado
+- Mídia associada ao evento.
+- Retorno com dados da mídia cadastrada.
 
-### 3.3.2 POST /eventos/:id/midias
+---
 
-**Caso de Uso**  
-- Cadastrar uma nova mídia vinculada a um evento existente.
+### 3.3.2 GET /eventos/:id/midias
 
-**Regras de Negócio**
-- **Validação de Tipo:** Apenas imagens e vídeos com formatos aceitos (JPG, PNG, MP4).
-- **Tamanho Máximo:** Até 10MB por mídia.
+#### Caso de Uso
+Exibir mídias associadas a um evento.
 
-**Resultado Esperado**
-- Mídia adicionada com sucesso ao evento.
+#### Regras de Negócio
+- **Totem:** acesso à visualização das mídias públicas do evento.
+- **Painel:** acesso completo.
+
+#### Resultado
+- Lista de mídias (com tipo e URL).
+
+---
 
 ### 3.3.3 GET /eventos/:id/qrcode
 
-**Caso de Uso**  
-- Retornar o QR Code com o link de inscrição do evento (para ser exibido no totem).
+#### Caso de Uso
+Obter QR Code com link de inscrição para exibição no totem.
 
-**Regras de Negócio**
-- **Redirecionamento Externo:** O QR Code leva para um formulário externo.
-- **Atualização de Código:** QR Code pode ser alterado posteriormente.
+#### Regras de Negócio
+- **Totem:** exibe o QR code com link externo.
+- **Geração Dinâmica:** no momento do cadastro ou edição.
 
-**Resultado Esperado**
-- Link ou imagem base64 do QR Code com o endereço do formulário.
+#### Resultado
+- QR Code em base64 ou link da imagem.
+- Link de redirecionamento para o formulário externo.
+
+---
 
 ### 3.3.4 GET /eventos/anteriores/slideshow
 
-**Caso de Uso**  
-- Exibir automaticamente os eventos passados com mídias no modo slideshow no totem.
+#### Caso de Uso
+Exibir eventos passados em slideshow contínuo no totem.
 
-**Regras de Negócio**
-- **Filtragem por Data:** Apenas eventos com data anterior ao dia atual.
-- **Formato para Loop:** Os dados devem ser otimizados para exibição contínua (loop).
+#### Regras de Negócio
+- **Somente eventos com data < hoje.**
+- **Formato otimizado:** campos visuais, incluindo mídias.
 
-**Resultado Esperado**
-- Lista de eventos com mídias (imagens e vídeos) em ordem decrescente de data.
+#### Resultado
+- Lista contínua de eventos passados para exibição automática.
 
-## 3.4 /inscricoes
+---
 
-### 3.4.1 GET /inscricoes/:eventoId
-
-**Caso de Uso**  
-- Listar todos os inscritos em um evento específico (painel administrativo).
-
-**Regras de Negócio**
-- **Consulta Segura:** Apenas usuários autenticados podem acessar.
-
-**Resultado Esperado**
-- Lista dos participantes inscritos com nome e e-mail.
-
-### 3.4.2 POST /inscricoes
-
-**Caso de Uso**  
-- Registrar uma nova inscrição internamente (caso não seja feita via formulário externo).
-
-**Regras de Negócio**
-- **Dados Obrigatórios:** Nome, e-mail.
-
-**Resultado Esperado**
-- Inscrição registrada com sucesso.
-
-## 3.5 /logs
+## 3.4 /logs
 
 ### POST /logs
 
-**Caso de Uso**  
-- Registrar ações de sistema ou de usuários para auditoria e rastreamento.
+#### Caso de Uso
+Registrar ações relevantes realizadas no sistema (painel).
 
-**Regras de Negócio**
-- **Registro de Ações:** Criar, editar, excluir, login, falhas, etc.
+#### Regras de Negócio
+- **Ações logáveis:** login, edição, exclusão, criação, etc.
+- **Auditoria:** manter histórico com timestamp e usuário.
 
-**Resultado Esperado**
-- Log gravado com dados de ação, data e usuário responsável.
+#### Resultado
+- Log registrado com sucesso.
+
+---
 
 ## Considerações Finais
 
-- **Totem:** O totem utiliza apenas rotas públicas (GET).
-- **Manipulação de Dados:** Toda gestão de dados é feita via painel autenticado.
-- **Segurança:** Logs garantem rastreabilidade e transparência.
-- **Documentação e Monitoramento:** Manter uma documentação atualizada dos endpoints e monitorar as requisições para garantir a integridade e disponibilidade do sistema.
+- **Totem:** acesso público, sem interações administrativas de manipulação.
+- **Painel:** acesso restrito, com autenticação obrigatória.
+- **Validação de Dados:** presente em todas as rotas.
+- **Registro de Logs:** ações administrativas são auditadas.
+- **Não há sistema de permissões interno.** O tipo de usuário é determinado pela matrícula, validada via SUAP IFRO.
