@@ -4,8 +4,8 @@
 
 - Tarefas:
 - Reuniões com o cliente (Kauã, Luis, Deivid)
-- Andamento da prototipação Figma ()
-- Documentação das Rotas ()
-- Revisão completa do Figma final e cada tela ()
-- Elaboração do gráfico de Burndown ()
-- Revisão modelagem banco de dados MongoDB ()
+- Andamento da prototipação Figma (Luis, Kauã, Deivid)
+- Documentação das Rotas (Luis, Kauã, Deivid)
+- Revisão completa do Figma final e cada tela (Luis, Kauã, Deivid)
+- Elaboração do gráfico de Burndown (Luis)
+- Revisão modelagem banco de dados MongoDB (Kauã, Deivid)
