@@ -86,7 +86,7 @@ Obter os detalhes de um evento específico.
 
 #### Regras de Negócio
 - **Totem:** exibe apenas dados públicos do evento.
-- **Painel:** exibe todos os campos (incluindo quem cadastrou, status, etc.).
+- **Painel:** exibe todos os campos (incluindo quem cadastrou, etc.).
 
 #### Resultado
 - Objeto completo do evento.
