@@ -4,58 +4,82 @@
 
 ---
 
-## 3.1 /login (ou endpoint de autenticação)
+## 1 Cadastro e Login de Usuário
 
-### Função de Negócio
-Permitir que os usuários administrativos (professores, técnicos e alunos autorizados) acessem o sistema administrativo (painel) com suas credenciais vinculadas ao SUAP IFRO.
+### 1.1 POST /auth/register
 
-### Regras de Negócio Envolvidas
-- **Verificação de Credenciais:** Matrícula e senha válidas.
-- **Perfil do Usuário via SUAP:** As informações sobre os usuários são extraídas diretamente do SUAP.
-- **Bloqueio de Usuários:** Negar acesso a usuários inativos ou não autenticados ao SUAP.
+#### Caso de Uso
+- Criar um novo usuário no sistema.
 
-### Resultado Esperado
-- Token JWT de autenticação.
-- Dados básicos do usuário: nome, tipo (professor, técnico, aluno), status.
+#### Regras de Negócio Envolvidas
+- Validação de dados:
+   - Nome: Mínimo 3 caracteres.
+   - Matricula: Somente números, idêntica a matricula veinculada ao SUAP.
+   - Senha: Mínimo 8 caracteres, letras maiúsculas, letras minúsculas, números, caracteres especiais.
+   - Confirmação de senha deve ser idêntica.
+- Segurança:
+   - Criptografar senha antes do armazenamento.
+
+#### Resultado Esperado
+- Registro de usuário criado com sucesso.
+- Retorno do objeto de usuário criado com identificador único.
+- Em caso de falha, retornar mensagem de erro.
 
 ---
 
-## 3.2 /eventos (CRUD Principal)
+## 1.2 POST /auth/login (ou endpoint de autenticação)
 
-### 3.2.1 POST /eventos
+### Função de Negócio
+Permitir que os usuários administrativos (professores, técnicos e alunos autorizados) acessem o sistema administrativo (painel).
+
+### Regras de Negócio Envolvidas
+- **Verificação de Credenciais:** Matrícula e senha válidas.
+
+### Resultado Esperado
+- Token JWT de autenticação.
+- Retornar do objeto de usuário.
+- Em caso de falha, retornar mensagem de erro.
+
+---
+
+## 2 Eventos
+
+### 2.1 POST /eventos
 
 #### Caso de Uso
 Cadastrar um novo evento no sistema pelo painel administrativo.
 
 #### Regras de Negócio
-- **Campos obrigatórios:** título, data, local, forma de inscrição.
-- **Vinculação ao Usuário:** associar o evento ao usuário autenticado.
+- **Campos obrigatórios:** título, data, local, forma de inscrição, midias.
+- **Vinculação ao Usuário:** associar o evento cadastrado ao usuário autenticado.
 - **QR Code:** pode ser gerado posteriormente.
-- **Status Inicial:** evento ativo por padrão.
 
 #### Resultado
-- Evento criado com ID único.
+- Retorno do objeto evento criado com ID único.
 - Confirmação de cadastro.
+- Em caso de falha, retornar mensagem de erro.
 
 ---
 
-### 3.2.2 GET /eventos
+### 2.2 GET /eventos
 
 #### Caso de Uso
 Listar todos os eventos do sistema, variando a resposta conforme a origem (painel ou totem).
 
 #### Regras de Negócio
 - **Totem:** Eventos passados, atuais e futuros, sem campos administrativos.
-- **Painel:** todos os eventos (anteriores, atuais e futuros), com filtros e paginação.
+- **Painel:** todos os eventos (anteriores, atuais e futuros).
 <!-- - **Identificação da Origem:** via header (`x-client-type: painel` ou ausência para totem). -->
 
 #### Resultado
 - Lista de eventos segmentada.
 - Dados visuais com informações para o totem ou completos para o painel.
+- Em caso de falha, retornar mensagem de erro.
+
 
 ---
 
-### 3.2.3 GET /eventos/:id
+### 2.3 GET /eventos/:id
 
 #### Caso de Uso
 Obter os detalhes de um evento específico.
@@ -70,40 +94,42 @@ Obter os detalhes de um evento específico.
 
 ---
 
-### 3.2.4 PUT /eventos/:id
+### 2.4 PATCH /eventos/:id
 
 #### Caso de Uso
 Editar um evento cadastrado.
 
 #### Regras de Negócio
 - **Acesso Restrito:** apenas o usuário criador pode editar ou se o mesmo permitir que outro usuário edite.
-- **Validação de Conflito:** não permitir sobreposição de data e local.
+- **Validação de Conflito:** permitir atualização de um ou mais campos independentemente.
+- **Validação:** verificar a integridade apenas dos campos alterados.
+
 
 #### Resultado
 - Evento atualizado.
+- Retorno do objeto evento atualizado.
 - Mensagem de sucesso ou erro de permissão.
 
 ---
 
-### 3.2.5 DELETE /eventos/:id
+### 2.5 DELETE /eventos/:id
 
 #### Caso de Uso
-Excluir ou inativar um evento existente.
+Remover um evento existente do sistema.
 
 #### Regras de Negócio
-- **Verificação de Inscrições:** se houver, tornar inativo.
-- **Sem vínculos:** permitir exclusão direta.
 - **Registro em Log:** ação registrada para fins de auditoria.
 
 #### Resultado
-- Evento removido ou marcado como inativo.
+- Evento removido com sucesso.
+- Em caso de falha, retornar mensagem de erro.
 - Log gerado.
 
 ---
 
-## 3.3 Endpoints Adicionais
+## 3 Endpoints Adicionais
 
-### 3.3.1 POST /eventos/:id/midias
+### 3.1 POST /eventos/:id/midias
 
 #### Caso de Uso
 Cadastrar imagem ou vídeo em um evento.
@@ -111,15 +137,15 @@ Cadastrar imagem ou vídeo em um evento.
 #### Regras de Negócio
 - **Tipos aceitos:** JPG, PNG, MP4.
 - **Tamanho máximo:** 25MB.
-- **Metadados:** data, tipo e descrição da mídia.
 
 #### Resultado
 - Mídia associada ao evento.
 - Retorno com dados da mídia cadastrada.
+- Em caso de falha, retornar mensagem de erro.
 
 ---
 
-### 3.3.2 GET /eventos/:id/midias
+### 3.2 GET /eventos/:id/midias
 
 #### Caso de Uso
 Exibir mídias associadas a um evento.
@@ -129,26 +155,28 @@ Exibir mídias associadas a um evento.
 - **Painel:** acesso completo.
 
 #### Resultado
-- Lista de mídias (com tipo e URL).
+- Lista de mídias.
+- Em caso de falha, retornar mensagem de erro.
 
 ---
 
-### 3.3.3 GET /eventos/:id/qrcode
+### 3.3 GET /eventos/:id/qrcode
 
 #### Caso de Uso
 Obter QR Code com link de inscrição para exibição no totem.
 
 #### Regras de Negócio
 - **Totem:** exibe o QR code com link externo.
-- **Geração Dinâmica:** no momento do cadastro ou edição.
+- **Geração Dinâmica:** no momento do cadastro ou edição é passado o link que será gerado posteriormente.
 
 #### Resultado
 - QR Code em base64 ou link da imagem.
 - Link de redirecionamento para o formulário externo.
+- Em caso de falha, retornar mensagem de erro.
 
 ---
 
-### 3.3.4 GET /eventos/anteriores/slideshow
+### 3.4 GET /eventos/anteriores/slideshow
 
 #### Caso de Uso
 Exibir eventos passados em slideshow contínuo no totem.
@@ -159,10 +187,11 @@ Exibir eventos passados em slideshow contínuo no totem.
 
 #### Resultado
 - Lista contínua de eventos passados para exibição automática.
+- Em caso de falha, retornar mensagem de erro.
 
 ---
 
-## 3.4 /logs
+## 4 Logs
 
 ### POST /logs
 
@@ -184,4 +213,4 @@ Registrar ações relevantes realizadas no sistema (painel).
 - **Painel:** acesso restrito, com autenticação obrigatória.
 - **Validação de Dados:** presente em todas as rotas.
 - **Registro de Logs:** ações administrativas são auditadas.
-- **Não há sistema de permissões interno.** O tipo de usuário é determinado pela matrícula, validada via SUAP IFRO.
+- **Documentação e Monitoramento:** Manter uma documentação atualizada dos endpoints e monitorar as requisições para garantir a integridade e disponibilidade do sistema.
