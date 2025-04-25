@@ -4,7 +4,7 @@
 
 ---
 
-## 1 Cadastro e Login de Usuário
+## 1. Cadastro e Login de Usuário
 
 ### 1.1 POST /auth/register
 
@@ -42,7 +42,7 @@ Permitir que os usuários administrativos (professores, técnicos e alunos autor
 
 ---
 
-## 2 Eventos
+## 2. Eventos
 
 ### 2.1 POST /eventos
 
@@ -127,7 +127,7 @@ Remover um evento existente do sistema.
 
 ---
 
-## 3 Endpoints Adicionais
+## 3. Endpoints Adicionais
 
 ### 3.1 POST /eventos/:id/midias
 
@@ -191,7 +191,7 @@ Exibir eventos passados em slideshow contínuo no totem.
 
 ---
 
-## 4 Logs
+## 4. Logs
 
 ### POST /logs
 
