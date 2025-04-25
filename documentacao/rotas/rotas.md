@@ -50,7 +50,7 @@ Permitir que os usuários administrativos (professores, técnicos e alunos autor
 Cadastrar um novo evento no sistema pelo painel administrativo.
 
 #### Regras de Negócio
-- **Campos obrigatórios:** título, data, local, forma de inscrição, midias.
+- **Campos Obrigatórios:** título, data, local, forma de inscrição, midias.
 - **Vinculação ao Usuário:** associar o evento cadastrado ao usuário autenticado.
 - **QR Code:** pode ser gerado posteriormente.
 
