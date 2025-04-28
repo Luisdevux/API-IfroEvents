@@ -193,7 +193,7 @@
 
 ## 4. Logs
 
-### POST /logs
+### 4.1 POST /logs
 
 #### Caso de Uso
 - Registrar ações relevantes realizadas no sistema (painel).
