@@ -12,13 +12,13 @@
 - Criar um novo usuário no sistema.
 
 #### Regras de Negócio Envolvidas
-- Validação de dados:
+- **Validação de dados:**
    - Nome: Mínimo 3 caracteres.
    - Matricula: Somente números, idêntica a matricula veinculada ao SUAP.
    - Senha: Mínimo 8 caracteres, letras maiúsculas, letras minúsculas, números, caracteres especiais.
    - Confirmação de senha deve ser idêntica.
-- Segurança:
-   - Criptografar senha antes do armazenamento.
+- **Segurança:** Criptografar senha antes do armazenamento.
+- **Contexto:** O cadastro de usuários é restrito para o painel administrativo. O Totem não possui login ou cadastro de usuários.
 
 #### Resultado Esperado
 - Registro de usuário criado com sucesso.
