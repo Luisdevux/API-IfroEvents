@@ -14,7 +14,7 @@
 #### Regras de Negócio Envolvidas
 - **Validação de dados:**
    - Nome: Mínimo 3 caracteres.
-   - Matricula: Somente números, idêntica a matricula veinculada ao SUAP.
+   - Matricula: Somente números, idêntica a matricula vinculada ao SUAP.
    - Senha: Mínimo 8 caracteres, letras maiúsculas, letras minúsculas, números, caracteres especiais.
    - Confirmação de senha deve ser idêntica.
 - **Segurança:** Criptografar senha antes do armazenamento.
@@ -29,8 +29,8 @@
 
 ## 1.2 POST /auth/login (ou endpoint de autenticação)
 
-### Função de Negócio
-Permitir que os usuários administrativos (professores, técnicos e alunos autorizados) acessem o sistema administrativo (painel).
+#### Caso de Uso
+- Permitir que os usuários administrativos (professores, técnicos e alunos autorizados) acessem o sistema administrativo (painel).
 
 ### Regras de Negócio Envolvidas
 - **Verificação de Credenciais:** Matrícula e senha válidas.
@@ -47,7 +47,7 @@ Permitir que os usuários administrativos (professores, técnicos e alunos autor
 ### 2.1 POST /eventos
 
 #### Caso de Uso
-Cadastrar um novo evento no sistema pelo painel administrativo.
+- Cadastrar um novo evento no sistema pelo painel administrativo.
 
 #### Regras de Negócio
 - **Campos Obrigatórios:** título, data, local, forma de inscrição, midias.
@@ -64,7 +64,7 @@ Cadastrar um novo evento no sistema pelo painel administrativo.
 ### 2.2 GET /eventos
 
 #### Caso de Uso
-Listar todos os eventos do sistema, variando a resposta conforme a origem (painel ou totem).
+- Listar todos os eventos do sistema, variando a resposta conforme a origem (painel ou totem).
 
 #### Regras de Negócio
 - **Totem:** Eventos passados, atuais e futuros, sem campos administrativos.
@@ -82,7 +82,7 @@ Listar todos os eventos do sistema, variando a resposta conforme a origem (paine
 ### 2.3 GET /eventos/:id
 
 #### Caso de Uso
-Obter os detalhes de um evento específico.
+- Obter os detalhes de um evento específico.
 
 #### Regras de Negócio
 - **Totem:** exibe apenas dados públicos do evento.
@@ -97,7 +97,7 @@ Obter os detalhes de um evento específico.
 ### 2.4 PATCH /eventos/:id
 
 #### Caso de Uso
-Editar um evento cadastrado.
+- Editar um evento cadastrado.
 
 #### Regras de Negócio
 - **Acesso Restrito:** apenas o usuário criador pode editar ou se o mesmo permitir que outro usuário edite.
@@ -115,7 +115,7 @@ Editar um evento cadastrado.
 ### 2.5 DELETE /eventos/:id
 
 #### Caso de Uso
-Remover um evento existente do sistema.
+- Remover um evento existente do sistema.
 
 #### Regras de Negócio
 - **Registro em Log:** ação registrada para fins de auditoria.
@@ -132,7 +132,7 @@ Remover um evento existente do sistema.
 ### 3.1 POST /eventos/:id/midias
 
 #### Caso de Uso
-Cadastrar imagem ou vídeo em um evento.
+- Cadastrar imagem ou vídeo em um evento.
 
 #### Regras de Negócio
 - **Tipos aceitos:** JPG, PNG, MP4.
@@ -148,7 +148,7 @@ Cadastrar imagem ou vídeo em um evento.
 ### 3.2 GET /eventos/:id/midias
 
 #### Caso de Uso
-Exibir mídias associadas a um evento.
+- Exibir mídias associadas a um evento.
 
 #### Regras de Negócio
 - **Totem:** acesso à visualização das mídias públicas do evento.
@@ -163,7 +163,7 @@ Exibir mídias associadas a um evento.
 ### 3.3 GET /eventos/:id/qrcode
 
 #### Caso de Uso
-Obter QR Code com link de inscrição para exibição no totem.
+- Obter QR Code com link de inscrição para exibição no totem.
 
 #### Regras de Negócio
 - **Totem:** exibe o QR code com link externo.
@@ -179,7 +179,7 @@ Obter QR Code com link de inscrição para exibição no totem.
 ### 3.4 GET /eventos/anteriores/slideshow
 
 #### Caso de Uso
-Exibir eventos passados em slideshow contínuo no totem.
+- Exibir eventos passados em slideshow contínuo no totem.
 
 #### Regras de Negócio
 - **Somente eventos com data < hoje.**
@@ -196,7 +196,7 @@ Exibir eventos passados em slideshow contínuo no totem.
 ### POST /logs
 
 #### Caso de Uso
-Registrar ações relevantes realizadas no sistema (painel).
+- Registrar ações relevantes realizadas no sistema (painel).
 
 #### Regras de Negócio
 - **Ações logáveis:** login, edição, exclusão, criação, etc.
