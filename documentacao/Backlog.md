@@ -7,8 +7,7 @@ A tabela a seguir contém a relação dos Requisitos Funcionais elicitados, com 
 | **RF-002**   | Manter Eventos     | Permite o administrador criar, atualizar e remover eventos.   |
 | **RF-003**   | Partilha de Permissões para Edição | Permite ao administrador compartilhar o link para edição de seus eventos cadastrados.   |
 | **RF-004**   | Incorporar Imagens e Vídeos | Permite o administrador incorporar vídeos e fotos acerca dos eventos a serem cadastrados.   |
-| **RF-005**   | Visualizar Eventos   | Os usuários podem visualizar eventos atuais e futuros cadastrados no sistema.   |
-| **RF-006**   | Visualizar Eventos Passados   | Os usuários podem visualizar eventos passados mantidos no sistema.   |
+| **RF-005**   | Visualizar Eventos   | Os usuários podem visualizar eventos passados, atuais e futuros cadastrados no sistema.   |
 
 
 ## REQUISITOS NÃO FUNCIONAIS
