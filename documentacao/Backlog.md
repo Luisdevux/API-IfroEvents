@@ -8,6 +8,7 @@ A tabela a seguir contém a relação dos Requisitos Funcionais elicitados, com 
 | **RF-003**   | Partilha de Permissões para Edição | Permite ao administrador compartilhar o link para edição de seus eventos cadastrados.   |
 | **RF-004**   | Incorporar Imagens e Vídeos | Permite o administrador incorporar vídeos e fotos acerca dos eventos a serem cadastrados.   |
 | **RF-005**   | Visualizar Eventos   | Os usuários podem visualizar eventos passados, atuais e futuros cadastrados no sistema.   |
+| **RF-006**   | Incorporar QRCode de Incrição   | Permite ao administrador inserir um link externo (ex: forms) ao cadastrar um evento, e esse link aparece em forma de QRCode no totem de visualização.   |
 
 
 ## REQUISITOS NÃO FUNCIONAIS
@@ -34,3 +35,4 @@ A tabela a seguir contém a relação com os Requisitos Não Funcionais identifi
 - Documentação simples do projeto
 - Modelagem do Banco de Dados não relacional (MongoDB)
 - Documentar cada rota (incluindo regras de negócio)
+- Métricas Scrum
