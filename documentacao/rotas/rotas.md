@@ -135,13 +135,18 @@
 - Cadastrar imagem ou vídeo em um evento.
 
 #### Regras de Negócio
-- **Tipos aceitos:** JPG, PNG, MP4.
-- **Tamanho máximo:** 25MB.
+- **Tipos aceitos:** JPG, PNG para imagens e MP4 para vídeos.
+- **Tamanho máximo:** 25MB por mídia.
+- **Padrões visuais obrigatórios:** 
+   - Imagem de capa: 1280x720px (proporção 16:9),
+   - Vídeo principal: Resolução mínima 1280x720px,
+   - Imagens do carrossel: 1024x768px (proporção 4:3 ou 3:2).
 
 #### Resultado
 - Mídia associada ao evento.
 - Retorno com dados da mídia cadastrada.
 - Em caso de falha, retornar mensagem de erro.
+- Imagens fora do padrão serão rejeitadas automaticamente pela API com mensagem de erro.
 
 ---
 
