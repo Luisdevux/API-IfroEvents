@@ -8,11 +8,14 @@ class Usuario {
             {
                 matricula: { type: Number, required: true},
                 nome: { type: String, index: true, required: true },
-                senha: { type: String },
-                tokenUnico: { type: Boolean, default: false }, // token único para recuperação de senha
-                refreshtoken: { type: String, select: false },  // Refresh token para geração de access token de autenticação longa duração 7 dias para invalidação
-                accesstoken: { type: String, select: false }, // Refresh token para  autenticação curta longa 15 minutos para invalidação
+                senha: { type: String, required: true },
             }
         );
+
+        usuarioSchema.plugin(mongoosePaginate);
+
+        this.model = mongoose.model('Usuario', usuarioSchema);
     }
 }
+
+export default new Usuario().model;
