@@ -2,7 +2,7 @@
 import mongoose from 'mongoose';
 import mongoosePaginate from 'mongoose-paginate-v2';
 
-class Eventos {
+class Evento {
     constructor() {
         const eventoSchema = new mongoose.Schema(
             {
@@ -42,8 +42,8 @@ class Eventos {
 
         eventoSchema.plugin(mongoosePaginate);
 
-        this.model = mongoose.model('Eventos', eventoSchema);
+        this.model = mongoose.model('Evento', eventoSchema);
     }
 }
 
-export default new Eventos().model;
+export default new Evento().model;
