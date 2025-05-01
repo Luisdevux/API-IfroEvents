@@ -2,6 +2,8 @@
 import mongoose from 'mongoose';
 import mongoosePaginate from 'mongoose-paginate-v2';
 
+import Usuario from './Usuario.js';
+
 class Evento {
     constructor() {
         const eventoSchema = new mongoose.Schema(
@@ -10,12 +12,22 @@ class Evento {
                 descricao: { type: String, required: true },
                 local: { type: String, required: true },
                 dataEvento: { type: Date, required: true },
-                organizadorId: { type: mongoose.Schema.Types.ObjectId, ref: 'Usuario', required: true },
-                organizadorNome: { type: mongoose.Schema.Types.String, required: true },
+                organizador: {
+                    id: {
+                        type: mongoose.Schema.Types.ObjectId,
+                        ref: 'usuarios',
+                        required: true,
+                    },
+                    nome: {
+                        type: String,
+                        required: true,
+                    },
+                },
                 linkInscricao: { type: String, required: true},
                 criadoEm: { type: Date, default: Date.now, required: true },
                 tags: { type: [ String ], required: true },
                 categoria: { type: String, required: true },
+                status: { type: String, enum: ['ativo', 'inativo'], default: 'ativo' },
                 midiaVideo: [{
                     _id: { type: mongoose.Schema.Types.ObjectId, auto: true },
                     url: { type: String, required: true },
@@ -36,13 +48,17 @@ class Evento {
                     tamanhoMb: { type: Number, required: true },
                     altura: { type: Number, required: true },
                     largura: { type: Number, required: true }
-                }]
+                }],
+            },
+            {
+                timestamps: { createdAt: 'criadoEm' },
+                versionKey: false,
             }
         );
 
         eventoSchema.plugin(mongoosePaginate);
 
-        this.model = mongoose.model('Evento', eventoSchema);
+        this.model = mongoose.model('eventos', eventoSchema);
     }
 }
 
