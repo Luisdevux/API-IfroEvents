@@ -22,4 +22,4 @@ class Usuario {
     }
 }
 
-export default new Usuario().model;2024103070030
+export default new Usuario().model;
