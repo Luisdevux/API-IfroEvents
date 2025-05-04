@@ -7,8 +7,10 @@ import loadModels from './loadModels.js';
  * Estrutura de mappings organizada por model.
  */
 const fakeMappings = {
-    // Mapping específico para o model Usuario
+  
     common: {},
+
+    // Mapping específico para o model Usuario
 
     Usuario: {
         matricula: () => faker.random.numeric(13),
