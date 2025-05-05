@@ -1,3 +1,5 @@
+// /src/seeds/globalFakeMapping.js
+
 import { faker } from "@faker-js/faker";
 import mongoose from 'mongoose';
 import { v4 as uuid } from 'uuid';
