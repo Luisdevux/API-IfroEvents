@@ -36,3 +36,15 @@ A tabela a seguir contém a relação com os Requisitos Não Funcionais identifi
 - Modelagem do Banco de Dados não relacional (MongoDB)
 - Documentar cada rota (incluindo regras de negócio)
 - Métricas Scrum
+
+
+# Milestone 2
+
+- Revisão dos requisitos a serem implementados na API (Entre a milestone 2 e os que poderão ficar para a milestone 3)
+- Revisão do banco de dados e atributos a serem implementados na API
+- Implementação das rotas na API (Documentar incluindo regras de negócio)
+- Plano de teste da API com os cenários a serem implemtentados (Envolvendo regras de negócio)
+- Testes unitários das funcionalidades da API (Envolvendo regras de negócio)
+- Implementação prática da API com Postman
+- Fluxos de Branchs e commits (GitLab)
+- Métricas Scrum
