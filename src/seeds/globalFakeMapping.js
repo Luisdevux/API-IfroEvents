@@ -32,19 +32,18 @@ const fakeMappings = {
         descricao: () => faker.lorem.sentence(),
         local: () => faker.location.city(),
         dataEvento: () => faker.date.future(),
-        organizadorId: () => ({
+        organizador: () => ({
           _id: new mongoose.Types.ObjectId(),
           nome: faker.person.fullName()
         }),
-        organizadorNome: () => faker.person.fullName(),
         linkInscricao: () => faker.internet.url(),
-        criadoEm: () => faker.date.past(),
+        eventoCriadoEm: () => faker.date.past(),
         tags: () => [faker.lorem.word(), faker.lorem.word()],
         categoria: () => faker.lorem.word(),
         status: () => faker.helpers.arrayElement(['ativo', 'inativo']),
         midiaVideo: () => [
             {
-                _id: new mongoose.Types.ObjectId().toString(),
+                _id: new mongoose.Types.ObjectId(),
                 url:  faker.internet.url() + "/" + uuid() + ".mp4",
                 tamanhoMb: faker.number.float({ max: 25 }),
                 altura: 720,
@@ -53,7 +52,7 @@ const fakeMappings = {
         ],
         midiaCapa: () => [
             {
-                _id: new mongoose.Types.ObjectId().toString(),
+                _id: new mongoose.Types.ObjectId(),
                 url:  faker.internet.url() + "/" + uuid() + ".jpg",
                 tamanhoMb: faker.number.float({ max: 25 }),
                 altura: 720,
@@ -62,7 +61,7 @@ const fakeMappings = {
         ],
         midiaCarrossel: () => [
             {
-                _id: new mongoose.Types.ObjectId().toString(),
+                _id: new mongoose.Types.ObjectId(),
                 url:  faker.internet.url() + "/" + uuid() + ".jpg",
                 tamanhoMb: faker.number.float({ max: 25 }),
                 altura: 768,

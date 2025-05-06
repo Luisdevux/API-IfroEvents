@@ -24,7 +24,7 @@ class Evento {
                     },
                 },
                 linkInscricao: { type: String, required: true},
-                criadoEm: { type: Date, default: Date.now, required: true },
+                eventoCriadoEm: { type: Date, default: Date.now, required: true },
                 tags: { type: [ String ], required: true },
                 categoria: { type: String, required: true },
                 status: { type: String, enum: ['ativo', 'inativo'], default: 'ativo' },
@@ -51,7 +51,7 @@ class Evento {
                 }],
             },
             {
-                timestamps: { createdAt: 'criadoEm' },
+                timestamps: { createdAt: 'eventoCriadoEm' },
                 versionKey: false,
             }
         );

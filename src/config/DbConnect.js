@@ -3,7 +3,7 @@
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import { URL } from 'url';
-import SendMail from '../utils/SendMail.js'; // Assegure-se de que este caminho está correto
+import SendMail from '../utils/SendMail.js';
 import logger from '../utils/logger.js';
 
 dotenv.config();
@@ -35,7 +35,7 @@ class DbConnect {
                 mongoose.set('debug', true); // Ativa logs de debug
                 logger.info('Configurações de desenvolvimento ativadas: autoIndex e debug.');
             } else {
-                mongoose.set('autoIndex', true); // Criação automática de índices
+                mongoose.set('autoIndex', false); // Criação automática de índices
                 mongoose.set('debug', false); // Desativa logs de debug quando não estiver em modo desenvolvimento
                 logger.info('Configurações de produção ativadas: autoIndex e debug desativados.');
             }
