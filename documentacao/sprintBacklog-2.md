@@ -1,4 +1,4 @@
-# Sprint 2
+# Milestone 1 - Sprint 2
 
 ## Início 16/04/2025 - Termino 28/04/2025
 
@@ -9,3 +9,10 @@
 - Revisão completa do Figma final e cada tela (Luis, Kauã, Deivid)
 - Elaboração do gráfico de Burndown (Luis)
 - Revisão modelagem banco de dados MongoDB (Kauã, Deivid)
+
+
+# Milestone 2 - Sprint 2
+
+## Início 17/05/2025 - Término 02/06/2025
+
+- Tarefas:

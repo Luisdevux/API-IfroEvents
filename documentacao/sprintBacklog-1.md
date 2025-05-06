@@ -1,6 +1,6 @@
-# Sprint 1 
+# Milestone 1 - Sprint 1 
 
-## Início 01/04/2025 - Termino 15/04/2025
+## Início 01/04/2025 - Término 15/04/2025
 
 - Tarefas:
 - Reuniões com o cliente (Kauã, Luis, Deivid)
@@ -10,3 +10,10 @@
 - Início da prototipação do Figma (Kauã, Deivid)
 - Documentação do básica do projeto (Luis)
 - Modelagem do Banco de Dados(MongoDB) (Luis)
+
+
+# Milestone 2 - Sprint 1
+
+## Início 30/04/2025 - Término 16/05/2025
+
+- Tarefas:
