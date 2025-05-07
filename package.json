@@ -19,7 +19,8 @@
     "express": "^5.1.0",
     "mongodb": "^6.15.0",
     "mongoose": "^8.13.2",
-    "mongoose-paginate-v2": "^1.9.0"
+    "mongoose-paginate-v2": "^1.9.0",
+    "primeiraapi": "file:"
   },
   "devDependencies": {
     "@faker-js/faker": "^9.7.0",
