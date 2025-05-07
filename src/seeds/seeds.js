@@ -6,9 +6,6 @@ import mongoose from "mongoose";
 import { faker } from "@faker-js/faker";
 
 // Depêndencias
-import fs, { link } from 'fs';
-import path from 'path';
-import bcrypt from "bcryptjs";
 import { randomBytes as _randomBytes } from "crypto";
 
 // Conexão com o banco
