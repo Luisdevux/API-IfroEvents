@@ -27,11 +27,9 @@ await DbConnect.conectar();
 // ----------------------------------------------------------------------------
 // 2) SEED de Usuários
 // ----------------------------------------------------------------------------
-
-
-
-
-
+async function seedUsuarios() {
+    
+}
 
 // ----------------------------------------------------------------------------
 // 3) SEED de Eventos
@@ -209,3 +207,24 @@ async function seedEventos(usuarios) {
     await Evento.collection.insertMany(eventosAleatorios);
     console.log(eventosAleatorios.length + "Eventos aleatórios inseridos com sucesso!");
 }
+
+// ----------------------------------------------------------------------------
+// 4) Execução final (ordem de chamada)
+// ----------------------------------------------------------------------------
+async function main() {
+    try {
+        // 1 Entidades de acesso
+        const usuarios = await seedUsuarios();
+        await seedEventos(usuarios);
+
+        console.log(">>>> SEED FINALIZADO COM SUCESSO! <<<<");
+    } catch (err) {
+        console.log("Erro ao executar SEED:", err);
+    } finally {
+        mongoose.connection.close();
+        process.exit(0);
+    }
+}
+
+// Função que executa tudo
+main();
