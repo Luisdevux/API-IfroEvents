@@ -25,9 +25,17 @@ import globalFakeMapping from "./globalFakeMapping";
 await DbConnect.conectar();
 
 // ----------------------------------------------------------------------------
-// 2) SEED de Usuários, Eventos
+// 2) SEED de Usuários
 // ----------------------------------------------------------------------------
 
+
+
+
+
+
+// ----------------------------------------------------------------------------
+// 3) SEED de Eventos
+// ----------------------------------------------------------------------------
 
 async function seedEventos(usuarios) {
     //Remove antes de criar os eventos
