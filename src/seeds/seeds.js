@@ -7,6 +7,7 @@ import mongoose from "mongoose";
 import DbConnect from "../config/DbConnect";
 
 // Importação das seeds separadas
+import seedUsuarios from "./seedsUsuarios";
 import seedEventos from "./seedsEventos";
 
 

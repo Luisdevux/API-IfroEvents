@@ -1,4 +1,4 @@
-// /src/seeds/seeds.js
+// /src/seeds/seedsEventos.js
 
 import "dotenv/config";
 import mongoose from "mongoose";
@@ -12,6 +12,7 @@ import { randomBytes as _randomBytes } from "crypto";
 import DbConnect from "../config/DbConnect";
 
 // Importação das Models
+import Usuario from "../models/Usuario";
 import Evento from "../models/Evento";
 
 //Mapeador
