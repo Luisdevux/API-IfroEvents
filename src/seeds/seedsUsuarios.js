@@ -1,3 +1,5 @@
+// /src/seeds/seedsUsuarios.js
+
 import "dotenv/config";
 import mongoose from "mongoose";
 
@@ -11,15 +13,14 @@ import DbConnect from "../config/DbConnect";
 
 // Importação das Models
 import Usuario from "../models/Usuario";
-import Evento from "../models/Evento";
 
 //Mapeador
 import globalFakeMapping from "./globalFakeMapping";
 
+
 // ----------------------------------------------------------------------------
 // 1) Conectar ao banco de dados
 // ----------------------------------------------------------------------------
-
 await DbConnect.conectar();
 
 // ----------------------------------------------------------------------------
@@ -27,10 +28,10 @@ await DbConnect.conectar();
 // ----------------------------------------------------------------------------
 
 async function seedUsuarios() {
-    // Remove todos os usuários antes de criar novos
+    // Remove antes de criar os usuários
     await Usuario.deleteMany();
 
-    const usuarioFixo = [
+    const usuariosFixos = [
         {
             matricula: "2024103070017",
             nome: "Deivid",
@@ -43,8 +44,8 @@ async function seedUsuarios() {
         }
     ];
 
-    await Usuario.collection.insertMany(usuarioFixo);
-    console.log(usuarioFixo.length + " Usuários fixos inseridos com sucesso!");
+    await Usuario.collection.insertMany(usuariosFixos);
+    console.log(usuariosFixos.length + " Usuários fixos inseridos com sucesso!");
 
     // Gera usuários aleatórios mantendo apenas os mesmos campos
     const usuariosAleatorios = [];
@@ -63,25 +64,4 @@ async function seedUsuarios() {
     return await Usuario.find(); // Retorna todos os usuários para uso no seed de eventos
 }
 
-// ----------------------------------------------------------------------------
-// 3) Execução final (ordem de chamada)
-// ----------------------------------------------------------------------------
-async function main() {
-    try {
-        // 1) Seed de usuários
-        const usuarios = await seedUsuarios();
-        
-        // 2) Seed de eventos (utilizando os usuários criados)
-        await seedEventos(usuarios);
-
-        console.log(">>>> SEED FINALIZADO COM SUCESSO! <<<<");
-    } catch (err) {
-        console.log("Erro ao executar SEED:", err);
-    } finally {
-        mongoose.connection.close();
-        process.exit(0);
-    }
-}
-
-// Função que executa tudo
-main();
+export default seedUsuarios;
