@@ -2,7 +2,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
+import { fileURLToPath, pathToFileURL } from 'url';
 
 // Obtém o diretório atual do arquivo
 const __filename = fileURLToPath(import.meta.url);
@@ -20,8 +20,9 @@ async function loadModels() {
     for (const file of files) {
         if (file.endsWith('.js')) {
             const modelPath = path.join(modelsDir, file);
+            const modelUrl = pathToFileURL(modelPath);
             // Importação dinâmica do módulo
-            const module = await import(modelPath);
+            const module = await import(modelUrl.href);
             // Considera que o model está exportado como default
             const model = module.default || module;
             // Usa o nome do arquivo (sem extensão) como identificador
