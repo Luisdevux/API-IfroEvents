@@ -3,8 +3,6 @@
 import "dotenv/config";
 import mongoose from "mongoose";
 
-import { faker } from "@faker-js/faker";
-
 // Depêndencias
 import { randomBytes as _randomBytes } from "crypto";
 
@@ -136,64 +134,30 @@ async function seedEventos(usuarios) {
     await Evento.collection.insertMany(eventosFixos);
     console.log(`${eventosFixos.length} Eventos fixos inseridos com sucesso!`);
 
+    // Const que recebe o mapeamento global para ser usado na criação dos eventos aleatórios
+    const mapping = await globalFakeMapping();
+
     // Gera eventos aleatórios
     const eventosAleatorios = [];
 
     for(let i = 0; i < 50; i++) {
-        const titulo = faker.company.catchPhrase();
-        const descricao = faker.lorem.sentence();
-        const local = faker.location.city();
-        const dataEvento = faker.date.future();
-        const eventoCriadoEm = faker.date.past();
-        const linkInscricao = faker.internet.url();
-        const tags = [faker.lorem.word(), faker.lorem.word()];
-        const categoria = faker.lorem.word();
-        const status = faker.helpers.arrayElement(['ativo', 'inativo']);
-        const midiaVideo = [
-            {
-                _id: new mongoose.Types.ObjectId(),
-                url: faker.internet.url() + "/" + _randomBytes(16).toString('hex') + ".mp4",
-                tamanhoMb: faker.number.float({ max: 25 }),
-                altura: 720,
-                largura: 1280,
-            },
-        ];
-        const midiaCapa = [
-            {
-                _id: new mongoose.Types.ObjectId(),
-                url: faker.internet.url() + "/" + _randomBytes(16).toString('hex') + ".jpg",
-                tamanhoMb: faker.number.float({ max: 25 }),
-                altura: 720,
-                largura: 1280,
-            },
-        ];
-        const midiaCarrossel = [
-            {
-                _id: new mongoose.Types.ObjectId(),
-                url: faker.internet.url() + "/" + _randomBytes(16).toString('hex') + ".jpg",
-                tamanhoMb: faker.number.float({ max: 25 }),
-                altura: 768,
-                largura: 1024,
-            },
-        ];
-
         eventosAleatorios.push({
-            titulo,
-            descricao,
-            local,
-            dataEvento,
+            titulo: mapping.titulo(),
+            descricao: mapping.descricao(),
+            local: mapping.local(),
+            dataEvento: mapping.dataEvento(),
             organizador: {
                 _id: usuarios[0]._id,
                 nome: usuarios[0].nome
             },
-            linkInscricao,
-            eventoCriadoEm,
-            tags,
-            categoria,
-            status,
-            midiaVideo,
-            midiaCapa,
-            midiaCarrossel,
+            linkInscricao: mapping.linkInscricao(),
+            eventoCriadoEm: mapping.eventoCriadoEm(),
+            tags: mapping.tags(),
+            categoria: mapping.categoria(),
+            status: mapping.status(),
+            midiaVideo: mapping.midiaVideo(),
+            midiaCapa: mapping.midiaCapa(),
+            midiaCarrossel: mapping.midiaCarrossel(),
         });
     };
 
