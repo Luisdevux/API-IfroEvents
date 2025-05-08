@@ -4,11 +4,11 @@ import "dotenv/config";
 import mongoose from "mongoose";
 
 // Conexão com o banco
-import DbConnect from "../config/DbConnect";
+import DbConnect from "../config/DbConnect.js";
 
 // Importação das seeds separadas
-import seedUsuarios from "./seedsUsuarios";
-import seedEventos from "./seedsEventos";
+import seedUsuarios from "./seedsUsuarios.js";
+import seedEventos from "./seedsEventos.js";
 
 
 // ----------------------------------------------------------------------------

@@ -9,14 +9,14 @@ import { faker } from "@faker-js/faker";
 import { randomBytes as _randomBytes } from "crypto";
 
 // Conexão com o banco
-import DbConnect from "../config/DbConnect";
+import DbConnect from "../config/DbConnect.js";
 
 // Importação das Models
-import Usuario from "../models/Usuario";
-import Evento from "../models/Evento";
+import Usuario from "../models/Usuario.js";
+import Evento from "../models/Evento.js";
 
 //Mapeador
-import globalFakeMapping from "./globalFakeMapping";
+import globalFakeMapping from "./globalFakeMapping.js";
 
 
 // ----------------------------------------------------------------------------
@@ -134,7 +134,7 @@ async function seedEventos(usuarios) {
     ];
 
     await Evento.collection.insertMany(eventosFixos);
-    console.log(eventosFixos.length + " Eventos fixos inseridos com sucesso!");
+    console.log(`${eventosFixos.length} Eventos fixos inseridos com sucesso!`);
 
     // Gera eventos aleatórios
     const eventosAleatorios = [];
@@ -198,7 +198,7 @@ async function seedEventos(usuarios) {
     };
 
     await Evento.collection.insertMany(eventosAleatorios);
-    console.log(eventosAleatorios.length + "Eventos aleatórios inseridos com sucesso!");
+    console.log(`${eventosAleatorios.length} Eventos aleatórios inseridos com sucesso!`);
 }
 
 export default seedEventos;

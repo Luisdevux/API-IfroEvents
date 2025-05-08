@@ -9,13 +9,13 @@ import { faker } from "@faker-js/faker";
 import { randomBytes as _randomBytes } from "crypto";
 
 // Conexão com o banco
-import DbConnect from "../config/DbConnect";
+import DbConnect from "../config/DbConnect.js";
 
 // Importação das Models
-import Usuario from "../models/Usuario";
+import Usuario from "../models/Usuario.js";
 
 //Mapeador
-import globalFakeMapping from "./globalFakeMapping";
+import globalFakeMapping from "./globalFakeMapping.js";
 
 
 // ----------------------------------------------------------------------------
@@ -45,7 +45,7 @@ async function seedUsuarios() {
     ];
 
     await Usuario.collection.insertMany(usuariosFixos);
-    console.log(usuariosFixos.length + " Usuários fixos inseridos com sucesso!");
+    console.log(`${usuariosFixos.length} Usuários fixos inseridos com sucesso!`);
 
     // Gera usuários aleatórios mantendo apenas os mesmos campos
     const usuariosAleatorios = [];
@@ -59,7 +59,7 @@ async function seedUsuarios() {
     }
 
     await Usuario.collection.insertMany(usuariosAleatorios);
-    console.log(usuariosAleatorios.length + " Usuários aleatórios inseridos com sucesso!");
+    console.log(`${usuariosAleatorios.length} Usuários aleatórios inseridos com sucesso!`);
 
     return await Usuario.find(); // Retorna todos os usuários para uso no seed de eventos
 }
