@@ -46,15 +46,17 @@ async function seedUsuarios() {
 
     await Usuario.collection.insertMany(usuariosFixos);
     console.log(`${usuariosFixos.length} Usuários fixos inseridos com sucesso!`);
+   // Const que recebe o mapeamento global para ser usado na criação dos usuarios aleatórios
+   const mapping = await globalFakeMapping();
 
     // Gera usuários aleatórios mantendo apenas os mesmos campos
     const usuariosAleatorios = [];
 
     for (let i = 0; i < 20; i++) {
         usuariosAleatorios.push({
-            matricula: `2024${faker.number.int({ min: 1000, max: 9999 })}${faker.number.int({ min: 1000, max: 9999 })}`,
-            nome: faker.person.fullName(),
-            senha: _randomBytes(8).toString('hex')
+            matricula: mapping.matricula(),
+            nome: mapping.nome(),
+            senha: mapping.senha()
         });
     }
 
