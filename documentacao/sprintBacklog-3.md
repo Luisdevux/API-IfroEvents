@@ -10,5 +10,3 @@
 - Criação do arquivo de carregamento das models para as seeds (Luis)
 - Criação da seed de evento (Luis)
 - Criação da seed de usuario (Deivid)
-- Criação das validações zod (Luis, Deivid, Kauã)
-- Verificar consistência entre documentação de rotas e código (Luis, Deivid, Kauã)

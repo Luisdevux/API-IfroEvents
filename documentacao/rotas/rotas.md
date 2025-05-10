@@ -146,7 +146,7 @@
 - Mídia associada ao evento.
 - Retorno com dados da mídia cadastrada.
 - Em caso de falha, retornar mensagem de erro.
-- Imagens fora do padrão serão rejeitadas automaticamente pela API com mensagem de erro.
+- Mídias fora do padrão serão rejeitadas automaticamente pela API com mensagem de erro.
 
 ---
 
@@ -212,7 +212,7 @@
 
 ---
 
-## Considerações Finais
+## Considerações Técnicas e Finais
 
 - **Totem:** acesso público, sem interações administrativas de manipulação.
 - **Painel:** acesso restrito, com autenticação obrigatória.
