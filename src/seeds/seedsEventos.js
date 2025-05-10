@@ -86,8 +86,8 @@ async function seedEventos(usuarios) {
             local: "Quadra Poliesportiva",
             dataEvento: new Date("2025-05-15"),
             organizador: {
-                _id: usuarios[0]._id,
-                nome: usuarios[0].nome
+                _id: usuarios[1]._id,
+                nome: usuarios[1].nome
             },
             linkInscricao: "https://forms.gle/exemplo",
             eventoCriadoEm: new Date(),
@@ -147,8 +147,8 @@ async function seedEventos(usuarios) {
             local: mapping.local(),
             dataEvento: mapping.dataEvento(),
             organizador: {
-                _id: usuarios[0]._id,
-                nome: usuarios[0].nome
+                _id: usuarios[i]._id,
+                nome: usuarios[i].nome
             },
             linkInscricao: mapping.linkInscricao(),
             eventoCriadoEm: mapping.eventoCriadoEm(),

@@ -1,9 +1,6 @@
 // /src/seeds/seedsUsuarios.js
 
 import "dotenv/config";
-import mongoose from "mongoose";
-
-import { faker } from "@faker-js/faker";
 
 // Depêndencias
 import { randomBytes as _randomBytes } from "crypto";
@@ -46,13 +43,14 @@ async function seedUsuarios() {
 
     await Usuario.collection.insertMany(usuariosFixos);
     console.log(`${usuariosFixos.length} Usuários fixos inseridos com sucesso!`);
-   // Const que recebe o mapeamento global para ser usado na criação dos usuarios aleatórios
-   const mapping = await globalFakeMapping();
+
+    // Const que recebe o mapeamento global para ser usado na criação dos usuarios aleatórios
+    const mapping = await globalFakeMapping();
 
     // Gera usuários aleatórios mantendo apenas os mesmos campos
     const usuariosAleatorios = [];
 
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < 50; i++) {
         usuariosAleatorios.push({
             matricula: mapping.matricula(),
             nome: mapping.nome(),

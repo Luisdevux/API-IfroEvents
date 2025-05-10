@@ -15,13 +15,13 @@ const fakeMappings = {
     // Mapping específico para o model Usuario
 
     Usuario: {
-        matricula: () => faker.random.numeric(13),
+        matricula: () => `${new Date().getFullYear()}${1030700}${faker.number.int({ min: 1, max: 40 })}`,
         nome: () =>
-        faker.firstName() +
+        faker.person.firstName() +
         " " +
-        faker.lastName() +
+        faker.person.lastName() +
         " " +
-        faker.lastName(),
+        faker.person.lastName(),
         senha: () => faker.internet.password(),
     },
 

@@ -24,7 +24,6 @@
     "mongodb": "^6.15.0",
     "mongoose": "^8.13.2",
     "mongoose-paginate-v2": "^1.9.0",
-    "primeiraapi": "file:",
     "uuid": "^11.1.0"
   },
   "devDependencies": {
