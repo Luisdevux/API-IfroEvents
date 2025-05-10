@@ -50,7 +50,7 @@ async function seedUsuarios() {
     // Gera usuários aleatórios mantendo apenas os mesmos campos
     const usuariosAleatorios = [];
 
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < 50; i++) {
         usuariosAleatorios.push({
             matricula: mapping.matricula(),
             nome: mapping.nome(),
