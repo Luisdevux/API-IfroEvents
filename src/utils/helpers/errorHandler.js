@@ -3,12 +3,8 @@
 import { ZodError } from 'zod';
 import logger from '../logger.js';
 import CommonResponse from './CommonResponse.js';
-import StatusService from './StatusService.js';
 import { v4 as uuidv4 } from 'uuid';
 import mongoose from 'mongoose';
-import AuthenticationError from '../errors/AuthenticationError.js';
-import TokenExpiredError from '../errors/TokenExpiredError.js';
-import CustomError from './CustomError.js';
 
 /**
  * Middleware para tratamento centralizado de erros.
@@ -59,32 +55,6 @@ const errorHandler = (err, req, res, next) => {
     const detalhes = Object.values(err.errors).map(e => ({ path: e.path, message: e.message }));
     logger.warn('Erro de validação do Mongoose', { details: detalhes, path: req.path, requestId });
     return CommonResponse.error(res, 400, 'validationError', null, detalhes);
-  }
-
-  // Tratamento para erros de autenticação customizados (AuthenticationError e TokenExpiredError)
-  if (err instanceof AuthenticationError || err instanceof TokenExpiredError) {
-    logger.warn('Erro de autenticação', { message: err.message, path: req.path, requestId });
-    return CommonResponse.error(
-      res,
-      err.statusCode,
-      'authenticationError',
-      null,
-      [{ message: err.message }],
-      err.message
-    );
-  }
-
-  // Tratamento específico para CustomError com errorType 'tokenExpired'
-  if (err instanceof CustomError && err.errorType === 'tokenExpired') {
-    logger.warn('Erro de token expirado', { message: err.message, path: req.path, requestId });
-    return CommonResponse.error(
-      res,
-      err.statusCode || 401,
-      'tokenExpired',
-      null,
-      [{ message: err.customMessage || 'Token expirado.' }],
-      err.customMessage || 'Token expirado. Por favor, faça login novamente.'
-    );
   }
 
   // Tratamento para erros operacionais (erros esperados na aplicação)
