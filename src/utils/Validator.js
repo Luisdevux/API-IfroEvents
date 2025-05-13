@@ -1,3 +1,5 @@
+// src/utils/Validator.js
+
 import i18n from '../config/i18nConfig.js';
 
 class Validator {
@@ -90,8 +92,63 @@ class Validator {
                 { campoNome }
             );
     }
+
+    validarMatricula(matricula, campoNome = 'Matrícula') {
+        return this._validar(
+            () => !/^\d{13}$/.test(matricula),
+            'invalidMatricula',
+            { campoNome }
+        );
+    }
     
-    // Continue adaptando os demais métodos seguindo o mesmo padrão...
+    validarDataFutura(data, campoNome) {
+        return this._validar(
+            () => new Date(data) <= new Date(),
+            'dateMustFuture',
+            { campoNome }
+        );
+    }
+
+    validarURL(url, campoNome) {
+        const urlRegex = /^(http|https):\/\/[^ "]+$/;
+        return this._validar(
+            () => typeof url !== 'string' || urlRegex.test(url),
+            'invalidURL',
+            { campoNome }
+        );
+    }
+
+    validarTamanhoArquivo(valor, max, campoNome) {
+        return this._validar(
+            () => isNaN(valor) || valor > max,
+            'maxFileSize',
+            { campoNome, max }
+        );
+    }
+
+    validarResolucao(altura, largura, alturaEsperada, larguraEsperada, campoNome) {
+        return this._validar(
+            () => altura != alturaEsperada || largura != larguraEsperada,
+            'invalidResolution',
+            { campoNome, alturaEsperada, larguraEsperada }
+        );
+    }
+
+    validarCategoria(valor, categoriasValidas, campoNome) {
+        return this._validar(
+            () => !categoriasValidas.includes(valor),
+            'invalidCategory',
+            { campoNome }
+        );
+    }
+
+    validarArrayNaoVazio(array, campoNome) {
+        return this._validar(
+            () => !Array.isArray(array) || array.length === 0,
+            'arrayNotEmpty',
+            { campoNome }
+        );
+    }
 
     // Método para validar e retornar a primeira mensagem de erro encontrada
     validar() {

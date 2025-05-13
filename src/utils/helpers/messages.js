@@ -93,6 +93,26 @@ const messages = {
         emailAlreadyExists: (email) => `O endereço de email ${email} já está em uso.`,
         invalidCredentials: "Credenciais inválidas. Verifique seu usuário e senha.",
     },
+
+    // Mensagem de Usuário
+    user: {
+        notFound: "Usuário não encontrado.",
+        alreadRegistered: "Usuário já cadastrado com esta matrícula.",
+        unauthorized: "Apenas usuários autenticados podem executar esta ação."
+    },
+
+    // Mensagem de Evento
+    event: {
+        notFound: "Evento não encontrado.",
+        mediaNotAccepted: "Mídia enviada não atende aos requisitos de tamanho ou resolução."
+    },
+
+    // Mensagem de Arquivo/Mída
+    file: {
+        invalidFormat: "Formato de arquivo não suportado.",
+        tooLarge: "O arquivo excede o limite de 25MB.",
+        resolutionMismatch: "Resolução da imagem não corresponde ao padrão esperado."
+    }
 };
 
 export default messages;
