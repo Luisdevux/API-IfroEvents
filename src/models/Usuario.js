@@ -6,7 +6,7 @@ class Usuario {
     constructor() {
         const usuarioSchema = new mongoose.Schema(
             {
-                matricula: { type: Number, index: true, required: true},
+                matricula: { type: String, index: true, required: true},
                 nome: { type: String, index: true, required: true },
                 senha: { type: String, required: true },
             },
