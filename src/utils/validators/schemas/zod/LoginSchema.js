@@ -9,16 +9,8 @@ import { z } from 'zod';
 const senhaRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d@$!%*?&]{8,}$/;
 
 const LoginSchema = z.object({
-    matricula: z.number(!/^\d{13}$/),
-    senha: z
-        .string()
-        .min(8, 'A senha deve ter pelo menos 8 caracteres.')
-        .refine((senha) => {
-            if (!senha) return true;
-            return senhaRegex.test(senha);
-        }, {
-            message: 'A senha deve conter pelo menos 1 letra maiúscula, 1 letra minúscula, 1 número e no mínimo 8 caracteres.',
-        }),
+    matricula: z.string().regex(/^\d{13}$/, 'Matrícula inválida!'),
+    senha: z.string().min(8, 'A senha deve ter pelo menos 8 caracteres.').regex(senhaRegex, 'A senha deve conter pelo menos 1 letra maiúscula, 1 letra minúscula, 1 número e no mínimo 8 caracteres.'),
 });
 
 export { LoginSchema };
