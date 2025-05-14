@@ -13,7 +13,7 @@ class Evento {
                 local: { type: String, required: true },
                 dataEvento: { type: Date, required: true },
                 organizador: {
-                    id: {
+                    _id: {
                         type: mongoose.Schema.Types.ObjectId,
                         ref: 'usuarios',
                         required: true,
