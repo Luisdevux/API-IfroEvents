@@ -1,24 +1,14 @@
 // src/routes/index.js
 
+// Bibliotecas
 import express from "express";
-import swaggerJsDoc from "swagger-jsdoc";
-import swaggerUI from "swagger-ui-express";
-import getSwaggerOptions from "../docs/config/head.js";
+// import swaggerJsDoc from "swagger-jsdoc";
+// import swaggerUI from "swagger-ui-express";
+// import getSwaggerOptions from "../docs/config/head.js";
 import logRoutes from "../middlewares/LogRoutesMiddleware.js";
 
-// import usuarios from './usuarioRoutes.js';
-// import grupos from './grupoRoutes.js';
-// import rotas from './rotaRoutes.js';
-// import unidades from './unidadeRoutes.js';
-// import auth from './authRoutes.js';
-
-// import cursos from "./cursoRoutes.js";
-// import turmas from "./turmaRoutes.js";
-// import estudantes from "./estudanteRoutes.js";
-// import projetos from "./projetoRoutes.js";
-// import estagios from "./estagioRoutes.js";
-// import refeicaoTurmas from "./refeicaoTurmaRoutes.js";
-// import refeicoes from "./refeicoesRoutes.js";
+// routes
+import eventoRoutes from "./eventoRoutes.js";
 
 import dotenv from "dotenv";
 
@@ -34,26 +24,16 @@ const routes = (app) => {
     }
     );
 
-    const swaggerDocs = swaggerJsDoc(getSwaggerOptions());
-    app.use(swaggerUI.serve);
-    app.get("/docs", (req, res, next) => {
-        swaggerUI.setup(swaggerDocs)(req, res, next);
-    });
+    // const swaggerDocs = swaggerJsDoc(getSwaggerOptions());
+    // app.use(swaggerUI.serve);
+    // app.get("/docs", (req, res, next) => {
+    //     swaggerUI.setup(swaggerDocs)(req, res, next);
+    // });
 
     app.use(express.json(),
-        auth, 
-        usuarios,
-        grupos,
-        rotas,
-        unidades,
-        
-        cursos,
-        turmas,
-        estudantes,
-        projetos,
-        estagios,
-        refeicaoTurmas,
-        refeicoes
+        // auth, 
+        // usuariosRoutes,
+        eventoRoutes,
     );
 
     // Se não é nenhuma rota válida, produz 404
