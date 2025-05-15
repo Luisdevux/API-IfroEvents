@@ -13,27 +13,33 @@ class EventoRepository {
         this.usuarioModel = usuarioModel;
     }
 
+    // POST /eventos
+    async cadastrar(dadosEventos) {
+        const evento = new this.model(dadosEventos);
+        return await evento.save();
+    }
+
+    // GET /eventos
     async listar(req) {
-        console.log('Estou no listar em UsuarioRepository');
-        const id = req.params.id || null;
-
-        if(id) {
-            const data = await this.model.findById(id)
-                .populate('usuarios');
-            
-            if(!data) {
-                throw new CustomError({
-                    statusCode: 404,
-                    errorType: 'resourceNotFound',
-                    field: 'Evento',
-                    details: [],
-                    customMessage: messages.error.resourceNotFound('Evento')
-                });
-            }
-            return data;
-        }
-
+        console.log('Estou no listar em UsuarioRepository...');
         const data = await this.model.find();
+        return data;
+    }
+
+    // GET /eventos/:id
+    async listarPorId(id) {
+        console.log('Estou no listar por ID em UsuarioRepository...', id);
+        const data = await this.model.findById(id);
+
+        if (!data) {
+            throw new CustomError({
+                statusCode: 404,
+                errorType: 'resourceNotFound',
+                field: 'Evento',
+                details: [],
+                customMessage: messages.error.resourceNotFound('Evento')
+            });
+        }
 
         return data;
     }

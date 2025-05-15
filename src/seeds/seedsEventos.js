@@ -82,7 +82,7 @@ async function seedEventos(usuarios) {
         },
         {
             titulo: "Semana de Interclasse Ifro",
-            descrição: "Semana de Interclasse do Ifro, com competições e atividades esportivas.",
+            descricao: "Semana de Interclasse do Ifro, com competições e atividades esportivas.",
             local: "Quadra Poliesportiva",
             dataEvento: new Date("2025-05-15"),
             organizador: {

@@ -19,11 +19,29 @@ class EventoController {
         this.service = new EventoService();
     }
 
-    async cadastrar() {
-        console.log("Estou no cadastrar eventos!");
+    // POST /eventos
+    async cadastrar(req, res) {
+        try {
+            const usuarioSimulado = {
+                _id: "682520e98e38a409ac2ac569",
+                nome: "Usuário Teste"
+            };
+
+            const dadosEvento = {
+                ...req.body,
+                organizador: {
+                    _id: usuarioSimulado._id,
+                    nome: usuarioSimulado.nome
+                }
+            };
+            const data = await this.service.cadastrar(dadosEvento);
+            return CommonResponse.success(res, data);
+        } catch (error) {
+            return CommonResponse.error(res, error);
+        }
     }
 
-    //Teste... Revisar Bem
+    // GET /eventos && GET /eventos/:id
     async listar(req, res) {
         console.log("Estou no listar eventos!");
 
@@ -32,17 +50,17 @@ class EventoController {
         if(id) {
             objectIdSchema.parse(id);
 
-            const evento = await this.service.listar(id);
+            const data = await this.service.listar(id);
 
-            if(!evento) {
+            if(!data) {
                 throw new CustomError(messages.event.notFound(), HttpStatusCodes.NOT_FOUND);
             }
 
-            return CommonResponse.success(res, evento);
+            return CommonResponse.success(res, data);
         }
 
-        const eventos = await this.service.listar(req);
-        return CommonResponse.success(res, eventos);
+        const data = await this.service.listar(req);
+        return CommonResponse.success(res, data);
 
     }
 }
