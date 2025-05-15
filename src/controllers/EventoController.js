@@ -34,7 +34,8 @@ class EventoController {
                     nome: usuarioSimulado.nome
                 }
             };
-            const data = await this.service.cadastrar(dadosEvento);
+            const parseData = EventoSchema.parse(dadosEvento);
+            const data = await this.service.cadastrar(parseData);
             return CommonResponse.success(res, data);
         } catch (error) {
             return CommonResponse.error(res, error);
