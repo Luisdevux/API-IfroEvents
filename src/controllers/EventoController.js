@@ -22,6 +22,7 @@ class EventoController {
     // POST /eventos
     async cadastrar(req, res) {
         try {
+            // TODO: Substituir por autenticação real em quando implementada
             const usuarioSimulado = {
                 _id: "682520e98e38a409ac2ac569",
                 nome: "Usuário Teste"
