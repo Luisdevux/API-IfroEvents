@@ -13,6 +13,6 @@ router
     .post("/eventos/", asyncWrapper(eventoController.cadastrar.bind(eventoController)))
     .get("/eventos/", asyncWrapper(eventoController.listar.bind(eventoController)))
     .get("/eventos/:id", asyncWrapper(eventoController.listar.bind(eventoController)))
-    .delete("/eventos/:id", asyncWrapper(eventoController.deletar))
+    .delete("/eventos/:id", asyncWrapper(eventoController.deletar.bind(eventoController)))
 
 export default router;

@@ -26,6 +26,10 @@ class EventoService {
 
         return await this.repository.listar();
     }
+
+    async deletar(req) {
+        
+    }
 }
 
 export default EventoService;

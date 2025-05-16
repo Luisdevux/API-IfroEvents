@@ -36,7 +36,7 @@ class EventoController {
             };
             const parseData = EventoSchema.parse(dadosEvento);
             const data = await this.service.cadastrar(parseData);
-            return CommonResponse.success(res, data);
+            return CommonResponse.created(res, data);
         } catch (error) {
             return CommonResponse.error(res, error);
         }
@@ -44,8 +44,6 @@ class EventoController {
 
     // GET /eventos && GET /eventos/:id
     async listar(req, res) {
-        console.log("Estou no listar eventos!");
-
         const { id } = req.params;
 
         if(id) {
@@ -63,6 +61,26 @@ class EventoController {
         const data = await this.service.listar(req);
         return CommonResponse.success(res, data);
 
+    }
+
+    // DELETE /eventos/:id
+    async deletar(req, res) {
+        const { id } = req.params || {};
+
+        if(!id) {
+            throw new CustomError({
+                statusCode: HttpStatusCodes.BAD_REQUEST.code,
+                errorType: 'validationError',
+                field: 'id',
+                details: [],
+                customMessage: 'ID do evento é obrigatório para deletar.'
+            });
+        }
+
+        objectIdSchema.parse(id);
+        
+        const data = await this.service.deletar(id);
+        return CommonResponse.success(res, data, 200, 'Evento excluído com sucesso.');
     }
 }
 
