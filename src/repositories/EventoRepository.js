@@ -20,15 +20,13 @@ class EventoRepository {
     }
 
     // GET /eventos
-    async listar(req) {
-        console.log('Estou no listar em UsuarioRepository...');
+    async listar() {
         const data = await this.model.find();
         return data;
     }
 
     // GET /eventos/:id
     async listarPorId(id) {
-        console.log('Estou no listar por ID em UsuarioRepository...', id);
         const data = await this.model.findById(id);
 
         if (!data) {
@@ -42,6 +40,12 @@ class EventoRepository {
         }
 
         return data;
+    }
+
+    // DELETE /eventos/:id
+    async deletar(id) {
+        const evento = await this.model.findByIdAndDelete(id);
+        return evento;
     }
 }
 
