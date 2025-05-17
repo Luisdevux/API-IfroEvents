@@ -3,6 +3,7 @@
 import UsuarioModel from '../models/Usuario.js';
 import EventoModel from '../models/Evento.js';
 import { CommonResponse, CustomError, HttpStatusCodes, errorHandler, messages, StatusService, asyncWrapper } from '../utils/helpers/index.js';
+import { populate } from 'dotenv';
 
 class EventoRepository {
     constructor({
@@ -40,6 +41,22 @@ class EventoRepository {
         }
 
         return data;
+    }
+
+    // PATCH /eventos/:id
+    async alterar(id, parsedData) {
+        const evento = await this.model.findByIdAndUpdate(id, parsedData, { new: true })
+        
+        if(!evento) {
+            throw new CustomError({
+                statusCode: 404,
+                errorType: 'resourceNotFound',
+                field: 'Evento',
+                details: [],
+                customMessage: messages.error.resourceNotFound('Evento')
+            });
+        }
+        return evento;
     }
 
     // DELETE /eventos/:id

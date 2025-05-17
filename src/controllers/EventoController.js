@@ -64,6 +64,18 @@ class EventoController {
 
     }
 
+    //PATCH /eventos/:id
+    async alterar(req, res) {
+        const { id } = req.params;
+        objectIdSchema.parse(id);
+
+        const parsedData = EventoUpdateSchema.parse(req.body);
+
+        const data = await this.service.alterar(id, parsedData);
+
+        return CommonResponse.success(res, data, 200, 'Evento atualizado com sucesso.');
+    }
+
     // DELETE /eventos/:id
     async deletar(req, res) {
         const { id } = req.params || {};

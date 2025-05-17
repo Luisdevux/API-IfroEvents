@@ -25,6 +25,15 @@ class EventoService {
         return await this.repository.listar();
     }
 
+    // PATCH /eventos/:id
+    async alterar(id, parsedData) {
+        await this.ensureEventExists(id);
+
+        const data = await this.repository.alterar(id, parsedData);
+        return data;
+    }
+
+    // DELETE /eventos/:id
     async deletar(id) {
         await this.ensureEventExists(id);
         
