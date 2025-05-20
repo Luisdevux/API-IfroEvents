@@ -10,7 +10,7 @@ const senhaRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*
 
 //Schema de Validação de Usuário
 const UsuarioSchema = z.object({
-  matricula: z.string().regex(/^\d{13}$/, 'Matrícula inválida!'),
+  matricula: z.string().regex(/^\d+$/, 'Matrícula inválida!').max(13),
   nome: z.string().min(1, 'Campo nome é obrigatório.'),
   senha: z.string().min(8, 'A senha deve ter pelo menos 8 caracteres.').regex(senhaRegex, 'A senha deve conter pelo menos 1 letra maiúscula, 1 letra minúscula, 1 número e no mínimo 8 caracteres.')
 });
