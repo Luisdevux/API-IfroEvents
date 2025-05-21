@@ -16,7 +16,7 @@ const EventoSchema = z.object({
     titulo: z.string().min(1, 'Campo Nome é obrigatório'),
     descricao: z.string().min(1, 'Campo descrição é obrigatório'),
     local: z.string().min(1, 'Campo local é obrigatório'),
-    dataEvento: z.date({ required_error: 'Campo data é obrigatório' }),
+    dataEvento: z.coerce.date({ required_error: 'Campo data é obrigatório' }),
     organizador: z.object({
         _id: objectIdSchema,
         nome: z.string().min(1)
