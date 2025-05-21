@@ -20,6 +20,11 @@ router
     .delete("/eventos/:id", asyncWrapper(eventoController.deletar.bind(eventoController)))
 
     // Rotas Adicionais (Mídias)
-    .post('/eventos/:id/midia/:tipo', upload.single('arquivo'), asyncWrapper(uploadController.uploadMidia.bind(uploadController)))
+    .post("/eventos/:id/midia/:tipo", upload.single('file'), asyncWrapper(uploadController.adicionarMidia.bind(uploadController)))
+    .get("/eventos/:id/midias", asyncWrapper(uploadController.listarTodasMidias.bind(uploadController)))
+    .get("/eventos/:id/midia/capa", asyncWrapper(uploadController.listarMidiaCapa.bind(uploadController)))
+    .get("/eventos/:id/midia/video", asyncWrapper(uploadController.listarMidiaVideo.bind(uploadController)))
+    .get("/eventos/:id/midia/carrossel", asyncWrapper(uploadController.listarMidiaCarrossel.bind(uploadController)))
+    .delete("/eventos/:id/midia/:tipo/:id", asyncWrapper(uploadController.deletarMidia.bind(uploadController)))
 
 export default router;

@@ -17,8 +17,8 @@ class UploadController {
     }
 
     // POST /eventos/:id/midia/:tipo
-    async uploadMidia(req, res) {
-        const { id: eventoId, tipo } = req.params;
+    async adicionarMidia(req, res) {
+        const { id: eventoId } = req.params;
         const file = req.file;
 
         if(!file) {
@@ -30,9 +30,54 @@ class UploadController {
             });
         }
 
-        const midia = await this.service.salvarMidia(eventoId, tipo, file);
+        const midia = await this.service.adicionarMidia(eventoId, tipo, file);
 
-        return CommonResponse.success(res, midia, 201, `Midia (${tipo}) salva com sucesso.`);
+        return CommonResponse.created(res, midia, `Midia (${tipo}) salva com sucesso.`);
+    }
+
+    // GET /eventos/:id/midias
+    async listarTodasMidias(req, res) {
+        const { id: eventoId } = req.params;
+
+        const midias = await this.service.listarTodasMidias(eventoId);
+
+        return CommonResponse.success(res, midias, 200, `Mídias do evento retornadas com sucesso.`);
+    }
+
+    // GET /eventos/:id/midia/capa
+    async listarMidiaCapa(req, res) {
+        const { id: eventoId } = req.params;
+
+        const capa = await this.service.listarMidiaCapa(eventoId);
+
+        return CommonResponse.success(res, capa, 200, `Capa do evento retornada com sucesso.`);
+    }
+
+    // GET /eventos/:id/midia/video
+    async listarMidiaVideo(req, res) {
+        const { id: eventoId } = req.params;
+
+        const video = await this.service.listarMidiaVideo(eventoId);
+
+        return CommonResponse.success(res, video, 200, `Video do evento retornada com sucesso.`);
+    }
+
+    // GET /eventos/:id/midia/carrossel
+    async listarMidiaCarrossel(req, res) {
+        const { id: eventoId } = req.params;
+
+        const carrossel = await this.service.listarMidiaCarrossel(eventoId);
+
+        return CommonResponse.success(res, carrossel, 200, `Carrossel do evento retornada com sucesso.`);
+    }
+
+    //DELETE /eventos/:id/midia/:tipo/:id
+    async deletarMidia(req, res) {
+        const { eventoId, tipo, midiaId } = req.params;
+
+        const evento = await this.service.deletarMidia(eventoId, tipo, midiaId);
+
+        return CommonResponse.success(res, evento, 200, `Midia '${tipo}' do evento deletada com sucesso.`);
     }
 }
 

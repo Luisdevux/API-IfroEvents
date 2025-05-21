@@ -13,7 +13,8 @@ class UploadService {
         this.repository = new UploadRepository();
     }
 
-    async salvarMidia(eventoId, tipo, file) {
+    // POST /eventos/:id/midia/:tipo
+    async adicionarMidia(eventoId, tipo, file) {
         objectIdSchema.parse(eventoId);
         
         const filePath = path.resolve(`uploads/${tipo}/${file.filename}`);
@@ -42,6 +43,56 @@ class UploadService {
         };
 
         return await this.repository.adicionarMidia(eventoId, tipo, midia);
+    }
+
+    // GET /eventos/:id/midias
+    async listarTodasMidias(eventoId) {
+        objectIdSchema.parse(eventoId);
+
+        const evento = await this.repository.listarTodasMidias(eventoId);
+
+        return {
+            capa: evento.midiaCapa,
+            carrossel: evento.midiaCarrossel,
+            video: evento.midiaVideo
+        };
+    }
+
+    // GET /eventos/:id/midia/capa
+    async listarMidiaCapa(eventoId) {
+        objectIdSchema.parse(eventoId);
+
+        const evento = await this.repository.listarMidiaCapa(eventoId);
+
+        return { capa: evento.midiaCapa };
+    }
+
+    // GET /eventos/:id/midia/video
+    async listarMidiaVideo(eventoId) {
+        objectIdSchema.parse(eventoId);
+
+        const evento = await this.repository.listarMidiaVideo(eventoId);
+
+        return { video: evento.midiaVideo };
+    }
+    
+    // GET /eventos/:id/midia/carrossel
+    async listarMidiaCarrossel(eventoId) {
+        objectIdSchema.parse(eventoId);
+
+        const evento = await this.repository.listarMidiaCarrossel(eventoId);
+
+        return { carrossel: evento.midiaCarrossel };
+    }
+
+    //DELETE /eventos/:id/midia/:tipo/:id
+    async deletarMidia(eventoId, tipo, midiaId) {
+        objectIdSchema.parse(eventoId);
+        objectIdSchema.parse(midiaId)
+
+        const evento = await this.repository.deletarMidia(eventoId, tipo, midiaId);
+
+        return evento;
     }
 
 }

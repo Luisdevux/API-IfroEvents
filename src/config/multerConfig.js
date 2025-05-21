@@ -5,9 +5,9 @@ import fs from "fs";
 
 // Define os tipos de mídias aceitos e seus respectivos dirtórios
 const tiposDiretorios = {
-  capa: 'uploads/capas',
+  capa: 'uploads/capa',
   carrossel: 'uploads/carrossel',
-  video: 'uploads/videos',
+  video: 'uploads/video',
 }
 
 // Define as extensões permitidas por tipo
