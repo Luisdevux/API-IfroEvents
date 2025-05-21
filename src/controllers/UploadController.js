@@ -18,7 +18,7 @@ class UploadController {
 
     // POST /eventos/:id/midia/:tipo
     async adicionarMidia(req, res) {
-        const { id: eventoId } = req.params;
+        const { eventoId, tipo, midiaId } = req.params;
         const file = req.file;
 
         if(!file) {

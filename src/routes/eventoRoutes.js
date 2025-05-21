@@ -25,6 +25,6 @@ router
     .get("/eventos/:id/midia/capa", asyncWrapper(uploadController.listarMidiaCapa.bind(uploadController)))
     .get("/eventos/:id/midia/video", asyncWrapper(uploadController.listarMidiaVideo.bind(uploadController)))
     .get("/eventos/:id/midia/carrossel", asyncWrapper(uploadController.listarMidiaCarrossel.bind(uploadController)))
-    .delete("/eventos/:id/midia/:tipo/:id", asyncWrapper(uploadController.deletarMidia.bind(uploadController)))
+    .delete("/eventos/:eventoId/midia/:tipo/:midiaId", asyncWrapper(uploadController.deletarMidia.bind(uploadController)))
 
 export default router;

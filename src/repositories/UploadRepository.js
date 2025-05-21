@@ -1,5 +1,7 @@
 // src/repositories/UploadRepository.js
 
+import path from "path";
+import fs from "fs";
 import EventoModel from "../models/Evento.js";
 import { CommonResponse, CustomError, HttpStatusCodes, errorHandler, messages, StatusService, asyncWrapper } from '../utils/helpers/index.js';
 
@@ -150,8 +152,9 @@ class UploadRepository {
 
         const midiaRemovida = midias[midiaIndex];
 
-        if(midiaRemovida.url && fs.existsSync(`.${midiaRemovida.url}`)) {
-            fs.unlinkSync(`.${midiaRemovida.url}`);
+        const filePath = path.resolve(`.${midiaRemovida.url}`);
+        if(fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
         }
 
         midias.splice(midiaIndex, 1);
