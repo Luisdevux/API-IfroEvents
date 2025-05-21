@@ -5,5 +5,7 @@
 - Tarefas:
 - Revisar código e regras implementadas ()
 - Atualizar documentação das rotas ()
+- Criar cenários de teste baseados nas regras de negócio ()
+- Implementar testes unitários para fluxos principais ()
 - Criar e exportar gráficos de commits e branches ()
 - Preparar fluxo de apresentação no Postman ()
