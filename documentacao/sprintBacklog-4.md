@@ -3,10 +3,9 @@
 ## Início 11/05/2025 - Término 21/05/2025
 
 - Tarefas:
-- Implementar CRUD de Usuário ()
-- Implementar CRUD de Evento ()
-- Aplicar regras de negócio nas rotas ()
+- Implementar CRUD de Usuário (Deivid, Kauã)
+- Implementar CRUD de Evento (Luis)
+- Implementar CRUD das Mídias (Luis)
+- Aplicar regras de negócio nas rotas (Luis, Deivid, Kauã)
 - Verificar consistência entre documentação de rotas e código (Luis, Deivid, Kauã)
-- Criar cenários de teste baseados nas regras de negócio ()
-- Implementar testes unitários para fluxos principais ()
-- Validar fluxos principais com Postman ()
+- Validar fluxos principais com Postman (Luis)
