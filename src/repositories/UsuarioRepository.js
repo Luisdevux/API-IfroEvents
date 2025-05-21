@@ -9,8 +9,8 @@ class UsuarioRepository {
     }
 
     async listarPorId(id) {
-        const usuario = await this.model.findById(id)
-
+        const usuario = await this.model.findById(id);
+    
         if (!usuario) {
             throw new CustomError({
                 statusCode: 404,
@@ -20,9 +20,11 @@ class UsuarioRepository {
                 customMessage: messages.error.resourceNotFound('Usuário')
             });
         }
+    
+        return usuario;
     }
 
-    // POST /usuarios
+    // POST /usuarios/:id
     async cadastrar(dadosUsuario) {
         const usuario = new this.model(dadosUsuario);
         return await usuario.save();
@@ -30,7 +32,7 @@ class UsuarioRepository {
 
 
     //PATH /usuarios
-    async atualizar(id, parsedData) {
+    async alterar(id, parsedData) {
         const usuario = await this.model.findByIdAndUpdate(id, parsedData, { new: true })
 
         if (!usuario) {
