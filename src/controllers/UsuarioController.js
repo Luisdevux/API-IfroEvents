@@ -1,7 +1,7 @@
-// src/controllers/UsuarooController.js
+// src/controllers/UsuarioController.js
 
-import EventoService from '../services/UsuarioService.js';
-import { EventoSchema, EventoUpdateSchema } from '../utils/validators/schemas/zod/UsuarioSchema.js'
+import UsuarioService from '../services/UsuarioService.js';
+import { UsuarioSchema, UsuarioUpdateSchema } from '../utils/validators/schemas/zod/UsuarioSchema.js';
 import objectIdSchema from '../utils/validators/schemas/zod/ObjectIdSchema.js';
 import {
     CommonResponse,
@@ -12,76 +12,73 @@ import {
     StatusService,
     asyncWrapper
 } from '../utils/helpers/index.js';
-
-
   
-  import { UsuarioIdSchema } from '../utils/validators/schemas/zod/querys/UsuarioQuerySchema.js';
   
-  import UsuarioService from '../services/UsuarioService.js';
-  
-  class UsuarioController {
+class UsuarioController {
     constructor() {
       this.service = new UsuarioService();
     }
-  
-    
-    register = async (req, res) => {
+
+    // POST /usuarios
+    async cadastrar(req, res) {
       const body = req.body || {};
-      const validatedBody = UsuarioSchema.parse(body);
-  
-      const data = await this.service.register(validatedBody);
-  
-      return CommonResponse.success(res, data, HttpStatusCodes.CREATED.code, messages.success.register);
+      const parsedData = UsuarioSchema.parse(body);
+
+      const data = await this.service.cadastrar(parsedData);
+
+      return CommonResponse.created(res, data);
     };
-  
-    
-    getUsers = async (req, res) => {
-      const data = await this.service.getUsers();
-      return CommonResponse.success(res, data);
-    };
-  
-    
-    getUserById = async (req, res) => {
+
+    // GET /usuarios && GET /usuarios/:id
+    async listar(req, res) {
       const { id } = req.params;
-      UsuarioIdSchema.parse(id);
-  
-      const data = await this.service.getUserById(id);
-  
-      if (!data) {
-        throw new CustomError({
-          statusCode: HttpStatusCodes.NOT_FOUND.code,
-          errorType: 'notFound',
-          field: 'User',
-          details: [],
-          customMessage: 'Usuário não encontrado.'
-        });
+      
+      if(id) {
+        objectIdSchema.parse(id);
+
+        const data = await this.service.listar(id);
+
+        if (!data) {
+          throw new CustomError(messages.user.notFound(), HttpStatusCodes.NOT_FOUND.code);
+        }
+
+        return CommonResponse.success(res, data);
       }
-  
+
+      const data = await this.service.listar(req);
       return CommonResponse.success(res, data);
     };
-  
-    updateUser = async (req, res) => {
+
+    //PATCH /usuarios/:id
+    async alterar(req, res) {
       const { id } = req.params;
-      const body = req.body || {};
-  
-      UsuarioIdSchema.parse(id);
-      const validatedBody = UsuarioUpdateSchema.parse(body);
-  
-      const data = await this.service.updateUser(id, validatedBody);
-  
-      return CommonResponse.success(res, data, HttpStatusCodes.OK.code, messages.success.update);
+      objectIdSchema.parse(id);
+      
+      const parsedData = UsuarioUpdateSchema.parse(req.body);
+
+      const data = await this.service.alterar(id, parsedData);
+
+      return CommonResponse.success(res, data, 200, 'Usuário atualizado com sucesso.');
     };
-  
-   
-    deleteUser = async (req, res) => {
+
+    // DELETE /usuarios/:id
+    async deletar(req, res) {
       const { id } = req.params;
-      UsuarioIdSchema.parse(id);
-  
-      await this.service.deleteUser(id);
-  
-      return CommonResponse.success(res, null, HttpStatusCodes.OK.code, messages.success.delete);
+
+      if(!id){
+        throw new CustomError({
+          statusCode: HttpStatusCodes.BAD_REQUEST.code,
+          errorType: 'validationError',
+          field: 'id',
+          customMessage: 'ID do usuário é obrigatório para deletar.'
+        })
+      }
+
+      objectIdSchema.parse(id);
+
+      const data = await this.service.deletar(id);
+      return CommonResponse.success(res, data, 200, 'Usuário excluído com sucesso.');
     };
-  }
-  
-  export default UsuarioController;
-  
+}
+
+export default UsuarioController;

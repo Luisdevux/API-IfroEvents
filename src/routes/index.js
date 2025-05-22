@@ -8,6 +8,7 @@ import express from "express";
 import logRoutes from "../middlewares/LogRoutesMiddleware.js";
 
 // routes
+import usuarioRoutes from "./usuarioRoutes.js";
 import eventoRoutes from "./eventoRoutes.js";
 
 import dotenv from "dotenv";
@@ -32,7 +33,7 @@ const routes = (app) => {
 
     app.use(express.json(),
         // auth, 
-        // usuariosRoutes,
+        usuarioRoutes,
         eventoRoutes,
     );
 
