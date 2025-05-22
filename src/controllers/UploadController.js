@@ -18,12 +18,12 @@ class UploadController {
 
     // POST /eventos/:id/midia/:tipo
     async adicionarMidia(req, res) {
-        const { eventoId, tipo, midiaId } = req.params;
+        const { id: eventoId, tipo } = req.params;
         const file = req.file;
 
         if(!file) {
             throw new CustomError({
-                statusCode: HttpStatusCodes.BAD_REQUEST,
+                statusCode: HttpStatusCodes.BAD_REQUEST.code,
                 errorType: 'validationError',
                 field: 'file',
                 customMessage: `Arquivo de mídia não enviado.`

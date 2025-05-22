@@ -22,7 +22,7 @@ class UploadRepository {
 
         if(!tipoCampo) {
             throw new CustomError({
-                statusCode: HttpStatusCodes.BAD_REQUEST,
+                statusCode: HttpStatusCodes.BAD_REQUEST.code,
                 errorType: 'invalidField',
                 field: 'tipo',
                 customMessage: `Tipo de mídia '${tipo}' não é permitido.`
@@ -33,7 +33,7 @@ class UploadRepository {
 
         if(!evento) {
             throw new CustomError({
-                statusCode: HttpStatusCodes.NOT_FOUND,
+                statusCode: HttpStatusCodes.NOT_FOUND.code,
                 errorType: 'notFound',
                 field: 'Evento',
                 customMessage: messages.error.resourceNotFound('Evento')
@@ -52,7 +52,7 @@ class UploadRepository {
 
         if(!evento) {
             throw new CustomError({
-                statusCode: HttpStatusCodes.NOT_FOUND,
+                statusCode: HttpStatusCodes.NOT_FOUND.code,
                 errorType: 'notFound',
                 field: 'Evento',
                 customMessage: messages.error.resourceNotFound('Evento')
@@ -68,7 +68,7 @@ class UploadRepository {
 
         if(!evento) {
             throw new CustomError({
-                statusCode: HttpStatusCodes.NOT_FOUND,
+                statusCode: HttpStatusCodes.NOT_FOUND.code,
                 errorType: 'notFound',
                 field: 'Evento',
                 customMessage: messages.error.resourceNotFound('Evento')
@@ -84,7 +84,7 @@ class UploadRepository {
 
         if(!evento) {
             throw new CustomError({
-                statusCode: HttpStatusCodes.NOT_FOUND,
+                statusCode: HttpStatusCodes.NOT_FOUND.code,
                 errorType: 'notFound',
                 field: 'Evento',
                 customMessage: messages.error.resourceNotFound('Evento')
@@ -100,7 +100,7 @@ class UploadRepository {
 
         if(!evento) {
             throw new CustomError({
-                statusCode: HttpStatusCodes.NOT_FOUND,
+                statusCode: HttpStatusCodes.NOT_FOUND.code,
                 errorType: 'notFound',
                 field: 'Evento',
                 customMessage: messages.error.resourceNotFound('Evento')
@@ -120,7 +120,7 @@ class UploadRepository {
 
         if(!tipoCampo) {
             throw new CustomError({
-                statusCode: HttpStatusCodes.BAD_REQUEST,
+                statusCode: HttpStatusCodes.BAD_REQUEST.code,
                 errorType: 'invalidField',
                 field: 'tipo',
                 customMessage: `Tipo de mídia '${tipo}' não é permitido.` 
@@ -131,7 +131,7 @@ class UploadRepository {
 
         if(!evento) {
             throw new CustomError({
-                statusCode: HttpStatusCodes.NOT_FOUND,
+                statusCode: HttpStatusCodes.NOT_FOUND.code,
                 errorType: 'notFound',
                 field: 'Evento',
                 customMessage: messages.error.resourceNotFound('Evento')
@@ -143,7 +143,7 @@ class UploadRepository {
 
         if(midiaIndex === -1) {
             throw new CustomError({
-                statusCode: HttpStatusCodes.NOT_FOUND,
+                statusCode: HttpStatusCodes.NOT_FOUND.code,
                 errorType: 'notFound',
                 field: 'Mídia',
                 customMessage: messages.error.resourceNotFound('Mídia')

@@ -32,7 +32,7 @@ class EventoRepository {
 
         if (!data) {
             throw new CustomError({
-                statusCode: 404,
+                statusCode: HttpStatusCodes.NOT_FOUND.code,
                 errorType: 'resourceNotFound',
                 field: 'Evento',
                 details: [],
@@ -49,7 +49,7 @@ class EventoRepository {
         
         if(!evento) {
             throw new CustomError({
-                statusCode: 404,
+                statusCode: HttpStatusCodes.NOT_FOUND.code,
                 errorType: 'resourceNotFound',
                 field: 'Evento',
                 details: [],
