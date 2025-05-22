@@ -46,9 +46,10 @@ class EventoService {
     ////////////////////////////////////////////////////////////////////////////////
 
     /**
-     * Garante que o usuário existe.
+     * Garante que o evento existe.
      */
     async ensureEventExists(id) {
+        objectIdSchema.parse(id);
         const eventoExistente = await this.repository.listarPorId(id);
         if(!eventoExistente) {
             throw new CustomError({

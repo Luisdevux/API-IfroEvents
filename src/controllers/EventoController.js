@@ -53,7 +53,7 @@ class EventoController {
             const data = await this.service.listar(id);
 
             if(!data) {
-                throw new CustomError(messages.event.notFound(), HttpStatusCodes.NOT_FOUND);
+                throw new CustomError(messages.event.notFound(), HttpStatusCodes.NOT_FOUND.code);
             }
 
             return CommonResponse.success(res, data);

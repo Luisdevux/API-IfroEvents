@@ -1,3 +1,5 @@
+// src/repositories/UsuarioRepository.js
+
 import UsuarioModel from '../models/Usuario.js';
 import { CommonResponse, CustomError, HttpStatusCodes, errorHandler, messages, StatusService, asyncWrapper } from '../utils/helpers/index.js';
 
@@ -8,6 +10,19 @@ class UsuarioRepository {
         this.model = usuarioModel
     }
 
+    // POST /usuarios
+    async cadastrar(dadosUsuario) {
+        const usuario = new this.model(dadosUsuario);
+        return await usuario.save();
+    }
+
+    // GET /usuarios
+    async listar() {
+        const data = await this.model.find();
+        return data;
+    }
+
+    // GET /usuarios/:id
     async listarPorId(id) {
         const usuario = await this.model.findById(id);
     
@@ -22,12 +37,6 @@ class UsuarioRepository {
         }
     
         return usuario;
-    }
-
-    // POST /usuarios/:id
-    async cadastrar(dadosUsuario) {
-        const usuario = new this.model(dadosUsuario);
-        return await usuario.save();
     }
 
 
