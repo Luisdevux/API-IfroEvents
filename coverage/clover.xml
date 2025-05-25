@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1747967445776" clover="3.2.0">
-  <project timestamp="1747967445776" name="All files">
+<coverage generated="1748200904243" clover="3.2.0">
+  <project timestamp="1748200904244" name="All files">
     <metrics statements="6" coveredstatements="6" conditionals="0" coveredconditionals="0" methods="2" coveredmethods="2" elements="8" coveredelements="8" complexity="0" loc="6" ncloc="6" packages="1" files="2" classes="2"/>
-    <file name="Evento.js" path="/home/luisfelipe/gitlab/plataforma-de-divulgacao-de-eventos/src/models/Evento.js">
+    <file name="Evento.js" path="C:\Users\luisf\OneDrive\Documentos\gitlab\plataforma-de-divulgacao-de-eventos\src\models\Evento.js">
       <metrics statements="3" coveredstatements="3" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
       <line num="9" count="1" type="stmt"/>
       <line num="59" count="1" type="stmt"/>
       <line num="61" count="1" type="stmt"/>
     </file>
-    <file name="Usuario.js" path="/home/luisfelipe/gitlab/plataforma-de-divulgacao-de-eventos/src/models/Usuario.js">
+    <file name="Usuario.js" path="C:\Users\luisf\OneDrive\Documentos\gitlab\plataforma-de-divulgacao-de-eventos\src\models\Usuario.js">
       <metrics statements="3" coveredstatements="3" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
       <line num="7" count="1" type="stmt"/>
       <line num="19" count="1" type="stmt"/>

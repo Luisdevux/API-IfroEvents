@@ -125,13 +125,14 @@ describe('Modelo de Evento', () => {
         });
     });
 
-    it('Deve falhar ao criar um evento sem campos obrigatórios (titulo)', async () => {
+
+    it('Deve falhar ao criar um evento sem um dos campos obrigatórios (titulo)', async () => {
         const usuario = await Usuario.create({
             matricula: "2024103070030",
             nome: "Usuário Teste",
             senha: "SenhaTeste1@"
         });
-
+        
         const eventData = {
             descricao: "Uma semana dedicada a palestras e workshops sobre inovação tecnológica.",
             local: "Auditório Principal",
@@ -180,8 +181,195 @@ describe('Modelo de Evento', () => {
                 },
             ],
         };
-
+        
         const event = new Evento(eventData);
         await expect(event.save()).rejects.toThrowErrorMatchingSnapshot();
     });
-})
+
+    
+    it('Deve permitir os valores válidos de status (ativo, inativo)', async () => {
+        const usuario = await Usuario.create({
+            matricula: "2024103070033",
+            nome: "Organizador",
+            senha: "SenhaTeste1@"
+        });
+
+        const statusValidos = ['ativo', 'inativo'];
+
+        for (const status of statusValidos) {
+            const evento = await Evento.create({
+                titulo: "Semana de Inovação Tecnológica",
+                descricao: "Uma semana dedicada a palestras e workshops sobre inovação tecnológica.",
+                local: "Auditório Principal",
+                dataEvento: new Date("2025-05-25"),
+                organizador: {
+                    _id: usuario._id,
+                    nome: usuario.nome
+                },
+                linkInscricao: "https://forms.gle/exemplo",
+                eventoCriadoEm: new Date(),
+                tags: ["Tecnologia", "Inovação"],
+                categoria: "Tecnologia",
+                status,
+                midiaVideo: [
+                    {
+                        _id: new mongoose.Types.ObjectId(),
+                        url: "videoApresentativo.mp4",
+                        tamanhoMb: 12.3,
+                        altura: 720,
+                        largura: 1280,
+                    },
+                ],
+                midiaCapa: [
+                    {
+                        _id: new mongoose.Types.ObjectId(),
+                        url: "capaEvento.jpg",
+                        tamanhoMb: 2.5,
+                        altura: 720,
+                        largura: 1280,
+                    },
+                ],
+                midiaCarrossel: [
+                    {
+                        _id: new mongoose.Types.ObjectId(),
+                        url: "carrosselEvento1.jpg",
+                        tamanhoMb: 1.5,
+                        altura: 768,
+                        largura: 1024,
+                    },
+                    {
+                        _id: new mongoose.Types.ObjectId(),
+                        url: "carrosselEvento2.jpg",
+                        tamanhoMb: 1.8,
+                        altura: 768,
+                        largura: 1024,
+                    },
+                ],
+            });
+
+            expect(evento.status).toBe(status);
+        }
+    });
+
+    
+    it('Deve falhar ao criar evento com status inválido', async () => {
+        const usuario = await Usuario.create({
+            matricula: "2024103070031",
+            nome: "Organizador",
+            senha: "SenhaTeste1@"
+        });
+
+        const eventData = {
+            titulo: "Semana de Inovação Tecnológica",
+            descricao: "Uma semana dedicada a palestras e workshops sobre inovação tecnológica.",
+            local: "Auditório Principal",
+            dataEvento: new Date("2025-05-25"),
+            organizador: {
+                _id: usuario._id,
+                nome: usuario.nome
+            },
+            linkInscricao: "https://forms.gle/exemplo",
+            eventoCriadoEm: new Date(),
+            tags: ["Tecnologia", "Inovação"],
+            categoria: "Tecnologia",
+            status: "teste",  // Inválido
+            midiaVideo: [
+                {
+                    _id: new mongoose.Types.ObjectId(),
+                    url: "videoApresentativo.mp4",
+                    tamanhoMb: 12.3,
+                    altura: 720,
+                    largura: 1280,
+                },
+            ],
+            midiaCapa: [
+                {
+                    _id: new mongoose.Types.ObjectId(),
+                    url: "capaEvento.jpg",
+                    tamanhoMb: 2.5,
+                    altura: 720,
+                    largura: 1280,
+                },
+            ],
+            midiaCarrossel: [
+                {
+                    _id: new mongoose.Types.ObjectId(),
+                    url: "carrosselEvento1.jpg",
+                    tamanhoMb: 1.5,
+                    altura: 768,
+                    largura: 1024,
+                },
+                {
+                    _id: new mongoose.Types.ObjectId(),
+                    url: "carrosselEvento2.jpg",
+                    tamanhoMb: 1.8,
+                    altura: 768,
+                    largura: 1024,
+                },
+            ],
+        };
+
+        const evento = new Evento(eventData);
+        await expect(evento.save()).rejects.toThrowErrorMatchingSnapshot();
+    });
+
+    
+    it('Deve preencher campo eventoCriadoEm automaticamente', async () => {
+        const usuario = await Usuario.create({
+            matricula: "2024103070032",
+            nome: "Organizador",
+            senha: "SenhaTeste1@"
+        });
+
+        const evento = await Evento.create({
+            titulo: "Semana de Inovação Tecnológica",
+            descricao: "Uma semana dedicada a palestras e workshops sobre inovação tecnológica.",
+            local: "Auditório Principal",
+            dataEvento: new Date("2025-05-25"),
+            organizador: {
+                _id: usuario._id,
+                nome: usuario.nome
+            },
+            linkInscricao: "https://forms.gle/exemplo",
+            tags: ["Tecnologia", "Inovação"],
+            categoria: "Tecnologia",
+            status: "ativo",
+            midiaVideo: [
+                {
+                    _id: new mongoose.Types.ObjectId(),
+                    url: "videoApresentativo.mp4",
+                    tamanhoMb: 12.3,
+                    altura: 720,
+                    largura: 1280,
+                },
+            ],
+            midiaCapa: [
+                {
+                    _id: new mongoose.Types.ObjectId(),
+                    url: "capaEvento.jpg",
+                    tamanhoMb: 2.5,
+                    altura: 720,
+                    largura: 1280,
+                },
+            ],
+            midiaCarrossel: [
+                {
+                    _id: new mongoose.Types.ObjectId(),
+                    url: "carrosselEvento1.jpg",
+                    tamanhoMb: 1.5,
+                    altura: 768,
+                    largura: 1024,
+                },
+                {
+                    _id: new mongoose.Types.ObjectId(),
+                    url: "carrosselEvento2.jpg",
+                    tamanhoMb: 1.8,
+                    altura: 768,
+                    largura: 1024,
+                },
+            ],
+        });
+
+        expect(evento.eventoCriadoEm).toBeInstanceOf(Date);
+    });
+});
