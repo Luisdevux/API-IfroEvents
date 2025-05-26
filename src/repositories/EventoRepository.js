@@ -59,6 +59,22 @@ class EventoRepository {
         return evento;
     }
 
+    // PATCH /eventos/:id
+    async alterarStatus(id, status) {
+        const evento = await this.model.findByIdAndUpdate(id, { status }, { new: true })
+
+        if(!evento) {
+            throw new CustomError({
+                statusCode: HttpStatusCodes.NOT_FOUND.code,
+                errorType: 'resourceNotFound',
+                field: 'Evento',
+                details: [],
+                customMessage: messages.error.resourceNotFound('Evento')
+            });
+        }
+        return evento;
+    }
+
     // DELETE /eventos/:id
     async deletar(id) {
         const evento = await this.model.findByIdAndDelete(id);

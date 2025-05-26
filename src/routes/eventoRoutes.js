@@ -17,6 +17,7 @@ router
     .get("/eventos/", asyncWrapper(eventoController.listar.bind(eventoController)))
     .get("/eventos/:id", asyncWrapper(eventoController.listar.bind(eventoController)))
     .patch("/eventos/:id", asyncWrapper(eventoController.alterar.bind(eventoController)))
+    .patch("/eventos/:id/status", asyncWrapper(eventoController.alterarStatus.bind(eventoController)))
     .delete("/eventos/:id", asyncWrapper(eventoController.deletar.bind(eventoController)))
 
     // Rotas Adicionais (Mídias)
