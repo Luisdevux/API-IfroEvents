@@ -21,26 +21,24 @@ class EventoController {
 
     // POST /eventos
     async cadastrar(req, res) {
-        try {
-            // TODO: Substituir por autenticação real em quando implementada
-            const usuarioSimulado = {
-                _id: "682520e98e38a409ac2ac569",
-                nome: "Usuário Teste"
-            };
+        // TODO: Substituir por autenticação real em quando implementada
+        const usuarioSimulado = {
+            _id: "682520e98e38a409ac2ac569",
+            nome: "Usuário Teste"
+        };
 
-            const dadosEvento = {
-                ...req.body,
-                organizador: {
-                    _id: usuarioSimulado._id,
-                    nome: usuarioSimulado.nome
-                }
-            };
-            const parseData = EventoSchema.parse(dadosEvento);
-            const data = await this.service.cadastrar(parseData);
-            return CommonResponse.created(res, data);
-        } catch (error) {
-            return CommonResponse.error(res, error);
-        }
+        const dadosEvento = {
+            ...req.body,
+            organizador: {
+                _id: usuarioSimulado._id,
+                nome: usuarioSimulado.nome
+            }
+        };
+
+        const parseData = EventoSchema.parse(dadosEvento);
+        const data = await this.service.cadastrar(parseData);
+        
+        return CommonResponse.created(res, data);
     }
 
     // GET /eventos && GET /eventos/:id
