@@ -33,6 +33,14 @@ class EventoService {
         return data;
     }
 
+    // PATCH /eventos/:id/status
+    async alterarStatus(id, novoStatus) {
+        await this.ensureEventExists(id);
+
+        const statusAtualizado = await this.repository.alterarStatus(id, novoStatus);
+        return statusAtualizado;
+    }
+
     // DELETE /eventos/:id
     async deletar(id) {
         await this.ensureEventExists(id);

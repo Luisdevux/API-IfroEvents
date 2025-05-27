@@ -21,26 +21,24 @@ class EventoController {
 
     // POST /eventos
     async cadastrar(req, res) {
-        try {
-            // TODO: Substituir por autenticação real em quando implementada
-            const usuarioSimulado = {
-                _id: "682520e98e38a409ac2ac569",
-                nome: "Usuário Teste"
-            };
+        // TODO: Substituir por autenticação real em quando implementada
+        const usuarioSimulado = {
+            _id: "682520e98e38a409ac2ac569",
+            nome: "Usuário Teste"
+        };
 
-            const dadosEvento = {
-                ...req.body,
-                organizador: {
-                    _id: usuarioSimulado._id,
-                    nome: usuarioSimulado.nome
-                }
-            };
-            const parseData = EventoSchema.parse(dadosEvento);
-            const data = await this.service.cadastrar(parseData);
-            return CommonResponse.created(res, data);
-        } catch (error) {
-            return CommonResponse.error(res, error);
-        }
+        const dadosEvento = {
+            ...req.body,
+            organizador: {
+                _id: usuarioSimulado._id,
+                nome: usuarioSimulado.nome
+            }
+        };
+
+        const parseData = EventoSchema.parse(dadosEvento);
+        const data = await this.service.cadastrar(parseData);
+        
+        return CommonResponse.created(res, data);
     }
 
     // GET /eventos && GET /eventos/:id
@@ -74,6 +72,27 @@ class EventoController {
         const data = await this.service.alterar(id, parsedData);
 
         return CommonResponse.success(res, data, 200, 'Evento atualizado com sucesso.');
+    }
+
+    //PATCH /eventos/:id/status
+    async alterarStatus(req, res) {
+        const { id } = req.params;
+        objectIdSchema.parse(id);
+
+        const parsedData = EventoUpdateSchema.parse({ status: req.body.status });
+
+        if (!['ativo', 'inativo'].includes(parsedData.status)) {
+            throw new CustomError({
+                statusCode: HttpStatusCodes.BAD_REQUEST.code,
+                errorType: 'validationError',
+                field: 'status',
+                customMessage: 'Status inválido. Use "ativo" ou "inativo".'
+            });
+        }
+
+        const statusAtualizado = await this.service.alterarStatus(id, parsedData.status);
+
+        return CommonResponse.success(res, statusAtualizado, 200, 'Status do evento atualizado com sucesso.');
     }
 
     // DELETE /eventos/:id
