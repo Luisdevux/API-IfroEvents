@@ -248,21 +248,21 @@ describe('Modelo de Evento', () => {
     });
 
 
-    it('Deve falhar criar evento com midiaVideo vazia', async () => {
+    it('Deve falhar ao criar evento com midiaVideo vazia', async () => {
         eventDataTest.midiaVideo = [];
         const evento = new Evento(eventDataTest);
         await expect(evento.save()).rejects.toThrow();
     });
 
 
-    it('Deve falhar criar evento com midiaCapa vazia', async () => {
+    it('Deve falhar ao criar evento com midiaCapa vazia', async () => {
         eventDataTest.midiaCapa = [];
         const evento = new Evento(eventDataTest);
         await expect(evento.save()).rejects.toThrow();
     })
 
 
-    it('Deve falhar criar evento com midiaCarrossel vazia', async () => {
+    it('Deve falhar ao criar evento com midiaCarrossel vazia', async () => {
         eventDataTest.midiaCarrossel = [];
         const evento = new Evento(eventDataTest);
         await expect(evento.save()).rejects.toThrow();
