@@ -1,7 +1,3 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Modelo de Evento Deve falhar ao criar evento com status inválido 1`] = `"eventos validation failed: status: \`teste\` is not a valid enum value for path \`status\`."`;
-
-exports[`Modelo de Evento Deve falhar ao criar um evento sem campos obrigatórios (titulo) 1`] = `"eventos validation failed: titulo: Path \`titulo\` is required."`;
-
-exports[`Modelo de Evento Deve falhar ao criar um evento sem um dos campos obrigatórios (titulo) 1`] = `"eventos validation failed: titulo: Path \`titulo\` is required."`;
+exports[`Modelo de Evento Deve falhar ao criar evento com status inválido 1`] = `"eventos validation failed: status: \`inexistente\` is not a valid enum value for path \`status\`."`;

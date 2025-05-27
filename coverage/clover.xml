@@ -1,168 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1748287628633" clover="3.2.0">
-  <project timestamp="1748287628634" name="All files">
-    <metrics statements="126" coveredstatements="98" conditionals="58" coveredconditionals="25" methods="43" coveredmethods="34" elements="227" coveredelements="157" complexity="0" loc="126" ncloc="126" packages="3" files="9" classes="9"/>
-    <package name="middlewares">
-      <metrics statements="3" coveredstatements="3" conditionals="0" coveredconditionals="0" methods="2" coveredmethods="2"/>
-      <file name="asyncWrapper.js" path="C:\Users\luisf\OneDrive\Documentos\gitlab\plataforma-de-divulgacao-de-eventos\src\middlewares\asyncWrapper.js">
-        <metrics statements="3" coveredstatements="3" conditionals="0" coveredconditionals="0" methods="2" coveredmethods="2"/>
-        <line num="3" count="2" type="stmt"/>
-        <line num="4" count="3" type="stmt"/>
-        <line num="5" count="3" type="stmt"/>
-      </file>
-    </package>
-    <package name="models">
-      <metrics statements="6" coveredstatements="6" conditionals="0" coveredconditionals="0" methods="2" coveredmethods="2"/>
-      <file name="Evento.js" path="C:\Users\luisf\OneDrive\Documentos\gitlab\plataforma-de-divulgacao-de-eventos\src\models\Evento.js">
-        <metrics statements="3" coveredstatements="3" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
-        <line num="9" count="1" type="stmt"/>
-        <line num="59" count="1" type="stmt"/>
-        <line num="61" count="1" type="stmt"/>
-      </file>
-      <file name="Usuario.js" path="C:\Users\luisf\OneDrive\Documentos\gitlab\plataforma-de-divulgacao-de-eventos\src\models\Usuario.js">
-        <metrics statements="3" coveredstatements="3" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
-        <line num="7" count="1" type="stmt"/>
-        <line num="19" count="1" type="stmt"/>
-        <line num="21" count="1" type="stmt"/>
-      </file>
-    </package>
-    <package name="utils.helpers">
-      <metrics statements="117" coveredstatements="89" conditionals="58" coveredconditionals="25" methods="39" coveredmethods="30"/>
-      <file name="CommonResponse.js" path="C:\Users\luisf\OneDrive\Documentos\gitlab\plataforma-de-divulgacao-de-eventos\src\utils\helpers\CommonResponse.js">
-        <metrics statements="17" coveredstatements="16" conditionals="21" coveredconditionals="13" methods="7" coveredmethods="6"/>
-        <line num="7" count="10" type="stmt"/>
-        <line num="8" count="10" type="stmt"/>
-        <line num="9" count="10" type="stmt"/>
-        <line num="10" count="10" type="stmt"/>
-        <line num="11" count="10" type="stmt"/>
-        <line num="15" count="10" type="stmt"/>
-        <line num="25" count="4" type="cond" truecount="2" falsecount="0"/>
-        <line num="26" count="4" type="stmt"/>
-        <line num="27" count="4" type="stmt"/>
-        <line num="31" count="2" type="cond" truecount="2" falsecount="0"/>
-        <line num="32" count="2" type="stmt"/>
-        <line num="33" count="2" type="stmt"/>
-        <line num="37" count="2" type="stmt"/>
-        <line num="41" count="2" type="cond" truecount="2" falsecount="0"/>
-        <line num="42" count="2" type="stmt"/>
-        <line num="43" count="2" type="stmt"/>
-        <line num="54" count="0" type="stmt"/>
-      </file>
-      <file name="CustomError.js" path="C:\Users\luisf\OneDrive\Documentos\gitlab\plataforma-de-divulgacao-de-eventos\src\utils\helpers\CustomError.js">
-        <metrics statements="9" coveredstatements="9" conditionals="6" coveredconditionals="5" methods="1" coveredmethods="1"/>
-        <line num="26" count="3" type="cond" truecount="2" falsecount="0"/>
-        <line num="27" count="3" type="stmt"/>
-        <line num="28" count="3" type="stmt"/>
-        <line num="29" count="3" type="stmt"/>
-        <line num="30" count="3" type="stmt"/>
-        <line num="31" count="3" type="stmt"/>
-        <line num="32" count="3" type="stmt"/>
-        <line num="34" count="3" type="stmt"/>
-        <line num="35" count="3" type="stmt"/>
-      </file>
-      <file name="HttpStatusCodes.js" path="C:\Users\luisf\OneDrive\Documentos\gitlab\plataforma-de-divulgacao-de-eventos\src\utils\helpers\HttpStatusCodes.js">
-        <metrics statements="35" coveredstatements="35" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
-        <line num="4" count="3" type="stmt"/>
-        <line num="5" count="3" type="stmt"/>
-        <line num="6" count="3" type="stmt"/>
-        <line num="7" count="3" type="stmt"/>
-        <line num="8" count="3" type="stmt"/>
-        <line num="9" count="3" type="stmt"/>
-        <line num="10" count="3" type="stmt"/>
-        <line num="11" count="3" type="stmt"/>
-        <line num="13" count="3" type="stmt"/>
-        <line num="14" count="3" type="stmt"/>
-        <line num="15" count="3" type="stmt"/>
-        <line num="16" count="3" type="stmt"/>
-        <line num="17" count="3" type="stmt"/>
-        <line num="18" count="3" type="stmt"/>
-        <line num="19" count="3" type="stmt"/>
-        <line num="20" count="3" type="stmt"/>
-        <line num="22" count="3" type="stmt"/>
-        <line num="23" count="3" type="stmt"/>
-        <line num="24" count="3" type="stmt"/>
-        <line num="25" count="3" type="stmt"/>
-        <line num="26" count="3" type="stmt"/>
-        <line num="27" count="3" type="stmt"/>
-        <line num="28" count="3" type="stmt"/>
-        <line num="29" count="3" type="stmt"/>
-        <line num="30" count="3" type="stmt"/>
-        <line num="31" count="3" type="stmt"/>
-        <line num="32" count="3" type="stmt"/>
-        <line num="33" count="3" type="stmt"/>
-        <line num="34" count="3" type="stmt"/>
-        <line num="35" count="3" type="stmt"/>
-        <line num="36" count="3" type="stmt"/>
-        <line num="38" count="3" type="stmt"/>
-        <line num="39" count="3" type="stmt"/>
-        <line num="40" count="3" type="stmt"/>
-        <line num="41" count="3" type="stmt"/>
-      </file>
-      <file name="StatusService.js" path="C:\Users\luisf\OneDrive\Documentos\gitlab\plataforma-de-divulgacao-de-eventos\src\utils\helpers\StatusService.js">
-        <metrics statements="7" coveredstatements="7" conditionals="7" coveredconditionals="7" methods="3" coveredmethods="3"/>
-        <line num="13" count="37" type="stmt"/>
-        <line num="14" count="2" type="cond" truecount="2" falsecount="0"/>
-        <line num="24" count="3" type="cond" truecount="2" falsecount="0"/>
-        <line num="25" count="2" type="cond" truecount="2" falsecount="0"/>
-        <line num="26" count="1" type="stmt"/>
-        <line num="28" count="1" type="stmt"/>
-        <line num="30" count="1" type="stmt"/>
-      </file>
-      <file name="errorHandler.js" path="C:\Users\luisf\OneDrive\Documentos\gitlab\plataforma-de-divulgacao-de-eventos\src\utils\helpers\errorHandler.js">
-        <metrics statements="23" coveredstatements="1" conditionals="24" coveredconditionals="0" methods="3" coveredmethods="0"/>
-        <line num="18" count="1" type="stmt"/>
-        <line num="20" count="0" type="stmt"/>
-        <line num="22" count="0" type="stmt"/>
-        <line num="23" count="0" type="cond" truecount="0" falsecount="2"/>
-        <line num="26" count="0" type="cond" truecount="0" falsecount="2"/>
-        <line num="27" count="0" type="stmt"/>
-        <line num="28" count="0" type="stmt"/>
-        <line num="33" count="0" type="stmt"/>
-        <line num="39" count="0" type="cond" truecount="0" falsecount="2"/>
-        <line num="40" count="0" type="cond" truecount="0" falsecount="2"/>
-        <line num="41" count="0" type="cond" truecount="0" falsecount="2"/>
-        <line num="42" count="0" type="stmt"/>
-        <line num="43" count="0" type="stmt"/>
-        <line num="54" count="0" type="cond" truecount="0" falsecount="2"/>
-        <line num="55" count="0" type="stmt"/>
-        <line num="56" count="0" type="stmt"/>
-        <line num="57" count="0" type="stmt"/>
-        <line num="61" count="0" type="cond" truecount="0" falsecount="2"/>
-        <line num="62" count="0" type="stmt"/>
-        <line num="63" count="0" type="stmt"/>
-        <line num="74" count="0" type="stmt"/>
-        <line num="75" count="0" type="cond" truecount="0" falsecount="2"/>
-        <line num="79" count="0" type="stmt"/>
-      </file>
-      <file name="messages.js" path="C:\Users\luisf\OneDrive\Documentos\gitlab\plataforma-de-divulgacao-de-eventos\src\utils\helpers\messages.js">
-        <metrics statements="26" coveredstatements="21" conditionals="0" coveredconditionals="0" methods="25" coveredmethods="20"/>
-        <line num="3" count="4" type="stmt"/>
-        <line num="7" count="1" type="stmt"/>
-        <line num="33" count="0" type="stmt"/>
-        <line num="34" count="0" type="stmt"/>
-        <line num="35" count="0" type="stmt"/>
-        <line num="36" count="1" type="stmt"/>
-        <line num="37" count="1" type="stmt"/>
-        <line num="38" count="1" type="stmt"/>
-        <line num="39" count="1" type="stmt"/>
-        <line num="40" count="0" type="stmt"/>
-        <line num="41" count="0" type="stmt"/>
-        <line num="42" count="1" type="stmt"/>
-        <line num="48" count="1" type="stmt"/>
-        <line num="49" count="1" type="stmt"/>
-        <line num="50" count="1" type="stmt"/>
-        <line num="51" count="1" type="stmt"/>
-        <line num="52" count="1" type="stmt"/>
-        <line num="53" count="1" type="stmt"/>
-        <line num="54" count="1" type="stmt"/>
-        <line num="55" count="1" type="stmt"/>
-        <line num="56" count="1" type="stmt"/>
-        <line num="57" count="1" type="stmt"/>
-        <line num="60" count="1" type="stmt"/>
-        <line num="86" count="1" type="stmt"/>
-        <line num="88" count="1" type="stmt"/>
-        <line num="93" count="1" type="stmt"/>
-      </file>
-    </package>
+<coverage generated="1748358685814" clover="3.2.0">
+  <project timestamp="1748358685814" name="All files">
+    <metrics statements="6" coveredstatements="6" conditionals="0" coveredconditionals="0" methods="2" coveredmethods="2" elements="8" coveredelements="8" complexity="0" loc="6" ncloc="6" packages="1" files="2" classes="2"/>
+    <file name="Evento.js" path="C:\Users\luisf\OneDrive\Documentos\gitlab\plataforma-de-divulgacao-de-eventos\src\models\Evento.js">
+      <metrics statements="3" coveredstatements="3" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
+      <line num="9" count="1" type="stmt"/>
+      <line num="59" count="1" type="stmt"/>
+      <line num="61" count="1" type="stmt"/>
+    </file>
+    <file name="Usuario.js" path="C:\Users\luisf\OneDrive\Documentos\gitlab\plataforma-de-divulgacao-de-eventos\src\models\Usuario.js">
+      <metrics statements="3" coveredstatements="3" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
+      <line num="7" count="1" type="stmt"/>
+      <line num="19" count="1" type="stmt"/>
+      <line num="21" count="1" type="stmt"/>
+    </file>
   </project>
 </coverage>
