@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1748370230219" clover="3.2.0">
-  <project timestamp="1748370230219" name="All files">
-    <metrics statements="126" coveredstatements="120" conditionals="58" coveredconditionals="44" methods="43" coveredmethods="37" elements="227" coveredelements="201" complexity="0" loc="126" ncloc="126" packages="3" files="9" classes="9"/>
+<coverage generated="1748371870199" clover="3.2.0">
+  <project timestamp="1748371870199" name="All files">
+    <metrics statements="146" coveredstatements="134" conditionals="67" coveredconditionals="51" methods="50" coveredmethods="42" elements="263" coveredelements="227" complexity="0" loc="146" ncloc="146" packages="4" files="10" classes="10"/>
     <package name="middlewares">
       <metrics statements="3" coveredstatements="3" conditionals="0" coveredconditionals="0" methods="2" coveredmethods="2"/>
       <file name="asyncWrapper.js" path="/Users/luisfelipe/Documents/gitlab/plataforma-de-divulgacao-de-eventos/src/middlewares/asyncWrapper.js">
@@ -15,15 +15,41 @@
       <metrics statements="6" coveredstatements="6" conditionals="0" coveredconditionals="0" methods="2" coveredmethods="2"/>
       <file name="Evento.js" path="/Users/luisfelipe/Documents/gitlab/plataforma-de-divulgacao-de-eventos/src/models/Evento.js">
         <metrics statements="3" coveredstatements="3" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
-        <line num="9" count="1" type="stmt"/>
-        <line num="59" count="1" type="stmt"/>
-        <line num="61" count="1" type="stmt"/>
+        <line num="9" count="2" type="stmt"/>
+        <line num="59" count="2" type="stmt"/>
+        <line num="61" count="2" type="stmt"/>
       </file>
       <file name="Usuario.js" path="/Users/luisfelipe/Documents/gitlab/plataforma-de-divulgacao-de-eventos/src/models/Usuario.js">
         <metrics statements="3" coveredstatements="3" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
-        <line num="7" count="1" type="stmt"/>
-        <line num="19" count="1" type="stmt"/>
-        <line num="21" count="1" type="stmt"/>
+        <line num="7" count="3" type="stmt"/>
+        <line num="19" count="3" type="stmt"/>
+        <line num="21" count="3" type="stmt"/>
+      </file>
+    </package>
+    <package name="repositories">
+      <metrics statements="20" coveredstatements="14" conditionals="9" coveredconditionals="7" methods="7" coveredmethods="5"/>
+      <file name="EventoRepository.js" path="/Users/luisfelipe/Documents/gitlab/plataforma-de-divulgacao-de-eventos/src/repositories/EventoRepository.js">
+        <metrics statements="20" coveredstatements="14" conditionals="9" coveredconditionals="7" methods="7" coveredmethods="5"/>
+        <line num="13" count="15" type="stmt"/>
+        <line num="14" count="15" type="stmt"/>
+        <line num="19" count="3" type="stmt"/>
+        <line num="20" count="3" type="stmt"/>
+        <line num="25" count="0" type="stmt"/>
+        <line num="26" count="0" type="stmt"/>
+        <line num="31" count="5" type="stmt"/>
+        <line num="33" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="34" count="1" type="stmt"/>
+        <line num="43" count="1" type="stmt"/>
+        <line num="48" count="6" type="stmt"/>
+        <line num="50" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="51" count="1" type="stmt"/>
+        <line num="59" count="1" type="stmt"/>
+        <line num="64" count="0" type="stmt"/>
+        <line num="66" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="67" count="0" type="stmt"/>
+        <line num="75" count="0" type="stmt"/>
+        <line num="80" count="5" type="stmt"/>
+        <line num="81" count="2" type="stmt"/>
       </file>
     </package>
     <package name="utils.helpers">
