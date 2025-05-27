@@ -1,14 +1,9 @@
 // src/tests/unit/repositories/EventoRepository.test.js
 
 import mongoose from 'mongoose';
-// Corrigindo caminho de importação - verifique se esta é a localização correta
 import EventoRepository from '../../../repositories/EventoRepository.js';
-import { CustomError, messages } from '../../../utils/helpers/index.js';
 
-// Aumentando o timeout para evitar falhas por timeout
-jest.setTimeout(30000);
-
-// Ajustando o mock dos helpers
+// mock dos helpers
 jest.mock('../../../utils/helpers/index.js', () => ({
   CustomError: class extends Error {
     constructor({ statusCode, errorType, field, details, customMessage }) {
@@ -19,6 +14,11 @@ jest.mock('../../../utils/helpers/index.js', () => ({
       this.details = details;
     }
   },
+  HttpStatusCodes: {
+    NOT_FOUND: { code: 404, message: 'Recurso não encontrado' },
+    INTERNAL_SERVER_ERROR: { code: 500, message: 'Erro interno do servidor' },
+    BAD_REQUEST: { code: 400, message: 'Requisição com sintaxe incorreta' },
+  },
   messages: {
     error: {
       internalServerError: (resource) => `Erro interno no ${resource}`,
@@ -27,6 +27,7 @@ jest.mock('../../../utils/helpers/index.js', () => ({
   },
 }));
 
+// mock dos métodos da model
 const MockEventoModel = {
   create: jest.fn(),
   find: jest.fn(),
@@ -35,6 +36,7 @@ const MockEventoModel = {
   findByIdAndDelete: jest.fn(),
 };
 
+// mock dos dados a serem utilizados para os testes
 describe('EventoRepository', () => {
   let eventoRepository;
 
@@ -94,213 +96,226 @@ describe('EventoRepository', () => {
     ],
   };
 
-  // Corrigindo a inicialização do repository
   beforeEach(() => {
     jest.clearAllMocks();
     eventoRepository = new EventoRepository({
       eventoModel: MockEventoModel
+  });
+});
+
+
+  describe('Cadastrar', () => {
+    // Testa cadastro de evento e testa erros do cadastro
+    it('deve cadastrar um novo evento com sucesso', async () => {
+      MockEventoModel.create.mockResolvedValue(mockEventoData);
+
+      const evento = await eventoRepository.cadastrar(mockEventoData);
+
+      expect(MockEventoModel.create).toHaveBeenCalledWith(mockEventoData);
+      expect(evento).toEqual(mockEventoData);
+    });
+
+
+    it('deve lançar erro ao tentar cadastrar evento com campos obrigatórios ausentes', async () => {
+      MockEventoModel.create.mockImplementation(() => {
+        throw new Error('Campo obrigatório ausente: descricao');
+      });
+
+      await expect(
+        eventoRepository.cadastrar({ ...mockEventoData, descricao: undefined })
+      ).rejects.toThrow('Campo obrigatório ausente: descricao');
+    });
+
+
+    it('deve lançar erro ao tentar cadastrar evento com tipo inválido (data como string)', async () => {
+      MockEventoModel.create.mockImplementation(() => {
+        throw new Error('Cast to Date failed for value "data-invalida"');
+      });
+
+      await expect(
+        eventoRepository.cadastrar({ ...mockEventoData, dataEvento: 'data-invalida' })
+      ).rejects.toThrow(/Cast to Date failed/);
+    });
+
+
+    it('deve lançar erro ao cadastrar com midiaCapa com campos inválidos', async () => {
+      MockEventoModel.create.mockImplementation(() => {
+        throw new Error('Campo altura é obrigatório');
+      });
+
+      await expect(
+        eventoRepository.cadastrar({
+          ...mockEventoData,
+          midiaCapa: [{ url: 'https://imagem.jpg', largura: 1280 }], // falta altura
+        })
+      ).rejects.toThrow('Campo altura é obrigatório');
+    });
+
+
+    it('deve lançar erro ao cadastrar com arrays obrigatórios vazios', async () => {
+      MockEventoModel.create.mockImplementation(() => {
+        throw new Error('Campo tags não pode estar vazio');
+      });
+
+      await expect(eventoRepository.cadastrar({ ...mockEventoData, tags: [] })).rejects.toThrow(
+        'Campo tags não pode estar vazio'
+      );
     });
   });
 
-  // Testa cadastro de evento com sucesso
-  it('deve cadastrar um novo evento com sucesso', async () => {
-    MockEventoModel.create.mockResolvedValue(mockEventoData);
 
-    const evento = await eventoRepository.cadastrar(mockEventoData);
+  describe('Listar', () => {
+    // Testa listagem de eventos e erros de listagem
+    it('deve listar todos os eventos', async () => {
+      MockEventoModel.find.mockResolvedValue([mockEventoData]);
 
-    expect(MockEventoModel.create).toHaveBeenCalledWith(mockEventoData);
-    expect(evento).toEqual(mockEventoData);
-  });
+      const eventos = await eventoRepository.listar();
 
-
-  it('deve lançar erro ao tentar cadastrar evento com campos obrigatórios ausentes', async () => {
-    MockEventoModel.create.mockImplementation(() => {
-      throw new Error('Campo obrigatório ausente: descricao');
+      expect(MockEventoModel.find).toHaveBeenCalled();
+      expect(eventos).toEqual([mockEventoData]);
     });
 
-    await expect(
-      eventoRepository.cadastrar({ ...mockEventoData, descricao: undefined })
-    ).rejects.toThrow('Campo obrigatório ausente: descricao');
+
+    it('deve lançar erro ao listar todos os eventos quando find falha', async () => {
+      MockEventoModel.find.mockImplementation(() => {
+        throw new Error('Erro no banco de dados ao listar');
+      });
+
+      await expect(eventoRepository.listar()).rejects.toThrow('Erro no banco de dados ao listar');
+    });
   });
 
 
-  it('deve lançar erro ao tentar cadastrar evento com tipo inválido (data como string)', async () => {
-    MockEventoModel.create.mockImplementation(() => {
-      throw new Error('Cast to Date failed for value "data-invalida"');
+  describe('Listar por ID', () => {
+    // Testa listagem de eventos por ID e erros da listagem por ID
+    it('deve retornar evento pelo ID', async () => {
+      MockEventoModel.findById.mockResolvedValue(mockEventoData);
+
+      const evento = await eventoRepository.listarPorId(mockEventoData._id);
+
+      expect(MockEventoModel.findById).toHaveBeenCalledWith(mockEventoData._id);
+      expect(evento).toEqual(mockEventoData);
     });
 
-    await expect(
-      eventoRepository.cadastrar({ ...mockEventoData, dataEvento: 'data-invalida' })
-    ).rejects.toThrow(/Cast to Date failed/);
-  });
 
+    it('deve lançar erro se evento não for encontrado por ID', async () => {
+      MockEventoModel.findById.mockResolvedValue(null);
 
-  it('deve lançar erro ao cadastrar com midiaCapa com campos inválidos', async () => {
-    MockEventoModel.create.mockImplementation(() => {
-      throw new Error('Campo altura é obrigatório');
+      await expect(eventoRepository.listarPorId(mockEventoData._id)).rejects.toThrow('Evento não encontrado');
     });
 
-    await expect(
-      eventoRepository.cadastrar({
-        ...mockEventoData,
-        midiaCapa: [{ url: 'https://imagem.jpg', largura: 1280 }], // falta altura
-      })
-    ).rejects.toThrow('Campo altura é obrigatório');
+
+    it('deve lançar erro ao listarPorId quando findById falha', async () => {
+      MockEventoModel.findById.mockImplementation(() => {
+        throw new Error('Erro no banco de dados ao buscar por ID');
+      });
+
+      await expect(eventoRepository.listarPorId(mockEventoData._id)).rejects.toThrow(
+        'Erro no banco de dados ao buscar por ID'
+      );
+    });
   });
 
 
-  it('deve lançar erro ao cadastrar com arrays obrigatórios vazios', async () => {
-    MockEventoModel.create.mockImplementation(() => {
-      throw new Error('Campo tags não pode estar vazio');
+  describe('Alterar', () => {
+    // Testa alteração de eventos e erros de alteração
+    it('deve alterar campos do evento com sucesso', async () => {
+      MockEventoModel.findByIdAndUpdate.mockResolvedValue({ ...mockEventoData, titulo: 'Atualizado' });
+
+      const eventoAtualizado = await eventoRepository.alterar(mockEventoData._id, { titulo: 'Atualizado' });
+
+      expect(MockEventoModel.findByIdAndUpdate).toHaveBeenCalledWith(
+        mockEventoData._id,
+        { titulo: 'Atualizado' },
+        { new: true }
+      );
+      expect(eventoAtualizado.titulo).toBe('Atualizado');
     });
 
-    await expect(eventoRepository.cadastrar({ ...mockEventoData, tags: [] })).rejects.toThrow(
-      'Campo tags não pode estar vazio'
-    );
-  });
 
-  // Testa listagem de eventos
-  it('deve listar todos os eventos', async () => {
-    MockEventoModel.find.mockResolvedValue([mockEventoData]);
+    it('deve lançar erro ao tentar alterar evento inexistente', async () => {
+      MockEventoModel.findByIdAndUpdate.mockResolvedValue(null);
 
-    const eventos = await eventoRepository.listar();
-
-    expect(MockEventoModel.find).toHaveBeenCalled();
-    expect(eventos).toEqual([mockEventoData]);
-  });
-
-
-  it('deve lançar erro ao listar todos os eventos quando find falha', async () => {
-    MockEventoModel.find.mockImplementation(() => {
-      throw new Error('Erro no banco de dados ao listar');
+      await expect(eventoRepository.alterar(mockEventoData._id, { titulo: 'Atualizado' })).rejects.toThrow(
+        'Evento não encontrado'
+      );
     });
 
-    await expect(eventoRepository.listar()).rejects.toThrow('Erro no banco de dados ao listar');
-  });
 
-  // Testa listagem de eventos por ID
-  it('deve retornar evento pelo ID', async () => {
-    MockEventoModel.findById.mockResolvedValue(mockEventoData);
+    it('deve lançar erro ao alterar evento quando findByIdAndUpdate falha', async () => {
+      MockEventoModel.findByIdAndUpdate.mockImplementation(() => {
+        throw new Error('Erro no banco de dados ao alterar');
+      });
 
-    const evento = await eventoRepository.listarPorId(mockEventoData._id);
-
-    expect(MockEventoModel.findById).toHaveBeenCalledWith(mockEventoData._id);
-    expect(evento).toEqual(mockEventoData);
-  });
-
-
-  it('deve lançar erro se evento não for encontrado por ID', async () => {
-    MockEventoModel.findById.mockResolvedValue(null);
-
-    await expect(eventoRepository.listarPorId(mockEventoData._id)).rejects.toThrow('Evento não encontrado');
-  });
-
-
-  it('deve lançar erro ao listarPorId quando findById falha', async () => {
-    MockEventoModel.findById.mockImplementation(() => {
-      throw new Error('Erro no banco de dados ao buscar por ID');
+      await expect(eventoRepository.alterar(mockEventoData._id, { titulo: 'Teste' })).rejects.toThrow(
+        'Erro no banco de dados ao alterar'
+      );
     });
 
-    await expect(eventoRepository.listarPorId(mockEventoData._id)).rejects.toThrow(
-      'Erro no banco de dados ao buscar por ID'
-    );
-  });
 
-  // Testa alteração de eventos
-  it('deve alterar campos do evento com sucesso', async () => {
-    MockEventoModel.findByIdAndUpdate.mockResolvedValue({ ...mockEventoData, titulo: 'Atualizado' });
+    it('deve alterar o status do evento', async () => {
+      MockEventoModel.findByIdAndUpdate.mockResolvedValue({ ...mockEventoData, status: 'inativo' });
 
-    const eventoAtualizado = await eventoRepository.alterar(mockEventoData._id, { titulo: 'Atualizado' });
+      const atualizado = await eventoRepository.alterarStatus(mockEventoData._id, 'inativo');
 
-    expect(MockEventoModel.findByIdAndUpdate).toHaveBeenCalledWith(
-      mockEventoData._id,
-      { titulo: 'Atualizado' },
-      { new: true, runValidators: true }
-    );
-    expect(eventoAtualizado.titulo).toBe('Atualizado');
-  });
-
-
-  it('deve lançar erro ao tentar alterar evento inexistente', async () => {
-    MockEventoModel.findByIdAndUpdate.mockResolvedValue(null);
-
-    await expect(eventoRepository.alterar(mockEventoData._id, { titulo: 'Atualizado' })).rejects.toThrow(
-      'Evento não encontrado'
-    );
-  });
-
-
-  it('deve lançar erro ao alterar evento quando findByIdAndUpdate falha', async () => {
-    MockEventoModel.findByIdAndUpdate.mockImplementation(() => {
-      throw new Error('Erro no banco de dados ao alterar');
+      expect(MockEventoModel.findByIdAndUpdate).toHaveBeenCalledWith(
+        mockEventoData._id,
+        { status: 'inativo' },
+        { new: true }
+      );
+      expect(atualizado.status).toBe('inativo');
     });
 
-    await expect(eventoRepository.alterar(mockEventoData._id, { titulo: 'Teste' })).rejects.toThrow(
-      'Erro no banco de dados ao alterar'
-    );
-  });
 
+    it('deve lançar erro ao alterar status com ID inexistente', async () => {
+      MockEventoModel.findByIdAndUpdate.mockResolvedValue(null);
 
-  it('deve alterar o status do evento', async () => {
-    MockEventoModel.findByIdAndUpdate.mockResolvedValue({ ...mockEventoData, status: 'inativo' });
-
-    const atualizado = await eventoRepository.alterarStatus(mockEventoData._id, 'inativo');
-
-    expect(MockEventoModel.findByIdAndUpdate).toHaveBeenCalledWith(
-      mockEventoData._id,
-      { status: 'inativo' },
-      { new: true, runValidators: true }
-    );
-    expect(atualizado.status).toBe('inativo');
-  });
-
-
-  it('deve lançar erro ao alterar status com ID inexistente', async () => {
-    MockEventoModel.findByIdAndUpdate.mockResolvedValue(null);
-
-    await expect(eventoRepository.alterarStatus(mockEventoData._id, 'inativo')).rejects.toThrow(
-      'Evento não encontrado'
-    );
-  });
-
-
-  it('deve lançar erro ao alterarStatus quando findByIdAndUpdate falha', async () => {
-    MockEventoModel.findByIdAndUpdate.mockImplementation(() => {
-      throw new Error('Erro no banco de dados ao alterar status');
+      await expect(eventoRepository.alterarStatus(mockEventoData._id, 'inativo')).rejects.toThrow(
+        'Evento não encontrado'
+      );
     });
 
-    await expect(eventoRepository.alterarStatus(mockEventoData._id, 'inativo')).rejects.toThrow(
-      'Erro no banco de dados ao alterar status'
-    );
+
+    it('deve lançar erro ao alterarStatus quando findByIdAndUpdate falha', async () => {
+      MockEventoModel.findByIdAndUpdate.mockImplementation(() => {
+        throw new Error('Erro no banco de dados ao alterar status');
+      });
+
+      await expect(eventoRepository.alterarStatus(mockEventoData._id, 'inativo')).rejects.toThrow(
+        'Erro no banco de dados ao alterar status'
+      );
+    });
   });
 
-  // Testa deleção de eventos
-  it('deve deletar evento pelo ID', async () => {
-    MockEventoModel.findByIdAndDelete.mockResolvedValue(mockEventoData);
+  describe('Deletar', () => {
+    // Testa deleção de eventos e erros de deleção
+    it('deve deletar evento pelo ID', async () => {
+      MockEventoModel.findByIdAndDelete.mockResolvedValue(mockEventoData);
 
-    const deletado = await eventoRepository.deletar(mockEventoData._id);
+      const deletado = await eventoRepository.deletar(mockEventoData._id);
 
-    expect(MockEventoModel.findByIdAndDelete).toHaveBeenCalledWith(mockEventoData._id);
-    expect(deletado).toEqual(mockEventoData);
-  });
-
-
-  it('deve retornar null ao tentar deletar evento inexistente', async () => {
-    MockEventoModel.findByIdAndDelete.mockResolvedValue(null);
-
-    const resultado = await eventoRepository.deletar(mockEventoData._id);
-
-    expect(resultado).toBeNull();
-  });
-
-
-  it('deve lançar erro ao deletar evento quando findByIdAndDelete falha', async () => {
-    MockEventoModel.findByIdAndDelete.mockImplementation(() => {
-      throw new Error('Erro no banco de dados ao deletar');
+      expect(MockEventoModel.findByIdAndDelete).toHaveBeenCalledWith(mockEventoData._id);
+      expect(deletado).toEqual(mockEventoData);
     });
 
-    await expect(eventoRepository.deletar(mockEventoData._id)).rejects.toThrow(
-      'Erro no banco de dados ao deletar'
-    );
+
+    it('deve retornar null ao tentar deletar evento inexistente', async () => {
+      MockEventoModel.findByIdAndDelete.mockResolvedValue(null);
+
+      const resultado = await eventoRepository.deletar(mockEventoData._id);
+
+      expect(resultado).toBeNull();
+    });
+
+
+    it('deve lançar erro ao deletar evento quando findByIdAndDelete falha', async () => {
+      MockEventoModel.findByIdAndDelete.mockImplementation(() => {
+        throw new Error('Erro no banco de dados ao deletar');
+      });
+
+      await expect(eventoRepository.deletar(mockEventoData._id)).rejects.toThrow(
+        'Erro no banco de dados ao deletar'
+      );
+    });
   });
 });
