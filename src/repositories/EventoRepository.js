@@ -16,8 +16,7 @@ class EventoRepository {
 
     // POST /eventos
     async cadastrar(dadosEventos) {
-        const evento = new this.model(dadosEventos);
-        return await evento.save();
+        return await this.model.create(dadosEventos);
     }
 
     // GET /eventos
