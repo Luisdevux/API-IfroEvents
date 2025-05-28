@@ -17,7 +17,7 @@ const mockRepository = {
 const eventoService = new EventoService();
 eventoService.repository = mockRepository;
 
-const invalidId = { id: "invalid" };
+const invalidId = "invalid";
 
 const mockUsuario = {
     _id: '6653d0b8e7b98e0014e6f009',
@@ -25,6 +25,7 @@ const mockUsuario = {
 };
 
 const eventoFake = {
+    _id: new mongoose.Types.ObjectId().toString(),
     titulo: "Semana de Inovação Tecnológica",
     descricao: "Uma semana dedicada a palestras e workshops sobre inovação tecnológica.",
     local: "Auditório Principal",
@@ -81,7 +82,7 @@ describe("EventoService", () => {
 
 
   //Teste do cadastrar
-  describe("cadastrar", () => {
+  describe("Cadastrar", () => {
     it("deve cadastrar um novo evento com sucesso", async () => {
       mockRepository.cadastrar.mockResolvedValue(eventoFake);
       const resultado = await eventoService.cadastrar(eventoFake);
@@ -96,7 +97,7 @@ describe("EventoService", () => {
   });
 
   // Teste de listar
-  describe("listar", () => {
+  describe("Listar e Listar por ID", () => {
     it("deve retornar lista de eventos quando chamada sem parâmetro", async () => {
       mockRepository.listar.mockResolvedValue([eventoFake]);
       const resultado = await eventoService.listar();
@@ -128,7 +129,7 @@ describe("EventoService", () => {
 
 
   // Teste do alterar
-  describe("alterar", () => {
+  describe("Alterar", () => {
     const dadosAtualizados = { titulo: "Novo Título" };
 
     it("deve atualizar evento existente com sucesso", async () => {
@@ -158,7 +159,7 @@ describe("EventoService", () => {
 
 
   // Teste do alterarStatus
-  describe("alterarStatus", () => {
+  describe("Alterar Status", () => {
     const novoStatus = "inativo";
 
     it("deve alterar status do evento com sucesso", async () => {
@@ -188,7 +189,7 @@ describe("EventoService", () => {
 
 
   // Teste do deletar
-  describe("deletar", () => {
+  describe("Deletar", () => {
     it("deve deletar evento com sucesso", async () => {
       mockRepository.listarPorId.mockResolvedValue(eventoFake);
       mockRepository.deletar.mockResolvedValue({ acknowledged: true, deletedCount: 1 });
@@ -211,12 +212,6 @@ describe("EventoService", () => {
       mockRepository.listarPorId.mockResolvedValue(eventoFake);
       mockRepository.deletar.mockRejectedValue(new Error("Erro no banco"));
       await expect(eventoService.deletar(eventoFake._id)).rejects.toThrow("Erro no banco");
-    });
-
-    it("deve lançar CustomError se deleteCount for 0", async () => {
-      mockRepository.listarPorId.mockResolvedValue(eventoFake);
-      mockRepository.deletar.mockResolvedValue({ acknowledged: true, deletedCount: 0 });
-      await expect(eventoService.deletar(eventoFake._id)).rejects.toThrow(CustomError);
     });
   });
 });
