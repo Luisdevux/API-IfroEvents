@@ -50,20 +50,20 @@ class CommonResponse {
      * @param {string} messageExample - Exemplo de mensagem para o Swagger.
      * @returns {object} Schema JSON da resposta.
      */
-    static getSwaggerSchema(schemaRef = null, messageExample = "Operação realizada com sucesso") {
-        return {
-            type: "object",
-            properties: {
-                error: { type: "boolean", example: false },
-                code: { type: "integer", example: 200 },
-                message: { type: "string", example: messageExample },
-                data: schemaRef
-                    ? { $ref: schemaRef }
-                    : { type: "array", items: {}, example: [] },
-                errors: { type: "array", example: [] }
-            }
-        };
-    }
+    // static getSwaggerSchema(schemaRef = null, messageExample = "Operação realizada com sucesso") {
+    //     return {
+    //         type: "object",
+    //         properties: {
+    //             error: { type: "boolean", example: false },
+    //             code: { type: "integer", example: 200 },
+    //             message: { type: "string", example: messageExample },
+    //             data: schemaRef
+    //                 ? { $ref: schemaRef }
+    //                 : { type: "array", items: {}, example: [] },
+    //             errors: { type: "array", example: [] }
+    //         }
+    //     };
+    // }
 }
 
 export default CommonResponse;

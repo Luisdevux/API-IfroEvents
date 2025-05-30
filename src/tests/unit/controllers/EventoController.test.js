@@ -8,12 +8,6 @@ jest.mock('uuid', () => ({
     v4: jest.fn(() => 'fixed-uuid')
 }));
 
-jest.mock('../../../utils/validators/schemas/zod/ObjectIdSchema.js', () => ({
-  default: {
-    parse: jest.fn()
-  }
-}));
-
 jest.mock('../../../utils/helpers/index.js', () => {
     return {
         CommonResponse: {
@@ -90,8 +84,6 @@ describe('EventoController', () => {
         controller.service.alterar = jest.fn();
         controller.service.alterarStatus = jest.fn();
         controller.service.deletar = jest.fn();
-
-        objectIdSchema.parse.mockImplementation(() => true);
     });
 
     
@@ -100,38 +92,85 @@ describe('EventoController', () => {
     // ================================
     describe('cadastrar', () => {
         it('deve cadastrar um evento com sucesso', async () => {
-            req.body = { titulo: 'Evento Teste' };
-            const eventoComOrganizador = {
-                ...req.body,
-                organizador: {
-                    _id: new mongoose.Types.ObjectId().toString(),
-                    nome: 'Usuário Teste'
-                }
-            };
+          req.body = { titulo: 'Evento Teste' };
 
-            EventoSchema.parse.mockReturnValue(eventoComOrganizador);
-            controller.service.cadastrar.mockResolvedValue(eventoComOrganizador);
+          const eventoComOrganizador = {
+            ...req.body,
+            organizador: {
+              _id: "682520e98e38a409ac2ac569",
+              nome: "Usuário Teste"
+            }
+          };
 
-            await controller.cadastrar(req, res);
+          EventoSchema.parse.mockReturnValue(eventoComOrganizador);
+          controller.service.cadastrar.mockResolvedValue(eventoComOrganizador);
 
-            expect(EventoSchema.parse).toHaveBeenCalledWith(eventoComOrganizador);
-            expect(controller.service.cadastrar).toHaveBeenCalledWith(eventoComOrganizador);
-            expect(CommonResponse.created).toHaveBeenCalledWith(res, eventoComOrganizador);
+          await controller.cadastrar(req, res);
+
+          expect(EventoSchema.parse).toHaveBeenCalledWith(eventoComOrganizador);
+          expect(controller.service.cadastrar).toHaveBeenCalledWith(eventoComOrganizador);
+          expect(CommonResponse.created).toHaveBeenCalledWith(res, eventoComOrganizador);
         });
+    });
+
+
+    // =================================================================
+    // Testes adicionais para validações e casos de erro de ID inválido
+    // =================================================================
+    describe('validação para ID inválido', () => {
+      beforeEach(() => {
+        jest.spyOn(objectIdSchema, 'parse').mockImplementation(() => {
+          throw new Error('ID inválido');
+        });
+      });
+
+      afterEach(() => {
+        objectIdSchema.parse.mockRestore();
+      });
+
+      it('listar deve lançar erro se ID inválido for passado', async () => {
+        req.params.id = 'id-invalido';
+
+        await expect(controller.listar(req, res)).rejects.toThrow('ID inválido');
+        expect(objectIdSchema.parse).toHaveBeenCalledWith(req.params.id);
+      });
+
+      it('alterar deve lançar erro se ID inválido for passado', async () => {
+        req.params.id = 'id-invalido';
+        req.body = { titulo: 'teste' };
+
+        await expect(controller.alterar(req, res)).rejects.toThrow('ID inválido');
+        expect(objectIdSchema.parse).toHaveBeenCalledWith('id-invalido');
+      });
+
+      it('alterarStatus deve lançar erro se ID inválido for passado', async () => {
+        req.params.id = 'id-invalido';
+        req.body.status = 'ativo';
+
+        await expect(controller.alterarStatus(req, res)).rejects.toThrow('ID inválido');
+        expect(objectIdSchema.parse).toHaveBeenCalledWith('id-invalido');
+      });
+
+      it('deletar deve lançar erro se ID inválido for passado', async () => {
+        req.params.id = 'id-invalido';
+
+        await expect(controller.deletar(req, res)).rejects.toThrow('ID inválido');
+        expect(objectIdSchema.parse).toHaveBeenCalledWith('id-invalido');
+      });
     });
 
 
     // ==============================================
     // Testes para o método listar e listar por ID
     // ==============================================
-    describe('listar', () => {
+    describe('listar e listar por ID', () => {
         it('deve listar todos os eventos quando nenhum ID for passado', async () => {
             const eventos = [{ titulo: 'Evento 1' }, { titulo: 'Evento 2' }];
             controller.service.listar.mockResolvedValue(eventos);
 
             await controller.listar(req, res);
 
-            expect(controller.service.listar).toHaveBeenCalledWith(undefined);
+            expect(controller.service.listar).toHaveBeenCalledWith(req);
             expect(CommonResponse.success).toHaveBeenCalledWith(res, eventos);
         });
 
@@ -231,110 +270,4 @@ describe('EventoController', () => {
             await expect(controller.deletar(req, res)).rejects.toThrow('ID do evento é obrigatório para deletar.');
         });
     });
-});
-
-// =================================================================
-// Testes adicionais para validações e casos de erro
-// =================================================================
-describe('EventoController - testes adicionais', () => {
-  let controller, req, res;
-
-  beforeEach(() => {
-    controller = new EventoController();
-    res = {
-      status: jest.fn().mockReturnThis(),
-      send: jest.fn(),
-      setHeader: jest.fn(),
-      sendFile: jest.fn()
-    };
-    req = { params: {}, body: {}, files: {} };
-
-    CommonResponse.success.mockClear();
-    CommonResponse.created.mockClear();
-    EventoSchema.parse.mockClear();
-    EventoUpdateSchema.parse.mockClear();
-
-    objectIdSchema.parse.mockImplementation(() => true);
-  });
-
-
-  describe('Validação de ID inválido', () => {
-    beforeEach(() => {
-      objectIdSchema.parse.mockImplementation(() => { throw new Error('ID inválido'); });
-    });
-
-    it('listar deve lançar erro se ID inválido for passado', async () => {
-      req.params.id = 'id-invalido';
-
-      await expect(controller.listar(req, res)).rejects.toThrow('ID inválido');
-      expect(objectIdSchema.parse).toHaveBeenCalledWith('id-invalido');
-    });
-
-    it('alterar deve lançar erro se ID inválido for passado', async () => {
-      req.params.id = 'id-invalido';
-      req.body = { titulo: 'teste' };
-
-      await expect(controller.alterar(req, res)).rejects.toThrow('ID inválido');
-      expect(objectIdSchema.parse).toHaveBeenCalledWith('id-invalido');
-    });
-
-    it('alterarStatus deve lançar erro se ID inválido for passado', async () => {
-      req.params.id = 'id-invalido';
-      req.body.status = 'ativo';
-
-      await expect(controller.alterarStatus(req, res)).rejects.toThrow('ID inválido');
-      expect(objectIdSchema.parse).toHaveBeenCalledWith('id-invalido');
-    });
-
-    it('deletar deve lançar erro se ID inválido for passado', async () => {
-      req.params.id = 'id-invalido';
-
-      await expect(controller.deletar(req, res)).rejects.toThrow('ID inválido');
-      expect(objectIdSchema.parse).toHaveBeenCalledWith('id-invalido');
-    });
-  });
-
-  describe('Cadastrar - injeção do organizador', () => {
-    it('deve injetar organizador fixo e cadastrar o evento', async () => {
-      req.body = { titulo: 'Evento Teste' };
-
-      const eventoEsperado = {
-        ...req.body,
-        organizador: {
-          _id: "682520e98e38a409ac2ac569",
-          nome: "Usuário Teste"
-        }
-      };
-
-      EventoSchema.parse.mockReturnValue(eventoEsperado);
-      controller.service.cadastrar.mockResolvedValue(eventoEsperado);
-
-      await controller.cadastrar(req, res);
-
-      expect(EventoSchema.parse).toHaveBeenCalledWith(eventoEsperado);
-      expect(controller.service.cadastrar).toHaveBeenCalledWith(eventoEsperado);
-      expect(CommonResponse.created).toHaveBeenCalledWith(res, eventoEsperado);
-    });
-  });
-
-
-  describe('AlterarStatus - status inválido', () => {
-    it('deve lançar erro para status inválido', async () => {
-      req.params.id = new mongoose.Types.ObjectId().toString();
-      req.body.status = 'desconhecido';
-
-      EventoUpdateSchema.parse.mockReturnValue({ status: 'desconhecido' });
-
-      await expect(controller.alterarStatus(req, res)).rejects.toThrow('Status inválido. Use "ativo" ou "inativo".');
-    });
-  });
-
-
-  describe('Deletar - sem ID no parâmetro', () => {
-    it('deve lançar erro se não receber ID para deletar', async () => {
-      req.params = {};
-
-      await expect(controller.deletar(req, res)).rejects.toThrow('ID do evento é obrigatório para deletar.');
-    });
-  });
 });

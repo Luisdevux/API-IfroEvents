@@ -65,32 +65,58 @@ describe('Messages Helper', () => {
             expect(messages.error.operationCanceled).toBe("Operação cancelada pelo usuário.");
         });
 
-        test('deve retornar mensagem de recurso não encontrado', () => {
-            const fieldName = 'Recurso';
-            expect(messages.error.resourceNotFound(fieldName)).toBe(`${fieldName} não encontrado(a).`);
+        test('deve retornar mensagem de erro interno do servidor ao processar recurso', () => {
+            const resource = 'Recurso';
+            expect(messages.error.internalServerError(resource)).toBe(`Erro interno no servidor ao processar ${resource}.`);
         });
 
+        test('deve retornar mensagem de erro de autorização', () => {
+            const resource = 'Recurso';
+            expect(messages.error.unauthorized(resource)).toBe(`Erro de autorização: ${resource}.`);
+        });
+
+        test('deve retornar mensagem de conflito de recurso', () => {
+            const resource = 'Recurso';
+            const conflictField = 'Campo de conflito';
+            expect(messages.error.resourceConflict(resource, conflictField)).toBe(`Conflito de recurso em ${resource} contém ${conflictField}.`);
+        });
+        
         test('deve retornar mensagem de página não disponível', () => {
             const page = 'Página';
             expect(messages.error.pageIsNotAvailable(page)).toBe(`A página ${page} não está disponível.`);
         });
-
+        
         test('deve retornar mensagem de página sem dados', () => {
             const page = 'Página';
             expect(messages.error.pageNotContainsData(page)).toBe(`A página ${page} não contém dados.`);
         });
-
+        
         test('deve retornar mensagem de entrada duplicada', () => {
             const fieldName = 'Campo';
             expect(messages.error.duplicateEntry(fieldName)).toBe(`Já existe um registro com o dado informado no(s) campo(s) ${fieldName}.`);
         });
-
+        
         test('deve retornar mensagem de recurso em uso', () => {
             const fieldName = 'Recurso';
             expect(messages.error.resourceInUse(fieldName)).toBe(`Recurso em uso em ${fieldName}.`);
         });
-    });
 
+        test('deve retornar mensagem de erro de autenticação', () => {
+            const fieldName = 'Campo';
+            expect(messages.error.authenticationError(fieldName)).toBe(`Erro de autenticação em ${fieldName}.`);
+        });
+
+        test('deve retornar mensagem de erro de permissão', () => {
+            const fieldName = 'Campo';
+            expect(messages.error.permissionError(fieldName)).toBe(`Erro de permissão em ${fieldName}.`);
+        });
+        
+        test('deve retornar mensagem de recurso não encontrado', () => {
+            const fieldName = 'Recurso';
+            expect(messages.error.resourceNotFound(fieldName)).toBe(`${fieldName} não encontrado em ${fieldName}.`);
+        });
+    });
+    
     describe('Validation Messages', () => {
         test('deve retornar mensagem de campo obrigatório', () => {
             const fieldName = 'Campo';
@@ -260,6 +286,40 @@ describe('Messages Helper', () => {
 
         test('deve retornar mensagem de credenciais inválidas', () => {
             expect(messages.auth.invalidCredentials).toBe("Credenciais inválidas. Verifique seu usuário e senha.");
+        });
+    });
+
+    describe('Custom Messages', () => {
+        test('deve retornar mensagem de usuário não encontrado', () => {
+            expect(messages.user.notFound).toBe("Usuário não encontrado.");
+        });
+
+        test('deve retornar mensagem de usuário já cadastrado com uma matrícula existente', () => {
+            expect(messages.user.alreadyRegistered).toBe("Usuário já cadastrado com esta matrícula.");
+        });
+
+        test('deve retornar mensagem que apenas usuários autenticados podem acessar', () => {
+            expect(messages.user.unauthorized).toBe("Apenas usuários autenticados podem executar esta ação.");
+        });
+
+        test('deve retornar mensagem de evento não encontrado', () => {
+            expect(messages.event.notFound).toBe("Evento não encontrado.");
+        });
+
+        test('deve retornar mensagem que a mídia enviada não atende aos requisitos', () => {
+            expect(messages.event.mediaNotAccepted).toBe("Mídia enviada não atende aos requisitos de tamanho ou resolução.");
+        });
+
+        test('deve retornar mensagem de formato de arquivo de mídia inválido', () => {
+            expect(messages.file.invalidFormat).toBe("Formato de arquivo não suportado.");
+        });
+
+        test('deve retornar mensagem de arquivo muito grande', () => {
+            expect(messages.file.tooLarge).toBe("O arquivo excede o limite de 25MB.");
+        });
+
+        test('deve retornar mensagem de resolução de imagem não corresponde ao padrão esperado', () => {
+            expect(messages.file.resolutionMismatch).toBe("Resolução da imagem não corresponde ao padrão esperado.");
         });
     });
 });

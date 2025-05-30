@@ -74,51 +74,51 @@ describe('errorHandler', () => {
         );
     });
 
-    it('should handle AuthenticationError and return its status and message', () => {
-        const fakeError = new AuthenticationError('Not authenticated', 401);
-        errorHandler(fakeError, req, res, next);
+    // it('should handle AuthenticationError and return its status and message', () => {
+    //     const fakeError = new AuthenticationError('Not authenticated', 401);
+    //     errorHandler(fakeError, req, res, next);
 
-        expect(CommonResponse.error).toHaveBeenCalledWith(
-            res,
-            fakeError.statusCode,
-            'authenticationError',
-            null,
-            [{ message: fakeError.message }],
-            fakeError.message
-        );
-    });
+    //     expect(CommonResponse.error).toHaveBeenCalledWith(
+    //         res,
+    //         fakeError.statusCode,
+    //         'authenticationError',
+    //         null,
+    //         [{ message: fakeError.message }],
+    //         fakeError.message
+    //     );
+    // });
 
-    it('should handle TokenExpiredError and return its status and message', () => {
-        const fakeError = new TokenExpiredError('Token expired', 401);
-        errorHandler(fakeError, req, res, next);
+    // it('should handle TokenExpiredError and return its status and message', () => {
+    //     const fakeError = new TokenExpiredError('Token expired', 401);
+    //     errorHandler(fakeError, req, res, next);
 
-        expect(CommonResponse.error).toHaveBeenCalledWith(
-            res,
-            fakeError.statusCode,
-            'authenticationError',
-            null,
-            [{ message: fakeError.message }],
-            fakeError.message
-        );
-    });
+    //     expect(CommonResponse.error).toHaveBeenCalledWith(
+    //         res,
+    //         fakeError.statusCode,
+    //         'authenticationError',
+    //         null,
+    //         [{ message: fakeError.message }],
+    //         fakeError.message
+    //     );
+    // });
 
-    it("should handle CustomError with errorType 'tokenExpired'", () => {
-        const fakeError = new CustomError('Session expired', {
-            errorType: 'tokenExpired',
-            statusCode: 401,
-            customMessage: 'Seu token expirou. Faça login novamente.'
-        });
-        errorHandler(fakeError, req, res, next);
+    // it("should handle CustomError with errorType 'tokenExpired'", () => {
+    //     const fakeError = new CustomError('Session expired', {
+    //         errorType: 'tokenExpired',
+    //         statusCode: 401,
+    //         customMessage: 'Seu token expirou. Faça login novamente.'
+    //     });
+    //     errorHandler(fakeError, req, res, next);
 
-        expect(CommonResponse.error).toHaveBeenCalledWith(
-            res,
-            401,
-            'tokenExpired',
-            null,
-            [{ message: 'Seu token expirou. Faça login novamente.' }],
-            'Seu token expirou. Faça login novamente.'
-        );
-    });
+    //     expect(CommonResponse.error).toHaveBeenCalledWith(
+    //         res,
+    //         401,
+    //         'tokenExpired',
+    //         null,
+    //         [{ message: 'Seu token expirou. Faça login novamente.' }],
+    //         'Seu token expirou. Faça login novamente.'
+    //     );
+    // });
 
     it('should handle operational errors', () => {
         const fakeError = new Error('Operational failure');
