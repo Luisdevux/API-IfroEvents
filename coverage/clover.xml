@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1748634001364" clover="3.2.0">
-  <project timestamp="1748634001364" name="All files">
+<coverage generated="1748636199933" clover="3.2.0">
+  <project timestamp="1748636199933" name="All files">
     <metrics statements="203" coveredstatements="203" conditionals="77" coveredconditionals="63" methods="66" coveredmethods="66" elements="346" coveredelements="332" complexity="0" loc="203" ncloc="203" packages="7" files="13" classes="13"/>
     <package name="controllers">
       <metrics statements="33" coveredstatements="33" conditionals="10" coveredconditionals="9" methods="6" coveredmethods="6"/>
@@ -64,9 +64,9 @@
       </file>
       <file name="Usuario.js" path="/Users/luisfelipe/Documents/gitlab/plataforma-de-divulgacao-de-eventos/src/models/Usuario.js">
         <metrics statements="3" coveredstatements="3" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
-        <line num="7" count="4" type="stmt"/>
-        <line num="19" count="4" type="stmt"/>
-        <line num="21" count="4" type="stmt"/>
+        <line num="7" count="5" type="stmt"/>
+        <line num="19" count="5" type="stmt"/>
+        <line num="21" count="5" type="stmt"/>
       </file>
     </package>
     <package name="repositories">

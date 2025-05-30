@@ -1,3 +1,5 @@
+// src/tests/unit/utils/helpers/CustomError.test.js
+
 import CustomError from '../../../../utils/helpers/CustomError.js';
 
 describe('CustomError', () => {
