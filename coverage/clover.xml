@@ -1,7 +1,46 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1748476825844" clover="3.2.0">
-  <project timestamp="1748476825844" name="All files">
-    <metrics statements="171" coveredstatements="165" conditionals="71" coveredconditionals="57" methods="61" coveredmethods="55" elements="303" coveredelements="277" complexity="0" loc="171" ncloc="171" packages="6" files="12" classes="12"/>
+<coverage generated="1748571051760" clover="3.2.0">
+  <project timestamp="1748571051761" name="All files">
+    <metrics statements="204" coveredstatements="166" conditionals="81" coveredconditionals="57" methods="67" coveredmethods="56" elements="352" coveredelements="279" complexity="0" loc="204" ncloc="204" packages="7" files="13" classes="13"/>
+    <package name="controllers">
+      <metrics statements="33" coveredstatements="1" conditionals="10" coveredconditionals="0" methods="6" coveredmethods="1"/>
+      <file name="EventoController.js" path="/home/luisfelipe/gitlab/plataforma-de-divulgacao-de-eventos/src/controllers/EventoController.js">
+        <metrics statements="33" coveredstatements="1" conditionals="10" coveredconditionals="0" methods="6" coveredmethods="1"/>
+        <line num="19" count="16" type="stmt"/>
+        <line num="25" count="0" type="stmt"/>
+        <line num="30" count="0" type="stmt"/>
+        <line num="38" count="0" type="stmt"/>
+        <line num="39" count="0" type="stmt"/>
+        <line num="41" count="0" type="stmt"/>
+        <line num="46" count="0" type="stmt"/>
+        <line num="48" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="49" count="0" type="stmt"/>
+        <line num="51" count="0" type="stmt"/>
+        <line num="53" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="54" count="0" type="stmt"/>
+        <line num="57" count="0" type="stmt"/>
+        <line num="60" count="0" type="stmt"/>
+        <line num="61" count="0" type="stmt"/>
+        <line num="67" count="0" type="stmt"/>
+        <line num="68" count="0" type="stmt"/>
+        <line num="70" count="0" type="stmt"/>
+        <line num="72" count="0" type="stmt"/>
+        <line num="74" count="0" type="stmt"/>
+        <line num="79" count="0" type="stmt"/>
+        <line num="80" count="0" type="stmt"/>
+        <line num="82" count="0" type="stmt"/>
+        <line num="84" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="85" count="0" type="stmt"/>
+        <line num="93" count="0" type="stmt"/>
+        <line num="95" count="0" type="stmt"/>
+        <line num="100" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="102" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="103" count="0" type="stmt"/>
+        <line num="112" count="0" type="stmt"/>
+        <line num="114" count="0" type="stmt"/>
+        <line num="115" count="0" type="stmt"/>
+      </file>
+    </package>
     <package name="middlewares">
       <metrics statements="3" coveredstatements="3" conditionals="0" coveredconditionals="0" methods="2" coveredmethods="2"/>
       <file name="asyncWrapper.js" path="/home/luisfelipe/gitlab/plataforma-de-divulgacao-de-eventos/src/middlewares/asyncWrapper.js">
@@ -15,27 +54,27 @@
       <metrics statements="10" coveredstatements="10" conditionals="0" coveredconditionals="0" methods="6" coveredmethods="6"/>
       <file name="Evento.js" path="/home/luisfelipe/gitlab/plataforma-de-divulgacao-de-eventos/src/models/Evento.js">
         <metrics statements="7" coveredstatements="7" conditionals="0" coveredconditionals="0" methods="5" coveredmethods="5"/>
-        <line num="9" count="3" type="stmt"/>
+        <line num="9" count="4" type="stmt"/>
         <line num="28" count="31" type="stmt"/>
         <line num="39" count="31" type="stmt"/>
         <line num="49" count="31" type="stmt"/>
         <line num="59" count="31" type="stmt"/>
-        <line num="68" count="3" type="stmt"/>
-        <line num="70" count="3" type="stmt"/>
+        <line num="68" count="4" type="stmt"/>
+        <line num="70" count="4" type="stmt"/>
       </file>
       <file name="Usuario.js" path="/home/luisfelipe/gitlab/plataforma-de-divulgacao-de-eventos/src/models/Usuario.js">
         <metrics statements="3" coveredstatements="3" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
-        <line num="7" count="3" type="stmt"/>
-        <line num="19" count="3" type="stmt"/>
-        <line num="21" count="3" type="stmt"/>
+        <line num="7" count="4" type="stmt"/>
+        <line num="19" count="4" type="stmt"/>
+        <line num="21" count="4" type="stmt"/>
       </file>
     </package>
     <package name="repositories">
       <metrics statements="19" coveredstatements="19" conditionals="9" coveredconditionals="9" methods="7" coveredmethods="7"/>
       <file name="EventoRepository.js" path="/home/luisfelipe/gitlab/plataforma-de-divulgacao-de-eventos/src/repositories/EventoRepository.js">
         <metrics statements="19" coveredstatements="19" conditionals="9" coveredconditionals="9" methods="7" coveredmethods="7"/>
-        <line num="13" count="20" type="stmt"/>
-        <line num="14" count="20" type="stmt"/>
+        <line num="13" count="36" type="stmt"/>
+        <line num="14" count="36" type="stmt"/>
         <line num="19" count="5" type="stmt"/>
         <line num="24" count="2" type="stmt"/>
         <line num="25" count="1" type="stmt"/>
@@ -59,7 +98,7 @@
       <metrics statements="21" coveredstatements="21" conditionals="4" coveredconditionals="4" methods="7" coveredmethods="7"/>
       <file name="EventoService.js" path="/home/luisfelipe/gitlab/plataforma-de-divulgacao-de-eventos/src/services/EventoService.js">
         <metrics statements="21" coveredstatements="21" conditionals="4" coveredconditionals="4" methods="7" coveredmethods="7"/>
-        <line num="9" count="1" type="stmt"/>
+        <line num="9" count="17" type="stmt"/>
         <line num="14" count="2" type="stmt"/>
         <line num="15" count="1" type="stmt"/>
         <line num="20" count="5" type="cond" truecount="2" falsecount="0"/>

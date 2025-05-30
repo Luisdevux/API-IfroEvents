@@ -4,56 +4,16 @@
 // Mocks que precisam ser definidos ANTES de quaisquer outros imports
 // ==================================================================
 
-jest.mock('sharp', () => {
-    // Função que simula o encadeamento do resize e toBuffer
-    const resizeToBufferMock = jest.fn(() => Promise.resolve(Buffer.from('resized image')));
-    const resizeMock = jest.fn(() => ({
-      toBuffer: resizeToBufferMock,
-    }));
-  
-    // Função principal do sharp
-    const sharpMock = jest.fn(() => ({
-      resize: resizeMock,
-    }));
-  
-    // Adiciona as propriedades necessárias para a configuração da imagem
-    sharpMock.fit = { cover: 'cover' };
-    sharpMock.strategy = { entropy: 'entropy' };
-  
-    return sharpMock;
-});
-
-// Mock do mongoose, simulando Schema e Types
-jest.mock('mongoose', () => {
-    class Schema {
-      constructor(definition, options) {
-        this.definition = definition;
-        this.options = options;
-        this.index = jest.fn();
-        this.plugin = jest.fn();
-      }
-    }
-    Schema.prototype.pre = jest.fn();
-    Schema.Types = { ObjectId: 'ObjectId' };
-  
-    return {
-        Schema,
-        model: jest.fn(() => ({})),
-        connect: jest.fn(),
-        connection: {
-            on: jest.fn(),
-            once: jest.fn(),
-            close: jest.fn()
-        }
-    };
-});
-
-// Mock do uuid
 jest.mock('uuid', () => ({
     v4: jest.fn(() => 'fixed-uuid')
 }));
-  
-// Mock dos helpers
+
+jest.mock('../../../utils/validators/schemas/zod/ObjectIdSchema.js', () => ({
+  default: {
+    parse: jest.fn()
+  }
+}));
+
 jest.mock('../../../utils/helpers/index.js', () => {
     return {
         CommonResponse: {
@@ -61,7 +21,7 @@ jest.mock('../../../utils/helpers/index.js', () => {
             created: jest.fn()
         },
         CustomError: jest.fn((opts) => {
-            const err = new Error(opts.customMessage);
+            const err = new Error(opts.customMessage || opts);
             err.statusCode = opts.statusCode;
             err.errorType = opts.errorType;
             err.field = opts.field;
@@ -73,37 +33,38 @@ jest.mock('../../../utils/helpers/index.js', () => {
             NOT_FOUND: { code: 404 }
         },
         errorHandler: jest.fn(),
-        messages: {},
+        messages: {
+            event: {
+                notFound: () => 'Evento não encontrado.'
+            }
+        },
         StatusService: {},
         asyncWrapper: jest.fn()
     };
 });
 
-// Mocks dos schemas Zod
 jest.mock('../../../utils/validators/schemas/zod/EventoSchema.js', () => {
     return {
         EventoSchema: { parse: jest.fn() },
-        EventoSchemaUpdateSchema: { parse: jest.fn() }
+        EventoUpdateSchema: { parse: jest.fn() }
     };
 });
   
 // =================================================================
 // Importação dos módulos que serão testados
 // =================================================================
-import sharp from 'sharp';
-import path from 'path';
-import fs from 'fs';
-import { v4 as uuidv4 } from 'uuid';
+import mongoose from 'mongoose';
 
 import EventoController from '../../../controllers/EventoController.js';
 import EventoService from '../../../services/EventoService.js';
 
 import { CommonResponse, CustomError, HttpStatusCodes } from '../../../utils/helpers/index.js';
 
+import objectIdSchema from '../../../utils/validators/schemas/zod/ObjectIdSchema.js';
 import { EventoSchema, EventoUpdateSchema } from '../../../utils/validators/schemas/zod/EventoSchema.js';
 
 // =================================================================
-// Testes para UsuarioController
+// Testes para EventoController
 // =================================================================
 describe('EventoController', () => {
     let controller, req, res, next;
@@ -116,27 +77,264 @@ describe('EventoController', () => {
             setHeader: jest.fn(),
             sendFile: jest.fn()
         };
-        req = { params: {}, query: {}, body: {}, files: {} };
+        req = { params: {}, body: {}, files: {} };
         next = jest.fn();
 
-        // Limpa os mocks
         CommonResponse.success.mockClear();
         CommonResponse.created.mockClear();
         EventoSchema.parse.mockClear();
         EventoUpdateSchema.parse.mockClear();
 
-        // Mocks do Service
         controller.service.cadastrar = jest.fn();
         controller.service.listar = jest.fn();
         controller.service.alterar = jest.fn();
         controller.service.alterarStatus = jest.fn();
         controller.service.deletar = jest.fn();
+
+        objectIdSchema.parse.mockImplementation(() => true);
     });
 
+    
     // ================================
     // Testes para o método cadastrar
     // ================================
-    describe('Cadastrar', () => {
-        console.log("Inicio aqui");
+    describe('cadastrar', () => {
+        it('deve cadastrar um evento com sucesso', async () => {
+            req.body = { titulo: 'Evento Teste' };
+            const eventoComOrganizador = {
+                ...req.body,
+                organizador: {
+                    _id: new mongoose.Types.ObjectId().toString(),
+                    nome: 'Usuário Teste'
+                }
+            };
+
+            EventoSchema.parse.mockReturnValue(eventoComOrganizador);
+            controller.service.cadastrar.mockResolvedValue(eventoComOrganizador);
+
+            await controller.cadastrar(req, res);
+
+            expect(EventoSchema.parse).toHaveBeenCalledWith(eventoComOrganizador);
+            expect(controller.service.cadastrar).toHaveBeenCalledWith(eventoComOrganizador);
+            expect(CommonResponse.created).toHaveBeenCalledWith(res, eventoComOrganizador);
+        });
     });
-})
+
+
+    // ==============================================
+    // Testes para o método listar e listar por ID
+    // ==============================================
+    describe('listar', () => {
+        it('deve listar todos os eventos quando nenhum ID for passado', async () => {
+            const eventos = [{ titulo: 'Evento 1' }, { titulo: 'Evento 2' }];
+            controller.service.listar.mockResolvedValue(eventos);
+
+            await controller.listar(req, res);
+
+            expect(controller.service.listar).toHaveBeenCalledWith(undefined);
+            expect(CommonResponse.success).toHaveBeenCalledWith(res, eventos);
+        });
+
+        it('deve listar um evento por ID válido', async () => {
+            const idValido = new mongoose.Types.ObjectId().toString();
+            const evento = { _id: idValido, titulo: 'Evento único' };
+            req.params.id = idValido;
+            controller.service.listar.mockResolvedValue(evento);
+
+            await controller.listar(req, res);
+
+            expect(controller.service.listar).toHaveBeenCalledWith(idValido);
+            expect(CommonResponse.success).toHaveBeenCalledWith(res, evento);
+        });
+
+        it('deve lançar erro se o evento não for encontrado', async () => {
+            const idValido = new mongoose.Types.ObjectId().toString();
+            req.params.id = idValido;
+            controller.service.listar.mockResolvedValue(null);
+
+            await expect(controller.listar(req, res)).rejects.toThrow('Evento não encontrado.');
+        });
+    });
+
+
+    // ================================
+    // Testes para o método alterar
+    // ================================
+    describe('alterar', () => {
+        it('deve alterar um evento com sucesso', async () => {
+            const idValido = new mongoose.Types.ObjectId().toString();
+            req.params.id = idValido;
+            req.body = { titulo: 'Novo título' };
+            EventoUpdateSchema.parse.mockReturnValue(req.body);
+
+            const resultado = { _id: idValido, ...req.body };
+            controller.service.alterar.mockResolvedValue(resultado);
+
+            await controller.alterar(req, res);
+
+            expect(EventoUpdateSchema.parse).toHaveBeenCalledWith(req.body);
+            expect(controller.service.alterar).toHaveBeenCalledWith(idValido, req.body);
+            expect(CommonResponse.success).toHaveBeenCalledWith(res, resultado, 200, 'Evento atualizado com sucesso.');
+        });
+    });
+
+
+    // =====================================
+    // Testes para o método alterar status
+    // =====================================
+    describe('alterarStatus', () => {
+        it('deve alterar o status do evento com sucesso', async () => {
+            const idValido = new mongoose.Types.ObjectId().toString();
+            req.params.id = idValido;
+            req.body.status = 'ativo';
+            EventoUpdateSchema.parse.mockReturnValue({ status: 'ativo' });
+
+            const resultado = { _id: idValido, status: 'ativo' };
+            controller.service.alterarStatus.mockResolvedValue(resultado);
+
+            await controller.alterarStatus(req, res);
+
+            expect(EventoUpdateSchema.parse).toHaveBeenCalledWith({ status: 'ativo' });
+            expect(controller.service.alterarStatus).toHaveBeenCalledWith(idValido, 'ativo');
+            expect(CommonResponse.success).toHaveBeenCalledWith(res, resultado, 200, 'Status do evento atualizado com sucesso.');
+        });
+
+        it('deve lançar erro se o status for inválido', async () => {
+            const idValido = new mongoose.Types.ObjectId().toString();
+            req.params.id = idValido;
+            req.body.status = 'desconhecido';
+            EventoUpdateSchema.parse.mockReturnValue({ status: 'desconhecido' });
+
+            await expect(controller.alterarStatus(req, res)).rejects.toThrow('Status inválido. Use "ativo" ou "inativo".');
+        });
+    });
+
+
+    // ================================
+    // Testes para o método deletar
+    // ================================
+    describe('deletar', () => {
+        it('deve deletar um evento com sucesso', async () => {
+            const idValido = new mongoose.Types.ObjectId().toString();
+            req.params.id = idValido;
+            const resultado = { acknowledged: true };
+            controller.service.deletar.mockResolvedValue(resultado);
+
+            await controller.deletar(req, res);
+
+            expect(controller.service.deletar).toHaveBeenCalledWith(idValido);
+            expect(CommonResponse.success).toHaveBeenCalledWith(res, resultado, 200, 'Evento excluído com sucesso.');
+        });
+
+        it('deve lançar erro se ID não for fornecido', async () => {
+            req.params = {};
+            await expect(controller.deletar(req, res)).rejects.toThrow('ID do evento é obrigatório para deletar.');
+        });
+    });
+});
+
+// =================================================================
+// Testes adicionais para validações e casos de erro
+// =================================================================
+describe('EventoController - testes adicionais', () => {
+  let controller, req, res;
+
+  beforeEach(() => {
+    controller = new EventoController();
+    res = {
+      status: jest.fn().mockReturnThis(),
+      send: jest.fn(),
+      setHeader: jest.fn(),
+      sendFile: jest.fn()
+    };
+    req = { params: {}, body: {}, files: {} };
+
+    CommonResponse.success.mockClear();
+    CommonResponse.created.mockClear();
+    EventoSchema.parse.mockClear();
+    EventoUpdateSchema.parse.mockClear();
+
+    objectIdSchema.parse.mockImplementation(() => true);
+  });
+
+
+  describe('Validação de ID inválido', () => {
+    beforeEach(() => {
+      objectIdSchema.parse.mockImplementation(() => { throw new Error('ID inválido'); });
+    });
+
+    it('listar deve lançar erro se ID inválido for passado', async () => {
+      req.params.id = 'id-invalido';
+
+      await expect(controller.listar(req, res)).rejects.toThrow('ID inválido');
+      expect(objectIdSchema.parse).toHaveBeenCalledWith('id-invalido');
+    });
+
+    it('alterar deve lançar erro se ID inválido for passado', async () => {
+      req.params.id = 'id-invalido';
+      req.body = { titulo: 'teste' };
+
+      await expect(controller.alterar(req, res)).rejects.toThrow('ID inválido');
+      expect(objectIdSchema.parse).toHaveBeenCalledWith('id-invalido');
+    });
+
+    it('alterarStatus deve lançar erro se ID inválido for passado', async () => {
+      req.params.id = 'id-invalido';
+      req.body.status = 'ativo';
+
+      await expect(controller.alterarStatus(req, res)).rejects.toThrow('ID inválido');
+      expect(objectIdSchema.parse).toHaveBeenCalledWith('id-invalido');
+    });
+
+    it('deletar deve lançar erro se ID inválido for passado', async () => {
+      req.params.id = 'id-invalido';
+
+      await expect(controller.deletar(req, res)).rejects.toThrow('ID inválido');
+      expect(objectIdSchema.parse).toHaveBeenCalledWith('id-invalido');
+    });
+  });
+
+  describe('Cadastrar - injeção do organizador', () => {
+    it('deve injetar organizador fixo e cadastrar o evento', async () => {
+      req.body = { titulo: 'Evento Teste' };
+
+      const eventoEsperado = {
+        ...req.body,
+        organizador: {
+          _id: "682520e98e38a409ac2ac569",
+          nome: "Usuário Teste"
+        }
+      };
+
+      EventoSchema.parse.mockReturnValue(eventoEsperado);
+      controller.service.cadastrar.mockResolvedValue(eventoEsperado);
+
+      await controller.cadastrar(req, res);
+
+      expect(EventoSchema.parse).toHaveBeenCalledWith(eventoEsperado);
+      expect(controller.service.cadastrar).toHaveBeenCalledWith(eventoEsperado);
+      expect(CommonResponse.created).toHaveBeenCalledWith(res, eventoEsperado);
+    });
+  });
+
+
+  describe('AlterarStatus - status inválido', () => {
+    it('deve lançar erro para status inválido', async () => {
+      req.params.id = new mongoose.Types.ObjectId().toString();
+      req.body.status = 'desconhecido';
+
+      EventoUpdateSchema.parse.mockReturnValue({ status: 'desconhecido' });
+
+      await expect(controller.alterarStatus(req, res)).rejects.toThrow('Status inválido. Use "ativo" ou "inativo".');
+    });
+  });
+
+
+  describe('Deletar - sem ID no parâmetro', () => {
+    it('deve lançar erro se não receber ID para deletar', async () => {
+      req.params = {};
+
+      await expect(controller.deletar(req, res)).rejects.toThrow('ID do evento é obrigatório para deletar.');
+    });
+  });
+});
