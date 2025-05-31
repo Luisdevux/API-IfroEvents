@@ -34,7 +34,7 @@ describe('EventoSchema', () => {
         expect(resultado.success).toBe(true);
     });
 
-    describe(' validação de campos obrigatórios', () => {
+    describe('Validação de campos obrigatórios', () => {
         const obrigatorios = [ 'titulo', 'descricao', 'local', 'dataEvento', 'organizador', 'linkInscricao', 'tags', 'categoria', 'midiaVideo', 'midiaCapa', 'midiaCarrossel' ];
 
         obrigatorios.forEach(campo => {
@@ -53,5 +53,188 @@ describe('EventoSchema', () => {
         const resultado = EventoSchema.safeParse(eventoInvalido);
         expect(resultado.success).toBe(false);
         expect(resultado.error.issues[0].message).toBe('Link de inscrição inválido');
+    });
+
+    it('deve falhar se tags for um array vazio', () => {
+        const eventoInvalido = { ...eventoValido, tags: [] };
+        const resultado = EventoSchema.safeParse(eventoInvalido);
+        expect(resultado.success).toBe(false);
+        expect(resultado.error.issues[0].message).toBe('Insira pelo menos uma tag');
+    });
+
+    it('deve falhar se o id do organizador for inválido', () => {
+        const eventoInvalido = { ...eventoValido, organizador: { _id: '123', nome: 'Teste' } };
+        const resultado = EventoSchema.safeParse(eventoInvalido);
+        expect(resultado.success).toBe(false);
+        expect(resultado.error.issues[0].path).toContain('organizador');
+    });
+
+    it('deve falhar se o nome do organizador for vazio', () => {
+        const eventoInvalido = { ...eventoValido, organizador: { _id: new mongoose.Types.ObjectId().toString(), nome: '' } };
+        const resultado = EventoSchema.safeParse(eventoInvalido);
+        expect(resultado.success).toBe(false);
+        expect(resultado.error.issues[0].path).toContain('organizador');
+    });
+
+    it('deve falhar com um tipo inválido na data do evento', () => {
+        const eventoInvalido = { ...eventoValido, dataEvento: 'hoje' };
+        const resultado = EventoSchema.safeParse(eventoInvalido);
+        expect(resultado.success).toBe(false);
+        expect(resultado.error.issues[0].path).toContain('dataEvento');
+    });
+
+    it('deve falhar se as mídias estiverem vazias', () => {
+        const camposMidia = ['midiaVideo', 'midiaCapa', 'midiaCarrossel'];
+        camposMidia.forEach((campo) => {
+            const eventoInvalido = { ...eventoValido, [campo]: [] };
+            const resultado = EventoSchema.safeParse(eventoInvalido);
+            expect(resultado.success).toBe(false);
+            expect(resultado.error.issues[0].path).toContain(campo);
+        });
+    });
+
+    it('deve falhar se uma mídia tiver campo inválido', () => {
+        const  midiaInvalida = { ...midiaValida, url: 'inválido' };
+        const eventoInvalido = { ...eventoValido, midiaCapa: [midiaInvalida] };
+        const resultado = EventoSchema.safeParse(eventoInvalido);
+        expect(resultado.success).toBe(false);
+        expect(resultado.error.issues[0].path).toContain('midiaCapa');
+    });
+
+    it('deve falhar se o tamanho em mb da mídia for negativo', () => {
+        const midiaInvalida = { ...midiaValida, tamanhoMb: -1 };
+        const eventoInvalido = { ...eventoValido, midiaVideo: [midiaInvalida] };
+        const resultado = EventoSchema.safeParse(eventoInvalido);
+        expect(resultado.success).toBe(false);
+        expect(resultado.error.issues[0].path).toContain('midiaVideo');
+    });
+
+    it('deve falhar se mídia tiver altura ou largura inválida', () => {
+        const midiaInvalidaAltura = { ...midiaValida, altura: 0 };
+        const midiaInvalidaLargura = { ...midiaValida, largura: 0 };
+
+        const eventoAltura = { ...eventoValido, midiaCarrossel: [midiaInvalidaAltura] };
+        const eventoLargura = { ...eventoValido, midiaCapa: [midiaInvalidaLargura] };
+
+        const resultado1 = EventoSchema.safeParse(eventoAltura);
+        const resultado2 = EventoSchema.safeParse(eventoLargura);
+
+        expect(resultado1.success).toBe(false);
+        expect(resultado2.success).toBe(false);
+    });
+
+    it('deve falhar se tags receberem uma string vazia', () => {
+        const eventoInvalido = { ...eventoValido, tags: [''] };
+        const resultado = EventoSchema.safeParse(eventoInvalido);
+        expect(resultado.success).toBe(false);
+        expect(resultado.error.issues[0].path).toContain('tags');
+    });
+
+    it('deve falhar se categoria for string vazia', () => {
+        const eventoInvalido = { ...eventoValido, categoria: '' };
+        const resultado = EventoSchema.safeParse(eventoInvalido);
+        expect(resultado.success).toBe(false);
+        expect(resultado.error.issues[0].path).toContain('categoria');
+    });
+
+    it('deve retornar os erros definidos no schema se vários campos forem inválidos', () => {
+        const eventoInvalido = {
+            ...eventoValido,
+            titulo: '',
+            linkInscricao: 'invalido',
+            tags: [''],
+        };
+        const resultado = EventoSchema.safeParse(eventoInvalido);
+        expect(resultado.success).toBe(false);
+        expect(resultado.error.issues.length).toBeGreaterThan(1);
+    });
+
+    describe('Validações de status', () => {
+        it('deve falhar ao receber parâmetro diferente de "ativo" ou "inativo"', () => {
+            const eventoInvalido = { ...eventoValido, status: 'teste' };
+            const resultado = EventoSchema.safeParse(eventoInvalido);
+            expect(resultado.success).toBe(false);
+            expect(resultado.error.issues[0].path).toContain('status');
+        });
+
+        it('deve setar "ativo" como padrão se não fornecido', () => {
+            const copiaEvento = { ...eventoValido };
+            delete copiaEvento.status;
+            const resultado = EventoSchema.safeParse(copiaEvento);
+            expect(resultado.success).toBe(true);
+            expect(resultado.data.status).toBe('ativo');
+        });
+    });
+});
+
+describe('EventoUpdateSchema', () => {
+    it('deve validar com sucesso todos os campos possíveis de update preenchidos corretamente', () => {
+        const dadosUpdateValidos = {
+            titulo: 'Novo Título do Evento Teste',
+            descricao: 'Nova descrição do evento teste',
+            local: 'Novo local teste',
+            dataEvento: new Date(),
+            organizador: {
+                _id: new mongoose.Types.ObjectId().toString(),
+                nome: 'Novo Nome do Organizador Teste',
+            },
+            linkInscricao: 'https://example.com/novo-link',
+            tags: ['educação', 'inovação'],
+            categoria: 'evento',
+            status: 'inativo',
+            midiaVideo: [
+                {
+                url: 'https://example.com/novo-video.mp4',
+                tamanhoMb: 10,
+                altura: 720,
+                largura: 1280,
+                }
+            ],
+            midiaCapa: [
+                {
+                url: 'https://example.com/nova-capa.jpg',
+                tamanhoMb: 2.5,
+                altura: 720,
+                largura: 1280,
+                }
+            ],
+            midiaCarrossel: [
+                {
+                url: 'https://example.com/nova-img.jpg',
+                tamanhoMb: 1.2,
+                altura: 720,
+                largura: 1280,
+                }
+            ]
+        };
+
+        const resultado = EventoUpdateSchema.safeParse(dadosUpdateValidos);
+        expect(resultado.success).toBe(true);
+        expect(resultado.data).toEqual(expect.objectContaining(dadosUpdateValidos));
+    });
+
+    it('deve aceitar qualquer campo parcial', () => {
+        const dadosParciais = {
+            titulo: 'Título Teste',
+            tags: ['novo teste']
+        };
+        const resultado = EventoUpdateSchema.safeParse(dadosParciais);
+        expect(resultado.success).toBe(true);
+    });
+
+    it('deve falhar com valores inválidos mesmo parcialmente', () => {
+        const eventoInvalido = {
+            linkInscricao: 'url-inválida'
+        };
+        const resultado = EventoUpdateSchema.safeParse(eventoInvalido);
+        expect(resultado.success).toBe(false);
+        expect(resultado.error.issues[0].path).toContain('linkInscricao');
+    });
+
+    it('deve falhar ao atualizar com status inválido', () => {
+        const dadoParcial = { status: 'desconhecido' };
+        const resultado = EventoUpdateSchema.safeParse(dadoParcial);
+        expect(resultado.success).toBe(false);
+        expect(resultado.error.issues[0].path).toContain('status');
     });
 });
