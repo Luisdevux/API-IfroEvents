@@ -5,7 +5,7 @@
 
 ## 1 - Introdução
 
-O presente sistema tem como objetivo informatizar a divulgação e o gerenciamento de eventos institucionais do IFRO. A plataforma oferece funcionalidades que abrangem o cadastro completo de eventos por parte dos administradores, controle de status (ativo/inativo), upload e gerenciamento de mídias (como capas, vídeos e imagens de carrossel), além da geração dinâmica de QR Codes para inscrição. O sistema também contempla rotas especializadas para exibição em totens, promovendo maior visibilidade institucional. Toda a estrutura foi desenvolvida com foco na organização modular e padronização profissional da API, facilitando futuras integrações com front-ends e painél administrativo.
+O presente sistema tem como objetivo informatizar a divulgação e o gerenciamento de eventos institucionais do IFRO. A plataforma oferece funcionalidades que abrangem o cadastro completo de eventos por parte dos administradores, controle de status (ativo/inativo), upload e gerenciamento de mídias (como capas, vídeos e imagens de carrossel), além da geração dinâmica de QR Codes para inscrição. O sistema também contempla rotas especializadas para exibição em totens, promovendo maior visibilidade institucional. Toda a estrutura foi desenvolvida com foco na organização modular e padronização profissional da API, facilitando futuras integrações com front-ends e painel administrativo.
 
 Este plano de teste descreve os cenários, critérios de aceitação e verificações que serão aplicados sobre as principais funcionalidades do sistema, visando garantir o correto funcionamento das regras de negócio, a integridade dos dados e a experiência do usuário.
 
