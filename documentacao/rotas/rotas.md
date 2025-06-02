@@ -135,9 +135,9 @@ Adicionar uma mídia ao evento (capa, carrossel ou vídeo).
 - **Tipos aceitos:** JPG, PNG (imagens), MP4 (vídeo).
 - **Tamanho máximo:** 25MB.
 - **Padrões visuais obrigatórios:**
-  - Imagem de capa: 1280x720px (16:9),
+  - Imagem de capa: 1280x720px,
   - Vídeo: resolução mínima 1280x720px,
-  - Carrossel: 1024x768px (4:3 ou 3:2).
+  - Carrossel: 1280x720px.
 - **Tipo deve ser informado na URL como `capa`, `carrossel`, ou `video`.**
 - Mídias com dimensões inválidas são rejeitadas automaticamente.
 
