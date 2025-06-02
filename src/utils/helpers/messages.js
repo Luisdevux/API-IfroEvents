@@ -97,7 +97,7 @@ const messages = {
     // Mensagem de Usuário
     user: {
         notFound: "Usuário não encontrado.",
-        alreadRegistered: "Usuário já cadastrado com esta matrícula.",
+        alreadyRegistered: "Usuário já cadastrado com esta matrícula.",
         unauthorized: "Apenas usuários autenticados podem executar esta ação."
     },
 
