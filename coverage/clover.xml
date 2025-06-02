@@ -45,7 +45,7 @@
       <metrics statements="3" coveredstatements="3" conditionals="0" coveredconditionals="0" methods="2" coveredmethods="2"/>
       <file name="asyncWrapper.js" path="C:\Users\luisf\OneDrive\Documentos\gitlab\plataforma-de-divulgacao-de-eventos\src\middlewares\asyncWrapper.js">
         <metrics statements="3" coveredstatements="3" conditionals="0" coveredconditionals="0" methods="2" coveredmethods="2"/>
-        <line num="3" count="3" type="stmt"/>
+        <line num="3" count="4" type="stmt"/>
         <line num="4" count="3" type="stmt"/>
         <line num="5" count="3" type="stmt"/>
       </file>
@@ -93,6 +93,24 @@
         <line num="79" count="3" type="stmt"/>
         <line num="80" count="2" type="stmt"/>
       </file>
+      <file name="UsuarioRepository.js" path="C:\Users\mateu\Documents\gitlab\plataforma-de-divulgacao-de-eventos\src\repositories\UsuarioRepository.js">
+        <metrics statements="15" coveredstatements="1" conditionals="6" coveredconditionals="2" methods="6" coveredmethods="1"/>
+        <line num="10" count="1" type="stmt"/>
+        <line num="15" count="0" type="stmt"/>
+        <line num="16" count="0" type="stmt"/>
+        <line num="21" count="0" type="stmt"/>
+        <line num="22" count="0" type="stmt"/>
+        <line num="27" count="0" type="stmt"/>
+        <line num="29" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="30" count="0" type="stmt"/>
+        <line num="39" count="0" type="stmt"/>
+        <line num="45" count="0" type="stmt"/>
+        <line num="47" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="48" count="0" type="stmt"/>
+        <line num="56" count="0" type="stmt"/>
+        <line num="61" count="0" type="stmt"/>
+        <line num="62" count="0" type="stmt"/>
+      </file>
     </package>
     <package name="services">
       <metrics statements="21" coveredstatements="21" conditionals="4" coveredconditionals="4" methods="7" coveredmethods="7"/>
@@ -119,6 +137,27 @@
         <line num="62" count="10" type="cond" truecount="2" falsecount="0"/>
         <line num="63" count="4" type="stmt"/>
         <line num="71" count="6" type="stmt"/>
+      </file>
+      <file name="UsuarioService.js" path="C:\Users\mateu\Documents\gitlab\plataforma-de-divulgacao-de-eventos\src\services\UsuarioService.js">
+        <metrics statements="18" coveredstatements="18" conditionals="4" coveredconditionals="4" methods="6" coveredmethods="6"/>
+        <line num="9" count="1" type="stmt"/>
+        <line num="14" count="2" type="stmt"/>
+        <line num="15" count="1" type="stmt"/>
+        <line num="20" count="5" type="cond" truecount="2" falsecount="0"/>
+        <line num="21" count="3" type="stmt"/>
+        <line num="22" count="2" type="stmt"/>
+        <line num="25" count="2" type="stmt"/>
+        <line num="30" count="4" type="stmt"/>
+        <line num="32" count="2" type="stmt"/>
+        <line num="33" count="1" type="stmt"/>
+        <line num="38" count="4" type="stmt"/>
+        <line num="40" count="2" type="stmt"/>
+        <line num="41" count="1" type="stmt"/>
+        <line num="52" count="11" type="stmt"/>
+        <line num="53" count="8" type="stmt"/>
+        <line num="54" count="8" type="cond" truecount="2" falsecount="0"/>
+        <line num="55" count="3" type="stmt"/>
+        <line num="63" count="5" type="stmt"/>
       </file>
     </package>
     <package name="utils.helpers">
@@ -156,41 +195,41 @@
       </file>
       <file name="HttpStatusCodes.js" path="C:\Users\luisf\OneDrive\Documentos\gitlab\plataforma-de-divulgacao-de-eventos\src\utils\helpers\HttpStatusCodes.js">
         <metrics statements="35" coveredstatements="35" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
-        <line num="4" count="5" type="stmt"/>
-        <line num="5" count="5" type="stmt"/>
-        <line num="6" count="5" type="stmt"/>
-        <line num="7" count="5" type="stmt"/>
-        <line num="8" count="5" type="stmt"/>
-        <line num="9" count="5" type="stmt"/>
-        <line num="10" count="5" type="stmt"/>
-        <line num="11" count="5" type="stmt"/>
-        <line num="13" count="5" type="stmt"/>
-        <line num="14" count="5" type="stmt"/>
-        <line num="15" count="5" type="stmt"/>
-        <line num="16" count="5" type="stmt"/>
-        <line num="17" count="5" type="stmt"/>
-        <line num="18" count="5" type="stmt"/>
-        <line num="19" count="5" type="stmt"/>
-        <line num="20" count="5" type="stmt"/>
-        <line num="22" count="5" type="stmt"/>
-        <line num="23" count="5" type="stmt"/>
-        <line num="24" count="5" type="stmt"/>
-        <line num="25" count="5" type="stmt"/>
-        <line num="26" count="5" type="stmt"/>
-        <line num="27" count="5" type="stmt"/>
-        <line num="28" count="5" type="stmt"/>
-        <line num="29" count="5" type="stmt"/>
-        <line num="30" count="5" type="stmt"/>
-        <line num="31" count="5" type="stmt"/>
-        <line num="32" count="5" type="stmt"/>
-        <line num="33" count="5" type="stmt"/>
-        <line num="34" count="5" type="stmt"/>
-        <line num="35" count="5" type="stmt"/>
-        <line num="36" count="5" type="stmt"/>
-        <line num="38" count="5" type="stmt"/>
-        <line num="39" count="5" type="stmt"/>
-        <line num="40" count="5" type="stmt"/>
-        <line num="41" count="5" type="stmt"/>
+        <line num="4" count="6" type="stmt"/>
+        <line num="5" count="6" type="stmt"/>
+        <line num="6" count="6" type="stmt"/>
+        <line num="7" count="6" type="stmt"/>
+        <line num="8" count="6" type="stmt"/>
+        <line num="9" count="6" type="stmt"/>
+        <line num="10" count="6" type="stmt"/>
+        <line num="11" count="6" type="stmt"/>
+        <line num="13" count="6" type="stmt"/>
+        <line num="14" count="6" type="stmt"/>
+        <line num="15" count="6" type="stmt"/>
+        <line num="16" count="6" type="stmt"/>
+        <line num="17" count="6" type="stmt"/>
+        <line num="18" count="6" type="stmt"/>
+        <line num="19" count="6" type="stmt"/>
+        <line num="20" count="6" type="stmt"/>
+        <line num="22" count="6" type="stmt"/>
+        <line num="23" count="6" type="stmt"/>
+        <line num="24" count="6" type="stmt"/>
+        <line num="25" count="6" type="stmt"/>
+        <line num="26" count="6" type="stmt"/>
+        <line num="27" count="6" type="stmt"/>
+        <line num="28" count="6" type="stmt"/>
+        <line num="29" count="6" type="stmt"/>
+        <line num="30" count="6" type="stmt"/>
+        <line num="31" count="6" type="stmt"/>
+        <line num="32" count="6" type="stmt"/>
+        <line num="33" count="6" type="stmt"/>
+        <line num="34" count="6" type="stmt"/>
+        <line num="35" count="6" type="stmt"/>
+        <line num="36" count="6" type="stmt"/>
+        <line num="38" count="6" type="stmt"/>
+        <line num="39" count="6" type="stmt"/>
+        <line num="40" count="6" type="stmt"/>
+        <line num="41" count="6" type="stmt"/>
       </file>
       <file name="StatusService.js" path="C:\Users\luisf\OneDrive\Documentos\gitlab\plataforma-de-divulgacao-de-eventos\src\utils\helpers\StatusService.js">
         <metrics statements="7" coveredstatements="7" conditionals="7" coveredconditionals="7" methods="3" coveredmethods="3"/>

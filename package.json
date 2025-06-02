@@ -25,6 +25,7 @@
     "mongoose": "^8.13.2",
     "mongoose-paginate-v2": "^1.9.0",
     "multer": "^2.0.0",
+    "primeiraapi": "file:",
     "sharp": "^0.34.2",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
