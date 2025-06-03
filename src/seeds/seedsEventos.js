@@ -140,7 +140,7 @@ async function seedEventos(usuarios) {
     // Gera eventos aleatórios
     const eventosAleatorios = [];
 
-    for(let i = 0; i < 50; i++) {
+    for(let i = 0; i < 20; i++) {
         eventosAleatorios.push({
             titulo: mapping.titulo(),
             descricao: mapping.descricao(),
