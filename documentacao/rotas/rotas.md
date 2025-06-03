@@ -108,7 +108,24 @@ Editar os dados de um evento.
 
 ---
 
-### 2.5 DELETE /eventos/:id
+### 2.5 PATCH /eventos/:id/status
+
+#### Caso de Uso
+Alterar o status de um evento entre `ativo` e `inativo`.
+
+#### Regras de Negócio
+- **Acesso restrito:** apenas o criador do evento pode alterar o status.
+- **Valores aceitos:** `ativo` ou `inativo` (validação via Zod).
+- **Impacto:** eventos inativos não aparecem em rotas públicas como as do Totem.
+
+#### Resultado
+- Status do evento alterado com sucesso.
+- Retorno do evento com o novo status atualizado.
+- Em caso de valor inválido ou ID inexistente, retornar mensagem de erro apropriada.
+
+---
+
+### 2.6 DELETE /eventos/:id
 
 #### Caso de Uso
 Remover um evento do sistema.
@@ -119,7 +136,6 @@ Remover um evento do sistema.
 
 #### Resultado
 - Evento removido com sucesso.
-- Log gerado.
 - Em caso de erro, retorna status e mensagem apropriada.
 
 ---
@@ -163,7 +179,68 @@ Listar as mídias associadas a um evento.
 
 ---
 
-### 3.3 GET /eventos/:id/qrcode
+### 3.3 GET /eventos/:id/midia/capa
+
+#### Caso de Uso
+Recuperar imagem de capa associada a um evento.
+
+#### Regras de Negócio
+- Apenas uma imagem de capa por evento.
+- Visualização permitida tanto no painel quanto no totem.
+
+#### Resultado
+- Objeto com os dados da imagem de capa.
+- Em caso de falha, retornar mensagem de erro.
+
+---
+
+### 3.4 GET /eventos/:id/midia/video
+
+#### Caso de Uso
+Recuperar vídeo institucional vinculado ao evento.
+
+#### Regras de Negócio
+- Um único vídeo por evento.
+- Utilizado para apresentação no totem ou rede social.
+
+#### Resultado
+- Objeto com dados do vídeo (URL, tamanho, resolução).
+- Mensagem de erro se não houver vídeo.
+
+---
+
+### 3.5 GET /eventos/:id/midia/carrossel
+
+#### Caso de Uso
+Listar imagens do carrossel do evento.
+
+#### Regras de Negócio
+- Exibidas em slideshow no painel ou no totem.
+- Dimensões obrigatórias validadas no upload.
+
+#### Resultado
+- Array de imagens do carrossel.
+- Em caso de falha, retorna mensagem de erro.
+
+---
+
+### 3.6 DELETE /eventos/:eventoId/midia/:tipo/:midiaId
+
+#### Caso de Uso
+Remover uma mídia (vídeo, imagem de capa ou imagem de carrossel) específica de um evento.
+
+#### Regras de Negócio
+- Apenas usuários administradores autenticados podem realizar a ação.
+- A mídia é removida do banco e do sistema de arquivos.
+- Tipo deve ser uma das opções válidas: `capa`, `carrossel`, `video`.
+
+#### Resultado
+- Mídia removida com sucesso.
+- Mensagem de erro caso ID não exista ou tipo inválido seja informado.
+
+---
+
+### 3.7 GET /eventos/:id/qrcode
 
 #### Caso de Uso
 Gerar um QR Code com o link de inscrição do evento.
@@ -178,9 +255,7 @@ Gerar um QR Code com o link de inscrição do evento.
 - Link externo incluso na resposta.
 - Em caso de erro, retornar mensagem apropriada.
 
----
-
-### 3.4 GET /eventos/anteriores/slideshow
+### 3.8 GET /eventos/anteriores/slideshow
 
 #### Caso de Uso
 Exibir uma lista visual contínua de eventos passados no modo de descanso do totem.
