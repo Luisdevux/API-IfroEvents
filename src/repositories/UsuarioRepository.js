@@ -56,6 +56,36 @@ class UsuarioRepository {
         return usuario;
     }
 
+    async atualizarSenha(id, senha) {
+        const usuario = await this.model.findByIdAndUpdate(
+            id,
+            {
+                // atualiza a senha
+                $set: { senha },
+                // remove os campos de código de recuperação e token único
+                $unset: {
+                    tokenUnico: "",
+                    codigo_recupera_senha: "",
+                    exp_codigo_recupera_senha: ""
+                }
+            },
+            { new: true } // Retorna o documento atualizado
+        ).exec();
+
+        if (!usuario) {
+            throw new CustomError({
+                statusCode: 404,
+                errorType: 'resourceNotFound',
+                field: 'Usuário',
+                details: [],
+                customMessage: messages.error.resourceNotFound('Usuário')
+            });
+        }
+
+        return usuario;
+    }
+
+
     //DELETE /usuarios/:id
     async deletar(id) {
         const usuario = await this.model.findByIdAndDelete(id);

@@ -1,4 +1,4 @@
- import express from "express";
+import express from "express";
 import AuthController from '../controllers/AuthController.js';
 import { asyncWrapper } from '../utils/helpers/index.js';
 

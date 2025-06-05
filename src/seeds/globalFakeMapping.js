@@ -3,6 +3,7 @@
 import { faker } from "@faker-js/faker";
 import mongoose from 'mongoose';
 import { v4 as uuid } from 'uuid';
+import TokenUtil from "../utils/TokenUtil.js";
 import loadModels from './loadModels.js';
 
 /**
@@ -23,6 +24,11 @@ const fakeMappings = {
         " " +
         faker.person.lastName(),
         senha: () => faker.internet.password(),
+        tokenUnico: () => TokenUtil.generateAccessToken(new mongoose.Types.ObjectId().toString()),
+        refreshtoken: () => TokenUtil.generateRefreshToken(new mongoose.Types.ObjectId().toString()),
+        accesstoken: () => TokenUtil.generateAccessToken(new mongoose.Types.ObjectId().toString()),
+        codigo_recupera_senha: () => faker.random.alphaNumeric(10).toUpperCase(),
+        exp_codigo_recupera_senha: () => faker.date.future({ minutes: 60 }),
     },
 
     // Mapping específico para o model Evento
