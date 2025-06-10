@@ -41,11 +41,13 @@ async function seedUsuarios() {
         {
             matricula: "2024103070017",
             nome: "Deivid",
+            email: "dev@gmail.com",
             senha: gerarSenhaHash()
         },
         {
             matricula: "2024103070011",
             nome: "Kauã",
+            email: "app@gmail.com",
             senha: gerarSenhaHash()
         }
     ];
@@ -63,6 +65,7 @@ async function seedUsuarios() {
         usuariosAleatorios.push({
             matricula: mapping.matricula(),
             nome: mapping.nome(),
+            email: mapping.email(),
             senha: gerarSenhaHash()
         });
     }

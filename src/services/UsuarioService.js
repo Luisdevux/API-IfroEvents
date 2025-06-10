@@ -1,6 +1,7 @@
 // src/services/UsuarioService.js
 
 import UsuarioRepository from "../repositories/UsuarioRepository.js";
+import { UsuarioSchema, UsuarioUpdateSchema } from "../utils/validators/schemas/zod/UsuarioSchema.js";
 import objectIdSchema from "../utils/validators/schemas/zod/ObjectIdSchema.js";
 import TokenUtil from "../utils/TokenUtil.js";
 import { CommonResponse, CustomError, HttpStatusCodes, errorHandler, messages, StatusService, asyncWrapper } from "../utils/helpers/index.js";
@@ -13,31 +14,27 @@ class UsuarioService {
 
     // POST /usuario
     async cadastrar(dadosUsuario) {
+        await this.validateEmail(dadosUsuario.email);
         const data = await this.repository.cadastrar(dadosUsuario);
         return data;
     }
 
     // GET /usuario && GET /usuario/:id
     async listar(req) {
-        if (typeof req === 'string') {
-            objectIdSchema.parse(req);
-            return await this.repository.listarPorId(req);
-        }
-
-        return await this.repository.listar();
+        const data = await this.repository.listar(req);
+        return data;
     }
 
+    /**
+     * Atualiza um usuário existente.
+     * Atenção: É proibido alterar o email. No serviço o objeto sempre chegará sem, pois o controller impedirá.
+    */
     // PATCH /usuario/:id
     async alterar(id, parsedData) {
-        await this.ensureUserExists(id);
-
         /**
-        * Se o usuário não estiver ativo, remove os tokens de acesso e refresh.
+        * Verifica se o usuário existe.
         */
-        if (!parsedData.ativo) {
-            parsedData.accesstoken = null;
-            parsedData.refreshtoken = null;
-        }
+        await this.ensureUserExists(id);
 
         /**
         * Remove os campos que não podem ser atualizados.
@@ -45,23 +42,18 @@ class UsuarioService {
         delete parsedData.senha;
         delete parsedData.email;
 
-        /**
-        * Verifica se o usuário existe.
-        */
 
         const data = await this.repository.alterar(id, parsedData);
         return data;
     }
-
+ 
     /**
-    * Atualiza a senha de um usuário
-    *
-    * - Aceita **tokenRecuperacao** (JWT) ou **codigo_recupera_senha** (4 dígitos)
-    * - Código expira após 60 min (verificado via `exp_codigo_recupera_senha`)
-    */
+     * Atualiza a senha de um usuário
+     *
+     * - Aceita **tokenRecuperacao** (JWT) ou **codigo_recupera_senha** (4 dígitos)
+     * - Código expira após 60 min (verificado via `exp_codigo_recupera_senha`)
+     */
     async atualizarSenha({ tokenRecuperacao = null, codigo_recupera_senha = null, senha }) {
-        console.log('Estou no atualizarSenha em UsuarioService');
-
         /* 1) Nenhum identificador */
         if (!tokenRecuperacao && !codigo_recupera_senha) {
             throw new CustomError({
@@ -70,17 +62,16 @@ class UsuarioService {
                 field: 'tokenRecuperacao / codigo_recupera_senha',
                 details: [],
                 customMessage:
-                    'Informe o token de recuperação ou o código de recuperação.',
+                'Informe o token de recuperação ou o código de recuperação.',
             });
         }
+
 
         let usuarioId;
 
         /* ─── A) Código de 4 caracteres ───────────────────────────── */
         if (codigo_recupera_senha) {
-            const usuario = await this.repository.buscarPorPorCodigoRecuperacao(
-                codigo_recupera_senha,
-            );
+            const usuario = await this.repository.buscarPorCodigoRecuperacao(codigo_recupera_senha);
 
             if (!usuario) {
                 throw new CustomError({
@@ -113,7 +104,7 @@ class UsuarioService {
                     customMessage: 'Código de recuperação expirado.',
                 });
             }
-
+            
             usuarioId = usuario._id.toString();
         }
 
@@ -136,9 +127,7 @@ class UsuarioService {
 
             let decoded;
             try {
-                decoded = await this.TokenUtil.decodePasswordRecoveryToken(
-                    tokenRecuperacao,
-                );
+                decoded = await this.TokenUtil.decodePasswordRecoveryToken(tokenRecuperacao);
             } catch (err) {
                 throw new CustomError({
                     statusCode: HttpStatusCodes.UNAUTHORIZED.code,
@@ -163,9 +152,9 @@ class UsuarioService {
         }
 
         /* 3) Valida ID e busca usuário */
-        UsuarioIdSchema.parse(usuarioId);
+        objectIdSchema.parse(usuarioId);
 
-        const usuarioEncontrado = await this.repository.buscarPorId(usuarioId);
+        const usuarioEncontrado = await this.repository.listarPorId(usuarioId);
         if (!usuarioEncontrado) {
             throw new CustomError({
                 statusCode: HttpStatusCodes.NOT_FOUND.code,
@@ -178,14 +167,14 @@ class UsuarioService {
 
         /* 4) Valida / gera hash da nova senha */
         const { senha: senhaValidada } = UsuarioUpdateSchema.parse({ senha });
-        const senhaHash = await bcrypt.hash(senhaValidada, 10);
+        const senhaHash = bcrypt.hash(senhaValidada, 10);
 
         /* 5) Persiste */
         await this.repository.atualizarSenha(usuarioId, senhaHash);
 
         /* 6) Remove código após uso */
         if (codigo_recupera_senha) {
-            await this.repository.atualizar(usuarioId, {
+            await this.repository.alterar(usuarioId, {
                 codigo_recupera_senha: null,
                 exp_codigo_recupera_senha: null,
             });
@@ -193,7 +182,6 @@ class UsuarioService {
 
         return { message: 'Senha atualizada com sucesso.' };
     }
-
 
     // DELETE /usuario/:id
     async deletar(id) {
@@ -206,6 +194,22 @@ class UsuarioService {
     ////////////////////////////////////////////////////////////////////////////////
     // MÉTODOS AUXILIARES
     ////////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * Valida a unicidade do email.
+     */
+    async validateEmail(email, id = null) {
+        const usuarioExistente = await this.repository.buscarPorEmail(email, id);
+        if (usuarioExistente) {
+        throw new CustomError({
+            statusCode: HttpStatusCodes.BAD_REQUEST.code,
+            errorType: 'validationError',
+            field: 'email',
+            details: [{ path: 'email', message: 'Email já está em uso.' }],
+            customMessage: 'Email já está em uso.',
+        });
+        }
+    }
 
     /**
      * Garante que o usuário existe.

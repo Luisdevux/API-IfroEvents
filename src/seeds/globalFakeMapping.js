@@ -23,6 +23,7 @@ const fakeMappings = {
         faker.person.lastName() +
         " " +
         faker.person.lastName(),
+        email: () => faker.internet.email(),
         senha: () => faker.internet.password(),
         tokenUnico: () => TokenUtil.generateAccessToken(new mongoose.Types.ObjectId().toString()),
         refreshtoken: () => TokenUtil.generateRefreshToken(new mongoose.Types.ObjectId().toString()),

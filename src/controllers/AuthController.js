@@ -1,14 +1,13 @@
 // /src/controllers/AuthController.js
 
-// /src/controllers/AuthController.js
-
 import jwt from 'jsonwebtoken';
 import { promisify } from 'util';
 import { CommonResponse, CustomError, HttpStatusCodes, errorHandler, messages, StatusService, asyncWrapper } from '../utils/helpers/index.js';
 import { LoginSchema } from '../utils/validators/schemas/zod/LoginSchema.js';
-import { UsuarioSchema, UsuarioUpdateSchema } from '../utils/validators/schemas/zod/UsuarioSchema.js';
+import { UsuarioUpdateSchema } from '../utils/validators/schemas/zod/UsuarioSchema.js';
 
 import AuthService from '../services/AuthService.js';
+import objectIdSchema from '../utils/validators/schemas/zod/ObjectIdSchema.js';
 
 /**
    * Validação nesta aplicação segue o segue este artigo:
@@ -33,8 +32,6 @@ class AuthController {
    *  Metodo para recuperar a senha do usuário
    */
   recuperaSenha = async (req, res) => {
-    console.log('Estou no logar em RecuperaSenhaController, enviando req para RecuperaSenhaService');
-
     // 1º validação estrutural - validar os campos passados por body
     const body = req.body || {};
 
@@ -45,7 +42,79 @@ class AuthController {
   }
 
   /**
-   * Método para fazer o refresh do token 
+      * Atualiza a senha do próprio usuário em dois cenários NÃO autenticados:
+      *
+      * 1) Normal (token único passado na URL como query: `?token=<JWT_PASSWORD_RECOVERY>`) 
+      *    + { senha } no body.
+      *    → Decodifica JWT, extrai usuarioId, salva o hash da nova senha mesmo que usuário esteja inativo.
+      *
+      * 2) Recuperação por código (envia `{ codigo_recupera_senha, senha }` no body).
+      *    → Busca usuário pelo campo `codigo_recupera_senha`, salva hash da nova senha (mesmo se inativo),
+      *      e “zera” o campo `codigo_recupera_senha`.
+      */
+  async atualizarSenhaToken(req, res, next) {
+    const tokenRecuperacao = req.query.token || req.params.token || null; // token de recuperação passado na URL
+    const senha = req.body.senha || null; // nova senha passada no body
+
+    // 1) Verifica se veio o token de recuperação
+    if (!tokenRecuperacao) {
+      throw new CustomError({
+        statusCode: HttpStatusCodes.UNAUTHORIZED.code,
+        errorType: 'unauthorized',
+        field: 'authentication',
+        details: [],
+        customMessage:
+          'Token de recuperação na URL como parâmetro ou query é obrigatório para troca da senha.'
+      });
+    }
+
+    // Validar a senha com o schema
+    const senhaSchema = UsuarioUpdateSchema.parse({ "senha": senha });
+
+    // atualiza a senha 
+    await this.service.atualizarSenhaToken(tokenRecuperacao, senhaSchema);
+
+    return CommonResponse.success(
+      res,
+      null,
+      HttpStatusCodes.OK.code, 'Senha atualizada com sucesso.',
+      { message: 'Senha atualizada com sucesso via token de recuperação.' },
+    );
+  }
+
+
+  async atualizarSenhaCodigo(req, res, next) {
+    const codigo_recupera_senha = req.body.codigo_recupera_senha || null; // código de recuperação passado no body
+    const senha = req.body.senha || null; // nova senha passada no body
+
+    // 1) Verifica se veio o código de recuperação
+    if (!codigo_recupera_senha) {
+      throw new CustomError({
+        statusCode: HttpStatusCodes.UNAUTHORIZED.code,
+        errorType: 'unauthorized',
+        field: 'authentication',
+        details: [],
+        customMessage:
+          'Código de recuperação no body é obrigatório para troca da senha.'
+      });
+    }
+
+    // Validar a senha com o schema
+    const senhaSchema = UsuarioUpdateSchema.parse({ senha });
+
+    // atualiza a senha 
+    await this.service.atualizarSenhaCodigo(codigo_recupera_senha, senhaSchema);
+
+    return CommonResponse.success(
+      res,
+      null,
+      HttpStatusCodes.OK.code, 'Senha atualizada com sucesso.',
+      { message: 'Senha atualizada com sucesso via código de recuperação.' },
+    );
+  }
+
+  /**
+   * Método para fazer o revoke do token 
    */
   revoke = async (req, res) => {
     // Extrai ID do usuario a ter o token revogado do body
@@ -64,7 +133,6 @@ class AuthController {
 
     // Verifica se o cabeçalho Authorization está presente
     if (!token || token === 'null' || token === 'undefined') {
-      console.log('Cabeçalho Authorization ausente.');
       throw new CustomError({
         statusCode: HttpStatusCodes.BAD_REQUEST.code,
         errorType: 'invalidRefresh',
@@ -83,30 +151,16 @@ class AuthController {
     return CommonResponse.success(res, data);
   }
 
-
-
   /**
    * Método para fazer o logout do usuário
    */
   logout = async (req, res) => {
     // Extrai o cabeçalho Authorization
-    const token = req.body.access_token || req.headers.authorization?.split(' ')[1];
+    const token = req.body?.accesstoken || req.headers.authorization?.split(' ')[1];
 
-    // Verifica se o body.access_token está presente
-    if (!token) {
-      console.log('Cabeçalho Authorization ausente.');
-      throw new CustomError({
-        statusCode: HttpStatusCodes.BAD_REQUEST.code,
-        errorType: 'invalidLogout',
-        field: 'Logout',
-        details: [],
-        customMessage: 'Access Token passado no corpo da requição é inválido.'
-      });
-    }
 
     // Verifica se o token está presente e não é uma string inválida
     if (!token || token === 'null' || token === 'undefined') {
-      console.log('Token recebido:', token);
       throw new CustomError({
         statusCode: HttpStatusCodes.BAD_REQUEST.code,
         errorType: 'invalidLogout',
@@ -121,7 +175,6 @@ class AuthController {
 
     // Verifica se o token decodificado contém o ID do usuário
     if (!decoded || !decoded.id) {
-      console.log('Token decodificado inválido:', decoded);
       throw new CustomError({
         statusCode: HttpStatusCodes.INVALID_TOKEN.code,
         errorType: 'notAuthorized',
@@ -141,19 +194,17 @@ class AuthController {
   /**
    * Método para validar o token
    */
-
   pass = async (req, res) => {
     // 1. Validação estrutural
     const bodyrequest = req.body || {};
-    const validatedBody = RequestAuthorizationSchema.parse(bodyrequest);
 
     // 2. Decodifica e verifica o JWT
     const decoded = /** @type {{ id: string, exp?: number, iat?: number, nbf?: number, client_id?: string, aud?: string }} */ (
-      await promisify(jwt.verify)(validatedBody.accesstoken, process.env.JWT_SECRET_ACCESS_TOKEN)
+      await promisify(jwt.verify)(bodyrequest.accesstoken, process.env.JWT_SECRET_ACCESS_TOKEN)
     );
 
     // 3. Valida ID de usuário
-    UsuarioIdSchema.parse(decoded.id);
+    objectIdSchema.parse(decoded.id);
 
     // 4. Prepara campos de introspecção
     const now = Math.floor(Date.now() / 1000);

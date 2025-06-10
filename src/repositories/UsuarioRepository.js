@@ -23,9 +23,15 @@ class UsuarioRepository {
     }
 
     // GET /usuarios/:id
-    async listarPorId(id) {
-        const usuario = await this.model.findById(id);
-    
+    async listarPorId(id, includeTokens = false) {
+        let query = this.model.findById(id);
+
+        if(includeTokens) {
+            query = query.select('+refreshtoken +accesstoken');
+        }
+
+        const usuario = await query;
+
         if (!usuario) {
             throw new CustomError({
                 statusCode: HttpStatusCodes.NOT_FOUND.code,
@@ -35,10 +41,40 @@ class UsuarioRepository {
                 customMessage: messages.error.resourceNotFound('Usuário')
             });
         }
-    
         return usuario;
     }
 
+    /**
+     * Buscar usuário por email e, opcionalmente, por um ID diferente.
+     */
+    async buscarPorEmail(email, idIgnorado = null) {
+        const filtro = { email };
+
+        if (idIgnorado) {
+            filtro._id = { $ne: idIgnorado };
+        }
+
+        const documento = await this.model.findOne(filtro, ['+senha', '+codigo_recupera_senha', '+exp_codigo_recupera_senha'])
+        return documento;
+    }
+
+    /**
+     * Busca um usuário pelo código de recuperação de senha.
+     */
+    async buscarPorCodigoRecuperacao(codigo) {
+        const filtro = { codigo_recupera_senha: codigo };
+        const documento = await this.model.findOne(filtro, ['+senha', '+codigo_recupera_senha', '+exp_codigo_recupera_senha'])
+        return documento;
+    }
+
+    /**
+     * Busca um usuário pelo token único.
+     */
+    async buscarPorTokenUnico(tokenUnico) {
+        const filtro = { tokenUnico };
+        const documento = await this.model.findOne(filtro)
+        return documento;
+    }
 
     //PATH /usuarios
     async alterar(id, parsedData) {
@@ -56,12 +92,13 @@ class UsuarioRepository {
         return usuario;
     }
 
+    // Método atualizar senha do usuário
     async atualizarSenha(id, senha) {
         const usuario = await this.model.findByIdAndUpdate(
             id,
             {
                 // atualiza a senha
-                $set: { senha },
+                $set: { senha: senha },
                 // remove os campos de código de recuperação e token único
                 $unset: {
                     tokenUnico: "",
@@ -84,7 +121,6 @@ class UsuarioRepository {
 
         return usuario;
     }
-
 
     //DELETE /usuarios/:id
     async deletar(id) {

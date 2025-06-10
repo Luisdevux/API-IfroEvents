@@ -8,6 +8,7 @@ class Usuario {
             {
                 matricula: { type: String, index: true, required: true},
                 nome: { type: String, index: true, required: true },
+                email: { type: String, unique: true, required: true },
                 senha: { type: String, required: true },
                 tokenUnico: { type: String, select: false }, // Token único para validação de email, recuperação de senha e autenticação
                 refreshtoken: { type: String, select: false }, // Refresh token para geração de access token de autenticação longa duração 7 dias para invalidação
