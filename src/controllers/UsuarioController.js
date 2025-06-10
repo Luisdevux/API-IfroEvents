@@ -21,12 +21,14 @@ class UsuarioController {
 
     // POST /usuarios
     async cadastrar(req, res) {
-      const body = req.body || {};
-      const parsedData = UsuarioSchema.parse(body);
+      const parsedData = UsuarioSchema.parse(req.body);
+      let data = await this.service.cadastrar(parsedData);
 
-      const data = await this.service.cadastrar(parsedData);
+      let usuarioLimpo = data.toObject();
 
-      return CommonResponse.created(res, data);
+      delete usuarioLimpo.senha; // Remove senha do objeto de resposta
+
+      return CommonResponse.created(res, usuarioLimpo);
     };
 
     // GET /usuarios && GET /usuarios/:id
@@ -58,21 +60,16 @@ class UsuarioController {
 
       const data = await this.service.alterar(id, parsedData);
 
-      return CommonResponse.success(res, data, 200, 'Usuário atualizado com sucesso.');
-    };
+      let usuarioLimpo = data.toObject();
 
+      delete usuarioLimpo.senha;
+
+      return CommonResponse.success(res, usuarioLimpo, 200, 'Usuário atualizado com sucesso.');
+    };
+    
     // DELETE /usuarios/:id
     async deletar(req, res) {
-      const { id } = req.params;
-
-      if(!id){
-        throw new CustomError({
-          statusCode: HttpStatusCodes.BAD_REQUEST.code,
-          errorType: 'validationError',
-          field: 'id',
-          customMessage: 'ID do usuário é obrigatório para deletar.'
-        })
-      }
+      const { id } = req.params || {};
 
       objectIdSchema.parse(id);
 

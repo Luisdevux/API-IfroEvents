@@ -4,6 +4,7 @@ import "dotenv/config";
 
 // Depêndencias
 import { randomBytes as _randomBytes } from "crypto";
+import bcrypt from "bcryptjs";
 
 // Conexão com o banco
 import DbConnect from "../config/DbConnect.js";
@@ -21,7 +22,15 @@ import globalFakeMapping from "./globalFakeMapping.js";
 await DbConnect.conectar();
 
 // ----------------------------------------------------------------------------
-// 2) SEED de Usuários
+// 2) Funções auxiliares
+// ----------------------------------------------------------------------------
+// Função para gerar senha criptografada
+export function gerarSenhaHash() {
+  return bcrypt.hashSync('ABab@123456', 8);
+}
+
+// ----------------------------------------------------------------------------
+// 3) SEED de Usuários
 // ----------------------------------------------------------------------------
 
 async function seedUsuarios() {
@@ -32,12 +41,14 @@ async function seedUsuarios() {
         {
             matricula: "2024103070017",
             nome: "Deivid",
-            senha: '1234abcd'
+            email: "dev@gmail.com",
+            senha: gerarSenhaHash()
         },
         {
             matricula: "2024103070011",
             nome: "Kauã",
-            senha: '1234abcd'
+            email: "app@gmail.com",
+            senha: gerarSenhaHash()
         }
     ];
 
@@ -54,7 +65,8 @@ async function seedUsuarios() {
         usuariosAleatorios.push({
             matricula: mapping.matricula(),
             nome: mapping.nome(),
-            senha: mapping.senha()
+            email: mapping.email(),
+            senha: gerarSenhaHash()
         });
     }
 
