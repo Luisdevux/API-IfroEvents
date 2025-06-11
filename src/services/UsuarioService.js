@@ -1,9 +1,10 @@
 // src/services/UsuarioService.js
 
 import UsuarioRepository from "../repositories/UsuarioRepository.js";
-import { UsuarioSchema, UsuarioUpdateSchema } from "../utils/validators/schemas/zod/UsuarioSchema.js";
+import { UsuarioUpdateSchema } from "../utils/validators/schemas/zod/UsuarioSchema.js";
 import objectIdSchema from "../utils/validators/schemas/zod/ObjectIdSchema.js";
 import TokenUtil from "../utils/TokenUtil.js";
+import bcrypt from "bcryptjs";
 import { CommonResponse, CustomError, HttpStatusCodes, errorHandler, messages, StatusService, asyncWrapper } from "../utils/helpers/index.js";
 
 class UsuarioService {
@@ -15,7 +16,16 @@ class UsuarioService {
     // POST /usuario
     async cadastrar(dadosUsuario) {
         await this.validateEmail(dadosUsuario.email);
-        const data = await this.repository.cadastrar(dadosUsuario);
+
+        // Aplica o Hash da senha ao cadastrar
+        const senhaHash = await bcrypt.hash(dadosUsuario.senha, 10);
+
+        const dadosSeguros = {
+            ...dadosUsuario,
+            senha: senhaHash,
+        };
+
+        const data = await this.repository.cadastrar(dadosSeguros);
         return data;
     }
 
