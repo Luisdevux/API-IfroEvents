@@ -111,7 +111,7 @@ class AuthService {
 
 
     // RecuperaSenhaService.js
-    async recuperaSenha(req, body) {
+    async recuperaSenha(body) {
         // ───────────────────────────────────────────────
         // Passo 1 – Buscar usuário pelo e-mail informado
         // ───────────────────────────────────────────────
@@ -179,8 +179,75 @@ class AuthService {
         // ───────────────────────────────────────────────
         // Passo 6 – Enviar e-mail com código + link
         // ───────────────────────────────────────────────
+        /**
+         * Usar CHAVE MAIL_API_KEI no .env para requisitar o envio de e-mail em https://edurondon.tplinkdns.com/mail/emails/send
+         * Exemplo de corpo do e-mail:
+         * Corpo do e-mail:
+         * {
+            "to": "falecomgilberto@gmail.com",
+            "subject": "Redefinir senha",
+            "template": "password-reset",
+            "data": {
+                "name": "Gilberto",
+                "resetUrl": "https://edurondon.tplinkdns.com?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.yJpZCI6IjY4NDFmNWVhMmQ5YWYxOWVlN2Y1YmY3OCIsImlhdCI6MTc0OTU2OTI1MiwiZXhwIjoxNzQ5NTcyODUyfQ.D_bW22QyKqZ2YL6lv7kRo-_zY54v3esNHsxK7DKeOq0",
+                "expirationMinutes": 30,
+                "year": 2025,
+                "company": "Exemplo Ltda"
+                }
+            }
+         * 
+         */
 
-        //TODO: consumir serviço de envio de e-mail
+        const resetUrl = `https://edurondon.tplinkdns.com/auth/?token=${tokenUnico}`;
+        console.log('URL de redefinição de senha:', resetUrl);
+        const emailData = {
+            to: userEncontrado.email,
+            subject: 'Redefinir senha',
+            template: 'password-reset',
+            data: {
+                name: userEncontrado.nome,
+                resetUrl: resetUrl,
+                expirationMinutes: 60, // Expiração em minutos
+                year: new Date().getFullYear(),
+                company: process.env.COMPANY_NAME || 'Auth'
+            }
+        };
+        console.log('Dados do e-mail:', emailData);
+
+
+        // Criar função para fazer a chamada para enviar o e-mai
+        //Necessário passa apiKey presente em MAIL_API_KEY
+        const sendMail = async (emailData) => {
+            console.log('Enviando e-mail de recuperação de senha para:', emailData.to);
+            try {
+                const response = await fetch(`https://edurondon.tplinkdns.com/mail/emails/send?apiKey=${process.env.MAIL_API_KEY}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(emailData)
+                });
+                if (!response.ok) {
+                    throw new Error(`Erro ao enviar e-mail: ${response.status} ${response.statusText}`);
+                }
+                const responseData = await response.json();
+                console.log('E-mail enviado com sucesso:', responseData);
+            } catch (error) {
+                console.error('Erro ao enviar e-mail:', error);
+                throw new CustomError({
+                    statusCode: HttpStatusCodes.INTERNAL_SERVER_ERROR.code,
+                    field: 'E-mail',
+                    details: [],
+                    customMessage: 'Erro ao enviar e-mail de recuperação de senha.'
+                });
+            }
+        };
+
+        console.log('Antes de sendMail');
+        await sendMail(emailData);
+        console.log('Depois de sendMail');
+
+        console.log('Enviando e-mail de recuperação de senha');
 
         // ───────────────────────────────────────────────
         // Passo 7 – Retornar resposta ao cliente
