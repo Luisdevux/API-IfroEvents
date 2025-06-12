@@ -37,7 +37,7 @@ class AuthController {
 
     // Validar apenas o email
     const validatedBody = UsuarioUpdateSchema.parse(body);
-    const data = await this.service.recuperaSenha(req, validatedBody);
+    const data = await this.service.recuperaSenha(validatedBody);
     return CommonResponse.success(res, data);
   }
 
@@ -183,6 +183,8 @@ class AuthController {
         customMessage: HttpStatusCodes.INVALID_TOKEN.message
       });
     }
+
+    objectIdSchema.parse(decoded.id);
 
     // Encaminha o token para o serviço de logout
     const data = await this.service.logout(decoded.id, token);
