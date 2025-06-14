@@ -2,14 +2,20 @@
 import UsuarioService from "../../../services/UsuarioService.js";
 import { CustomError } from "../../../utils/helpers/index.js";
 import mongoose from "mongoose";
+import bcrypt from "bcrypt";
 
 // Mock do repositório para simular o banco
 const mockRepository = {
   cadastrar: jest.fn(),
   listar: jest.fn(),
   listarPorId: jest.fn(),
+  buscarPorEmail: jest.fn(),
+  buscarPorTokenUnico: jest.fn(),
   alterar: jest.fn(),
+  atualizarSenha: jest.fn(),
   deletar: jest.fn(),
+  armazenarTokens: jest.fn(),
+  removeToken: jest.fn(),
 };
 
 const usuarioService = new UsuarioService();
@@ -21,6 +27,7 @@ const usuarioFake = {
   _id: new mongoose.Types.ObjectId().toString(),
   matricula: "2024103070030",
   nome: "Usuário Teste",
+  email: "testeUnit@gmail.com",
   senha: "SenhaTeste1@",
   createdAt: new Date(),
   updatedAt: new Date()
@@ -34,10 +41,18 @@ describe("UsuarioService", () => {
   // Teste do cadastrar
   describe("Cadastrar", () => {
     it("deve cadastrar um novo usuário com sucesso", async () => {
-      mockRepository.cadastrar.mockResolvedValue(usuarioFake);
+      const senhaHash = 'hashedPassword';
+
+      jest.spyOn(bcrypt, 'hash').mockResolvedValue(senhaHash);
+
+      mockRepository.cadastrar.mockResolvedValue({ ...usuarioFake, senha: senhaHash });
+      
       const resultado = await usuarioService.cadastrar(usuarioFake);
-      expect(resultado).toEqual(usuarioFake);
-      expect(mockRepository.cadastrar).toHaveBeenCalledWith(usuarioFake);
+      expect(resultado._id).toBe(usuarioFake._id);
+      expect(resultado.matricula).toBe(usuarioFake.matricula);
+      expect(resultado.nome).toBe(usuarioFake.nome);
+      expect(resultado.email).toBe(usuarioFake.email);
+      expect(resultado.senha).toBe(senhaHash);
     });
 
     it("deve lançar erro se o repositório falhar", async () => {

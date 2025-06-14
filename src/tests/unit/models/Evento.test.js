@@ -39,6 +39,7 @@ beforeEach(async () => {
     let usuarioTeste = await Usuario.create({
         matricula: "2024103070030",
         nome: "Usuário Teste",
+        email: "testeUnit@gmail.com",
         senha: "SenhaTeste1@"
     });
 
