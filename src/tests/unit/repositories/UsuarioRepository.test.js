@@ -42,12 +42,10 @@ describe('UsuarioRepository', () => {
     nome: 'Maria Souza',
     email: 'maria@email.com',
     senha: 'senha123',
-    refreshtoken: 'refresh-token',
-    accesstoken: 'access-token',
-    codigo_recupera_senha: 'codigo123',
-    exp_codigo_recupera_senha: new Date(),
     tokenUnico: 'token-unico',
-    tags: ['tag1'],
+    exp_tokenUnico_recuperacao: new Date(),
+    refreshtoken: 'refresh-token',
+    accesstoken: 'access-token'
   };
 
   beforeEach(() => {
@@ -146,7 +144,7 @@ describe('UsuarioRepository', () => {
       await usuarioRepository.buscarPorEmail(mockUsuarioData.email, 'outro-id');
       expect(MockUsuarioModel.findOne).toHaveBeenCalledWith(
         { email: mockUsuarioData.email, _id: { $ne: 'outro-id' } },
-        ['+senha', '+codigo_recupera_senha', '+exp_codigo_recupera_senha']
+        ['+senha', '+tokenUnico', '+exp_tokenUnico_recuperacao']
       );
     });
 
@@ -162,30 +160,6 @@ describe('UsuarioRepository', () => {
       });
       await expect(usuarioRepository.buscarPorEmail(mockUsuarioData.email)).rejects.toThrow(
         'Erro no banco de dados ao buscar por email'
-      );
-    });
-  });
-
-  describe('buscarPorCodigoRecuperacao', () => {
-    it('deve retornar usuário pelo código de recuperação', async () => {
-      MockUsuarioModel.findOne.mockResolvedValue(mockUsuarioData);
-      const usuario = await usuarioRepository.buscarPorCodigoRecuperacao(mockUsuarioData.codigo_recupera_senha);
-      expect(MockUsuarioModel.findOne).toHaveBeenCalled();
-      expect(usuario).toEqual(mockUsuarioData);
-    });
-
-    it('deve retornar undefined se não encontrar usuário pelo código de recuperação', async () => {
-      MockUsuarioModel.findOne.mockResolvedValue(undefined);
-      const usuario = await usuarioRepository.buscarPorCodigoRecuperacao('codigo-invalido');
-      expect(usuario).toBeUndefined();
-    });
-
-    it('deve lançar erro em caso de falha na busca por código de recuperação', async () => {
-      MockUsuarioModel.findOne.mockImplementation(() => {
-        throw new Error('Erro no banco de dados ao buscar por código de recuperação');
-      });
-      await expect(usuarioRepository.buscarPorCodigoRecuperacao('codigo')).rejects.toThrow(
-        'Erro no banco de dados ao buscar por código de recuperação'
       );
     });
   });
@@ -257,8 +231,7 @@ describe('UsuarioRepository', () => {
           $set: { senha: 'novaSenha' },
           $unset: {
             tokenUnico: '',
-            codigo_recupera_senha: '',
-            exp_codigo_recupera_senha: '',
+            exp_tokenUnico_recuperacao: '',
           },
         },
         { new: true }
