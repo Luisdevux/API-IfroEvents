@@ -54,16 +54,7 @@ class UsuarioRepository {
             filtro._id = { $ne: idIgnorado };
         }
 
-        const documento = await this.model.findOne(filtro, ['+senha', '+codigo_recupera_senha', '+exp_codigo_recupera_senha'])
-        return documento;
-    }
-
-    /**
-     * Busca um usuário pelo código de recuperação de senha.
-     */
-    async buscarPorCodigoRecuperacao(codigo) {
-        const filtro = { codigo_recupera_senha: codigo };
-        const documento = await this.model.findOne(filtro, ['+senha', '+codigo_recupera_senha', '+exp_codigo_recupera_senha'])
+        const documento = await this.model.findOne(filtro, ['+senha', '+tokenUnico', '+exp_tokenUnico_recuperacao'])
         return documento;
     }
 
@@ -72,7 +63,7 @@ class UsuarioRepository {
      */
     async buscarPorTokenUnico(tokenUnico) {
         const filtro = { tokenUnico };
-        const documento = await this.model.findOne(filtro)
+        const documento = await this.model.findOne(filtro, ['+senha', '+tokenUnico', '+exp_tokenUnico_recuperacao']);
         return documento;
     }
 
@@ -102,8 +93,7 @@ class UsuarioRepository {
                 // remove os campos de código de recuperação e token único
                 $unset: {
                     tokenUnico: "",
-                    codigo_recupera_senha: "",
-                    exp_codigo_recupera_senha: ""
+                    exp_tokenUnico_recuperacao: ""
                 }
             },
             { new: true } // Retorna o documento atualizado

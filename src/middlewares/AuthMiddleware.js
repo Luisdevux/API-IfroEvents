@@ -6,6 +6,9 @@ import TokenExpiredError from '../utils/errors/TokenExpiredError.js';
 import { CustomError } from '../utils/helpers/index.js';
 import AuthService from '../services/AuthService.js';
 
+// Certifique-se de que as variáveis de ambiente estejam carregadas
+const JWT_SECRET_ACCESS_TOKEN = process.env.JWT_SECRET_ACCESS_TOKEN;
+
 class AuthMiddleware {
   constructor() {
     this.service = new AuthService();
@@ -21,7 +24,27 @@ class AuthMiddleware {
   async handle(req, res, next) {
     try {
       const authHeader = req.headers.authorization;
+      const isGetEventMethod = req.method === 'GET' && req.path.startsWith('/eventos');
 
+      // Se for um GET do totem para eventos, não requer autenticação
+      if(isGetEventMethod) {
+        if(authHeader && authHeader.startsWith('Bearer ')) {
+          const token = authHeader.split(' ')[1];
+
+          try {
+            const decoded = await promisify(jwt.verify)(token, JWT_SECRET_ACCESS_TOKEN);
+
+            if(decoded?.id) {
+              req.user_id = decoded.id;
+            }
+          } catch (err) {
+            // Token inválido em GET público é ignorado e segue pois a requisição é liberada para o totem
+          }
+        }
+        return next();
+      }
+
+      // Token obrigatório para outras rotas
       if (!authHeader) {
         throw new AuthenticationError("O token de autenticação não existe!");
       }
@@ -33,7 +56,7 @@ class AuthMiddleware {
       }
 
       // Verifica e decodifica o token
-      const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET_ACCESS_TOKEN);
+      const decoded = await promisify(jwt.verify)(token, JWT_SECRET_ACCESS_TOKEN);
 
       if (!decoded) { // Se não ocorrer a decodificação do token
         throw new TokenExpiredError("Teste novamente, o token JWT está expirado! ");
