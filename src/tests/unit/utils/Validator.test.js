@@ -1,5 +1,40 @@
 // src/tests/unit/utils/Validator.test.js
 
+jest.mock('../../../config/i18nConfig.js', () => {
+  return {
+    setLocale: jest.fn(),
+    __: jest.fn((key, placeholders) => {
+      const translations = {
+        'validation.required': '{campoNome} é obrigatório.',
+        'validation.notEmpty': '{campoNome} não pode estar vazio.',
+        'validation.minLength': '{campoNome} deve ter pelo menos {min} caracteres.',
+        'validation.maxLength': '{campoNome} não deve exceder {max} caracteres.',
+        'validation.invalidName': '{campoNome} deve conter apenas letras, espaços e acentos.',
+        'validation.invalidSpecialChars': '{campoNome} contém caracteres especiais não permitidos.',
+        'validation.alphanumeric': '{campoNome} deve conter apenas letras e números.',
+        'validation.invalidMatricula': '{campoNome} deve conter 13 dígitos numéricos.',
+        'validation.dateMustFuture': '{campoNome} deve ser uma data futura.',
+        'validation.invalidURL': '{campoNome} deve ser uma URL válida.',
+        'validation.maxFileSize': '{campoNome} não deve exceder {max}MB.',
+        'validation.invalidResolution': '{campoNome} deve ter resolução {alturaEsperada}x{larguraEsperada}.',
+        'validation.invalidCategory': '{campoNome} deve ser uma categoria válida.',
+        'validation.arrayNotEmpty': '{campoNome} não pode estar vazio.'
+      };
+      
+      let message = translations[key] || key;
+      
+      if (placeholders) {
+        // Substituir placeholders
+        Object.keys(placeholders).forEach(placeholder => {
+          message = message.replace(`{${placeholder}}`, placeholders[placeholder]);
+        });
+      }
+      
+      return message;
+    })
+  };
+}, { virtual: true });
+
 import Validator from '../../../utils/Validator';
 
 describe('Validator', () => {
@@ -7,167 +42,274 @@ describe('Validator', () => {
 
   beforeEach(() => {
     validator = new Validator();
+    jest.clearAllMocks();
   });
 
   describe('validarCampoObrigatorio', () => {
-    it('deve validar campos não vazios', () => {
-      expect(validator.validarCampoObrigatorio('texto', 'Nome').erro).toBe(null);
-      expect(validator.validarCampoObrigatorio(123, 'Número').erro).toBe(null);
-      expect(validator.validarCampoObrigatorio(true, 'Boolean').erro).toBe(null);
+    it('deve retornar true para valor válido', () => {
+      const resultado = validator.validarCampoObrigatorio('teste', 'Campo');
+
+      expect(resultado._erro).toBeNull();
     });
 
-    it('deve retornar erro para campos vazios', () => {
-      expect(validator.validarCampoObrigatorio('', 'Nome').erro).toContain('Nome');
-      expect(validator.validarCampoObrigatorio(null, 'Email').erro).toContain('Email');
-      expect(validator.validarCampoObrigatorio(undefined, 'Senha').erro).toContain('Senha');
+    it('deve retornar false para valor vazio', () => {
+      const resultado = validator.validarCampoObrigatorio('', 'Campo');
+
+      expect(resultado._erro).not.toBeNull();
+      expect(resultado._erro).toContain('Campo é obrigatório');
     });
 
-    it('deve permitir encadeamento de métodos', () => {
-      const result = validator
-        .validarCampoObrigatorio('Teste', 'Nome')
-        .validarCampoObrigatorio('email@example.com', 'Email');
-      
-      expect(result).toBe(validator);
-      expect(result.erro).toBe(null);
+    it('deve retornar false para valor null', () => {
+      const resultado = validator.validarCampoObrigatorio(null, 'Campo');
+      expect(resultado._erro).not.toBeNull();
+    });
+
+    it('deve retornar false para valor undefined', () => {
+      const resultado = validator.validarCampoObrigatorio(undefined, 'Campo');
+      expect(resultado._erro).not.toBeNull();
     });
   });
 
   describe('validarComprimento', () => {
-    it('deve validar texto com comprimento dentro dos limites', () => {
-      expect(validator.validarComprimento('abc', 2, 5, 'Nome').erro).toBe(null);
-      expect(validator.validarComprimento('12345', 1, 5, 'Código').erro).toBe(null);
+    it('deve retornar true para comprimento válido', () => {
+      const resultado = validator.validarComprimento('teste', 3, 13, 'Campo');
+      expect(resultado._erro).toBeNull();
     });
 
-    it('deve retornar erro para texto muito curto', () => {
-      expect(validator.validarComprimento('a', 2, 5, 'Nome').erro).toContain('Nome');
-      expect(validator.validarComprimento('', 1, 5, 'Código').erro).toContain('Código');
+    it('deve retornar false para comprimento abaixo do mínimo', () => {
+      const resultado = validator.validarComprimento('ab', 3, 10, 'Campo');
+      expect(resultado._erro).not.toBeNull();
+      expect(resultado._erro).toContain('Campo deve ter pelo menos 3 caracteres');
     });
 
-    it('deve retornar erro para texto muito longo', () => {
-      expect(validator.validarComprimento('abcdef', 2, 5, 'Nome').erro).toContain('Nome');
-      expect(validator.validarComprimento('123456', 1, 5, 'Código').erro).toContain('Código');
-    });
-
-    it('deve permitir encadeamento após validação de comprimento', () => {
-      const result = validator
-        .validarComprimento('abc', 2, 5, 'Nome')
-        .validarCampoObrigatorio('email@example.com', 'Email');
-      
-      expect(result).toBe(validator);
-      expect(result.erro).toBe(null);
+    it('deve retornar false para comprimento acima do máximo', () => {
+      const resultado = validator.validarComprimento('abcdefghijk', 3, 10, 'Campo');
+      expect(resultado._erro).not.toBeNull();
+      expect(resultado._erro).toContain('Campo não deve exceder 10 caracteres');
     });
   });
 
   describe('validarNomeProprio', () => {
-    it('deve validar nomes próprios válidos', () => {
-      expect(validator.validarNomeProprio('João Silva', 'Nome').erro).toBe(null);
-      expect(validator.validarNomeProprio('Maria da Silva', 'Nome Completo').erro).toBe(null);
+    it('deve retornar true para nome próprio válido', () => {
+      const resultado = validator.validarNomeProprio('João Silva', 'Nome');
+      expect(resultado._erro).toBeNull();
     });
 
-    it('deve retornar erro para nomes com caracteres inválidos', () => {
-      expect(validator.validarNomeProprio('João123', 'Nome').erro).toContain('Nome');
-      expect(validator.validarNomeProprio('Maria@Silva', 'Nome Completo').erro).toContain('Nome Completo');
+    it('deve retornar false para nome com números', () => {
+      const resultado = validator.validarNomeProprio('João123', 'Nome');
+      expect(resultado._erro).not.toBeNull();
+      expect(resultado._erro).toContain('Nome deve conter apenas letras');
     });
 
-    it('deve permitir encadeamento após validação de nome próprio', () => {
-      const result = validator
-        .validarNomeProprio('João Silva', 'Nome')
-        .validarCampoObrigatorio('email@example.com', 'Email');
-      
-      expect(result).toBe(validator);
-      expect(result.erro).toBe(null);
+    it('deve retornar false para nome com caracteres especiais', () => {
+      const resultado = validator.validarNomeProprio('João@Silva', 'Nome');
+      expect(resultado._erro).not.toBeNull();
     });
   });
 
   describe('validarMatricula', () => {
-    it('deve validar matrículas válidas', () => {
-      expect(validator.validarMatricula('2023123456', 'Matrícula').erro).toBe(null);
-      expect(validator.validarMatricula('20231234567890', 'Matrícula IFRO').erro).toBe(null);
+    it('deve retornar true para matrícula válida', () => {
+      const resultado = validator.validarMatricula('2024103070030', 'Matrícula');
+      expect(resultado._erro).toBeNull();
     });
 
-    it('deve retornar erro para matrículas inválidas', () => {
-      expect(validator.validarMatricula('202312', 'Matrícula').erro).toContain('Matrícula');
-      expect(validator.validarMatricula('2023ABC456', 'Matrícula IFRO').erro).toContain('Matrícula IFRO');
+    it('deve retornar false para matrícula curta', () => {
+      const resultado = validator.validarMatricula('123456', 'Matrícula');
+      expect(resultado._erro).not.toBeNull();
+      expect(resultado._erro).toContain('Matrícula deve conter 13 dígitos numéricos');
     });
 
-    it('deve permitir encadeamento após validação de matrícula', () => {
-      const result = validator
-        .validarMatricula('2023123456', 'Matrícula')
-        .validarCampoObrigatorio('email@example.com', 'Email');
-      
-      expect(result).toBe(validator);
-      expect(result.erro).toBe(null);
-    });
-  });
-
-  describe('validarURL', () => {
-    it('deve validar URLs válidas', () => {
-      expect(validator.validarURL('https://example.com', 'Site').erro).toBe(null);
-      expect(validator.validarURL('http://sub.example.com/page', 'Link').erro).toBe(null);
-    });
-
-    it('deve retornar erro para URLs inválidas', () => {
-      expect(validator.validarURL('example.com', 'Site').erro).toContain('Site');
-      expect(validator.validarURL('not a url', 'Link').erro).toContain('Link');
-    });
-
-    it('deve permitir encadeamento após validação de URL', () => {
-      const result = validator
-        .validarURL('https://example.com', 'Site')
-        .validarCampoObrigatorio('email@example.com', 'Email');
-      
-      expect(result).toBe(validator);
-      expect(result.erro).toBe(null);
+    it('deve retornar false para matrícula com letras', () => {
+      const resultado = validator.validarMatricula('202312345A', 'Matrícula');
+      expect(resultado._erro).not.toBeNull();
     });
   });
 
   describe('validarDataFutura', () => {
-    it('deve validar datas futuras', () => {
-      const hoje = new Date();
-      const amanha = new Date(hoje);
-      amanha.setDate(hoje.getDate() + 1);
+    it('deve retornar true para data futura', () => {
+      const dataFutura = new Date();
+      dataFutura.setDate(dataFutura.getDate() + 10);
       
-      expect(validator.validarDataFutura(amanha, 'Data Evento').erro).toBe(null);
+      const resultado = validator.validarDataFutura(dataFutura, 'Data');
+      expect(resultado._erro).toBeNull();
     });
 
-    it('deve retornar erro para datas passadas', () => {
-      const hoje = new Date();
-      const ontem = new Date(hoje);
-      ontem.setDate(hoje.getDate() - 1);
+    it('deve retornar false para data passada', () => {
+      const dataPassada = new Date();
+      dataPassada.setDate(dataPassada.getDate() - 10); 
       
-      expect(validator.validarDataFutura(ontem, 'Data Evento').erro).toContain('Data Evento');
-    });
-
-    it('deve permitir encadeamento após validação de data', () => {
-      const amanha = new Date();
-      amanha.setDate(amanha.getDate() + 1);
-      
-      const result = validator
-        .validarDataFutura(amanha, 'Data Evento')
-        .validarCampoObrigatorio('Local', 'Local Evento');
-      
-      expect(result).toBe(validator);
-      expect(result.erro).toBe(null);
+      const resultado = validator.validarDataFutura(dataPassada, 'Data');
+      expect(resultado._erro).not.toBeNull();
+      expect(resultado._erro).toContain('Data deve ser uma data futura');
     });
   });
 
-  describe('Complexidade de erro', () => {
-    it('deve parar na primeira validação que falhar', () => {
-      const result = validator
-        .validarCampoObrigatorio('', 'Nome')
-        .validarCampoObrigatorio('', 'Email');
-      
-      expect(result.erro).toContain('Nome');
-      expect(result.erro).not.toContain('Email');
+  describe('validarURL', () => {
+    it('deve retornar true para URL válida', () => {
+      const resultado = validator.validarURL('https://example.com', 'URL');
+      expect(resultado._erro).toBeNull();
     });
 
-    it('deve manter o erro até que seja redefinido', () => {
-      validator.validarCampoObrigatorio('', 'Nome');
-      expect(validator.erro).toContain('Nome');
+    it('deve retornar false para URL inválida', () => {
+      const resultado = validator.validarURL('exemplo.com', 'URL');
+      expect(resultado._erro).not.toBeNull();
+      expect(resultado._erro).toContain('URL deve ser uma URL válida');
+    });
+  });
+
+  describe('validarAlfanumerico', () => {
+    it('deve retornar true para texto alfanumérico', () => {
+      const resultado = validator.validarAlfanumerico('Abc123', 'Campo');
+      expect(resultado._erro).toBeNull();
+    });
+
+    it('deve retornar false para texto com caracteres especiais', () => {
+      const resultado = validator.validarAlfanumerico('Abc@123', 'Campo');
+      expect(resultado._erro).not.toBeNull();
+      expect(resultado._erro).toContain('Campo deve conter apenas letras e números');
+    });
+  });
+
+  describe('getter erro', () => {
+    it('deve retornar null quando não há erro', () => {
+
+      expect(validator.erro).toBeNull();
+    });
+
+    it('deve retornar a mensagem de erro quando há erro', () => {
+      validator.validarCampoObrigatorio('', 'Campo');
+      expect(validator.erro).not.toBeNull();
+      expect(validator.erro).toContain('Campo é obrigatório');
+    });
+  });
+
+  describe('validarMatricula com parâmetros padrão', () => {
+    it('deve usar o nome de campo padrão quando não fornecido', () => {
+      const resultado = validator.validarMatricula('12345');
+      expect(resultado._erro).not.toBeNull();
+      expect(resultado._erro).toContain('Matrícula deve conter');
+    });
+  });
+
+  describe('validarCategoria', () => {
+    it('deve retornar true para categoria válida', () => {
+      const categoriasValidas = ['esporte', 'cultura', 'educação'];
+      const resultado = validator.validarCategoria('esporte', categoriasValidas, 'Categoria');
+      expect(resultado._erro).toBeNull();
+    });
+
+    it('deve retornar false para categoria inválida', () => {
+      const categoriasValidas = ['esporte', 'cultura', 'educação'];
+      const resultado = validator.validarCategoria('tecnologia', categoriasValidas, 'Categoria');
+      expect(resultado._erro).not.toBeNull();
+      expect(resultado._erro).toContain('Categoria deve ser uma categoria válida');
+    });
+  });
+
+  describe('validarArrayNaoVazio', () => {
+    it('deve retornar true para array não vazio', () => {
+      const resultado = validator.validarArrayNaoVazio([1, 2, 3], 'Lista');
+      expect(resultado._erro).toBeNull();
+    });
+
+    it('deve retornar false para array vazio', () => {
+      const resultado = validator.validarArrayNaoVazio([], 'Lista');
+      expect(resultado._erro).not.toBeNull();
+      expect(resultado._erro).toContain('Lista não pode estar vazio');
+    });
+
+    it('deve retornar false para valor que não é array', () => {
+      const resultado = validator.validarArrayNaoVazio('não é array', 'Lista');
+      expect(resultado._erro).not.toBeNull();
+      expect(resultado._erro).toContain('Lista não pode estar vazio');
+    });
+  });
+
+  describe('validar', () => {
+    it('deve retornar null quando não há erro', () => {
+      const resultado = validator.validar();
+      expect(resultado).toBeNull();
+    });
+
+    it('deve retornar a mensagem de erro quando há erro', () => {
+      validator.validarCampoObrigatorio('', 'Campo');
+      const resultado = validator.validar();
+      expect(resultado).not.toBeNull();
+      expect(resultado).toContain('Campo é obrigatório');
+    });
+
+    it('deve manter o primeiro erro encontrado em validações encadeadas', () => {
+      validator.validarCampoObrigatorio('', 'Campo1')
+              .validarCampoObrigatorio('', 'Campo2');
       
-      // Nova instância sem erro
-      const novoValidator = new Validator();
-      expect(novoValidator.erro).toBe(null);
+      const resultado = validator.validar();
+      expect(resultado).toContain('Campo1');
+      expect(resultado).not.toContain('Campo2');
+    });
+  });
+
+  describe('validarTextoSemCaracteresEspeciais', () => {
+  it('deve retornar true para texto sem caracteres especiais', () => {
+    const resultado = validator.validarTextoSemCaracteresEspeciais('Texto simples 123', 'Campo');
+    expect(resultado._erro).toBeNull();
+  });
+
+  it('deve retornar false para texto com caracteres especiais', () => {
+    const resultado = validator.validarTextoSemCaracteresEspeciais('Texto@com#caracteres!', 'Campo');
+    expect(resultado._erro).not.toBeNull();
+    expect(resultado._erro).toContain('Campo contém caracteres especiais não permitidos');
+  });
+
+  it('deve retornar false para texto vazio', () => {
+    const resultado = validator.validarTextoSemCaracteresEspeciais('', 'Campo');
+    expect(resultado._erro).not.toBeNull();
+    expect(resultado._erro).toContain('Campo não pode estar vazio');
+  });
+
+  it('deve retornar false para texto null ou undefined', () => {
+    const resultado1 = validator.validarTextoSemCaracteresEspeciais(null, 'Campo');
+    const resultado2 = validator.validarTextoSemCaracteresEspeciais(undefined, 'Campo');
+    
+    expect(resultado1._erro).not.toBeNull();
+    expect(resultado2._erro).not.toBeNull();
+  });
+});
+
+  describe('validarTamanhoArquivo', () => {
+    it('deve retornar true para tamanho de arquivo válido', () => {
+      const resultado = validator.validarTamanhoArquivo(2.5, 5, 'Arquivo');
+      expect(resultado._erro).toBeNull();
+    });
+
+    it('deve retornar false para tamanho de arquivo que excede o máximo', () => {
+      const resultado = validator.validarTamanhoArquivo(10, 5, 'Arquivo');
+      expect(resultado._erro).not.toBeNull();
+      expect(resultado._erro).toContain('Arquivo não deve exceder 5MB');
+    });
+
+    it('deve retornar false para valor que não é número', () => {
+      const resultado = validator.validarTamanhoArquivo('não é número', 5, 'Arquivo');
+      expect(resultado._erro).not.toBeNull();
+      expect(resultado._erro).toContain('Arquivo não deve exceder 5MB');
+    });
+  });
+
+  describe('validarResolucao', () => {
+    it('deve retornar true para resolução válida', () => {
+      const resultado = validator.validarResolucao(720, 1280, 720, 1280, 'Imagem');
+      expect(resultado._erro).toBeNull();
+    });
+
+    it('deve retornar false para altura diferente da esperada', () => {
+      const resultado = validator.validarResolucao(480, 1280, 720, 1280, 'Imagem');
+      expect(resultado._erro).not.toBeNull();
+      expect(resultado._erro).toContain('Imagem deve ter resolução 720x1280');
+    });
+
+    it('deve retornar false para largura diferente da esperada', () => {
+      const resultado = validator.validarResolucao(720, 800, 720, 1280, 'Imagem');
+      expect(resultado._erro).not.toBeNull();
+      expect(resultado._erro).toContain('Imagem deve ter resolução 720x1280');
     });
   });
 });

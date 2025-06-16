@@ -41,7 +41,6 @@ jest.mock('jsonwebtoken', () => {
     }),
     
     verify: jest.fn((token, secret, callback) => {
-      // Validar token conforme a implementação real
       if (!token || token === '') {
         callback(new Error('Token não fornecido'), null);
       } else if (typeof token !== 'string') {
@@ -70,10 +69,8 @@ describe('TokenUtil', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     
-    // Restaurar ambiente e então configurar variáveis
     process.env = { ...originalEnv };
     
-    // Mock das variáveis de ambiente com os nomes corretos
     process.env.JWT_SECRET_ACCESS_TOKEN = 'access-secret';
     process.env.JWT_SECRET_REFRESH_TOKEN = 'refresh-secret';
     process.env.JWT_SECRET_PASSWORD_RECOVERY = 'recovery-secret';
