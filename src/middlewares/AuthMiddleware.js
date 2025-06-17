@@ -77,6 +77,26 @@ class AuthMiddleware {
 
       // Se o token for válido, anexa o user_id à requisição
       req.user_id = decoded.id;
+
+      // Busca o usuário completo no banco para anexar informações adicionais e usar em outras partes da aplicação
+      const usuario = await this.service.repository.listarPorId(decoded.id);
+
+      if (!usuario) {
+        throw new CustomError({
+          statusCode: 401,
+          errorType: 'unauthorized',
+          field: 'Token',
+          details: [],
+          customMessage: 'Usuário não encontrado!'
+        });
+      }
+
+      req.user = {
+        _id: usuario._id.toString(),
+        nome: usuario.nome,
+        email: usuario.email,
+      }
+
       next();
 
     } catch (err) {

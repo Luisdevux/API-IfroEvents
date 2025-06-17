@@ -58,6 +58,24 @@ class Evento {
                     }],
                     validate: { validator: (arr) => arr.length > 0, message: 'midiaCarrossel não pode ser vazio' },
                 },
+                permissoes: [
+                    {
+                        usuario: {
+                            type: mongoose.Schema.Types.ObjectId,
+                            ref: 'usuarios',
+                            required: true,
+                        },
+                        permissao: {
+                            type: String,
+                            enum: ['editar'],
+                            default: 'editar',
+                        },
+                        expiraEm: { 
+                            type: Date, 
+                            required: true 
+                        }
+                    }
+                ]
             },
             {
                 timestamps: { createdAt: 'eventoCriadoEm' },

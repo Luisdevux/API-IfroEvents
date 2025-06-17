@@ -15,6 +15,31 @@ class EventoService {
         return data;
     }
 
+    // POST /eventos/:id/compartilhar
+    async compartilharPermissao(eventoId, donoId, permissaoData) {
+        const evento = await this.repository.listarPorId(eventoId);
+
+        await this.ensureEventExists(eventoId);
+
+        if(evento.organizador._id.toString() !== donoId) {
+            throw new CustomError({
+                statusCode: HttpStatusCodes.FORBIDDEN.code,
+                errorType: 'unauthorizedAccess',
+                field: 'compartilharPermissao',
+                details: [],
+                customMessage: messages.error.permissionError('Você não tem permissão para compartilhar este evento.'),
+            });
+        }
+
+        const permissao = {
+            usuario: permissaoData.usuarioId,
+            permissao: 'editar',
+            expiraEm: new Date(permissaoData.expiraEm)
+        };
+
+        return await this.repository.compartilharPermissao(eventoId, permissao);
+    }
+
     // GET /eventos && GET /eventos/:id
     async listar(req) {
         if(typeof req === 'string') {

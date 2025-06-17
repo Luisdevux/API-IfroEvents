@@ -2,6 +2,7 @@
 
 import EventoService from '../services/EventoService.js';
 import { EventoSchema, EventoUpdateSchema } from '../utils/validators/schemas/zod/EventoSchema.js'
+import CompartilharPermissaoSchema from '../utils/validators/schemas/zod/CompartilharPermissaoSchema.js';
 import objectIdSchema from '../utils/validators/schemas/zod/ObjectIdSchema.js';
 import {
     CommonResponse,
@@ -21,17 +22,14 @@ class EventoController {
 
     // POST /eventos
     async cadastrar(req, res) {
-        // TODO: Substituir por autenticação real em quando implementada
-        const usuarioSimulado = {
-            _id: "682520e98e38a409ac2ac569",
-            nome: "Usuário Teste"
-        };
+        // Pega o usuário autenticado
+        const usuarioLogado = req.user;
 
         const dadosEvento = {
             ...req.body,
             organizador: {
-                _id: usuarioSimulado._id,
-                nome: usuarioSimulado.nome
+                _id: usuarioLogado._id,
+                nome: usuarioLogado.nome
             }
         };
 
@@ -39,6 +37,22 @@ class EventoController {
         const data = await this.service.cadastrar(parseData);
         
         return CommonResponse.created(res, data);
+    }
+
+    // POST /eventos/:id/compartilhar
+    async compartilhar(req, res) {
+        const dadosValidos = CompartilharPermissaoSchema.parse(req.body);
+
+        const { id } = req.params;
+        const { usuarioId, expiraEm } = dadosValidos;
+        const donoId = req.user.id;
+
+        const eventoCompartilhado = await this.service.compartilharPermissao(id, donoId, {
+            usuarioId,
+            expiraEm
+        });
+
+        return CommonResponse.success(res, eventoCompartilhado, 200, 'Permissão compartilhada com sucesso.');
     }
 
     // GET /eventos && GET /eventos/:id
@@ -66,6 +80,8 @@ class EventoController {
     async alterar(req, res) {
         const { id } = req.params;
         objectIdSchema.parse(id);
+
+        await this.ensureUserIsOwner(id, req.user._id);
 
         const parsedData = EventoUpdateSchema.parse(req.body);
 
@@ -113,6 +129,21 @@ class EventoController {
         
         const data = await this.service.deletar(id);
         return CommonResponse.success(res, data, 200, 'Evento excluído com sucesso.');
+    }
+
+    /**
+     * Garante que o usuário autenticado é o dono do evento.
+     */
+    async ensureUserIsOwner(evento, usuarioId) {
+        if (evento.organizador._id.toString() !== usuarioId) {
+            throw new CustomError({
+                statusCode: 403,
+                errorType: 'unauthorizedAccess',
+                field: 'Evento',
+                details: [],
+                customMessage: 'Você não tem permissão para manipular este evento.'
+            });
+        }
     }
 }
 
