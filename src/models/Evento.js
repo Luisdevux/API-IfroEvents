@@ -4,6 +4,23 @@ import mongoosePaginate from 'mongoose-paginate-v2';
 
 import Usuario from './Usuario.js';
 
+const permissaoSchema = new mongoose.Schema({
+    usuario: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'usuarios',
+        required: true,
+    },
+    permissao: {
+        type: String,
+        enum: ['editar'],
+        default: 'editar',
+    },
+    expiraEm: { 
+        type: Date, 
+        required: true 
+    }
+}, { _id: false });
+
 class Evento {
     constructor() {
         const eventoSchema = new mongoose.Schema(
@@ -58,24 +75,7 @@ class Evento {
                     }],
                     validate: { validator: (arr) => arr.length > 0, message: 'midiaCarrossel não pode ser vazio' },
                 },
-                permissoes: [
-                    {
-                        usuario: {
-                            type: mongoose.Schema.Types.ObjectId,
-                            ref: 'usuarios',
-                            required: true,
-                        },
-                        permissao: {
-                            type: String,
-                            enum: ['editar'],
-                            default: 'editar',
-                        },
-                        expiraEm: { 
-                            type: Date, 
-                            required: true 
-                        }
-                    }
-                ]
+                permissoes: [permissaoSchema],
             },
             {
                 timestamps: { createdAt: 'eventoCriadoEm' },

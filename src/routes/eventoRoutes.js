@@ -15,11 +15,11 @@ const uploadController = new UploadController();  // Instância da classe
 
 router
     .post("/eventos/", AuthMiddleware, asyncWrapper(eventoController.cadastrar.bind(eventoController)))
-    .post("/eventos/:id/compartilhar", AuthMiddleware, asyncWrapper(eventoController.compartilhar.bind(eventoController)))
     .get("/eventos/", AuthMiddleware, asyncWrapper(eventoController.listar.bind(eventoController)))
     .get("/eventos/:id", AuthMiddleware, asyncWrapper(eventoController.listar.bind(eventoController)))
     .patch("/eventos/:id", AuthMiddleware, asyncWrapper(eventoController.alterar.bind(eventoController)))
     .patch("/eventos/:id/status", AuthMiddleware, asyncWrapper(eventoController.alterarStatus.bind(eventoController)))
+    .patch("/eventos/:id/permissoes", AuthMiddleware, asyncWrapper(eventoController.adicionarPermissao.bind(eventoController)))
     .delete("/eventos/:id", AuthMiddleware, asyncWrapper(eventoController.deletar.bind(eventoController)))
 
     // Rotas Adicionais (Mídias)

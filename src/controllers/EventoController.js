@@ -2,7 +2,7 @@
 
 import EventoService from '../services/EventoService.js';
 import { EventoSchema, EventoUpdateSchema } from '../utils/validators/schemas/zod/EventoSchema.js'
-import CompartilharPermissaoSchema from '../utils/validators/schemas/zod/CompartilharPermissaoSchema.js';
+import PermissaoSchema from '../utils/validators/schemas/zod/PermissaoSchema.js';
 import objectIdSchema from '../utils/validators/schemas/zod/ObjectIdSchema.js';
 import {
     CommonResponse,
@@ -38,65 +38,53 @@ class EventoController {
         
         return CommonResponse.created(res, data);
     }
-
-    // POST /eventos/:id/compartilhar
-    async compartilhar(req, res) {
-        const dadosValidos = CompartilharPermissaoSchema.parse(req.body);
-
-        const { id } = req.params;
-        const { usuarioId, expiraEm } = dadosValidos;
-        const donoId = req.user.id;
-
-        const eventoCompartilhado = await this.service.compartilharPermissao(id, donoId, {
-            usuarioId,
-            expiraEm
-        });
-
-        return CommonResponse.success(res, eventoCompartilhado, 200, 'Permissão compartilhada com sucesso.');
-    }
-
+    
     // GET /eventos && GET /eventos/:id
     async listar(req, res) {
         const { id } = req.params;
-
+        
         if(id) {
             objectIdSchema.parse(id);
-
+            
             const data = await this.service.listar(id);
-
+            
             if(!data) {
                 throw new CustomError(messages.event.notFound(), HttpStatusCodes.NOT_FOUND.code);
             }
-
+            
             return CommonResponse.success(res, data);
         }
-
+        
         const data = await this.service.listar(req);
         return CommonResponse.success(res, data);
-
+        
     }
-
-    //PATCH /eventos/:id
+    
+    // PATCH /eventos/:id
     async alterar(req, res) {
         const { id } = req.params;
         objectIdSchema.parse(id);
-
-        await this.ensureUserIsOwner(id, req.user._id);
-
+        
+        // Busca o evento para garantir que o usuário é o dono
+        const evento = await this.service.listar(id);
+        
+        // Verifica se o evento é do usuário autenticado
+        await this.ensureUserIsOwner(evento, req.user._id);
+        
         const parsedData = EventoUpdateSchema.parse(req.body);
-
+        
         const data = await this.service.alterar(id, parsedData);
-
+        
         return CommonResponse.success(res, data, 200, 'Evento atualizado com sucesso.');
     }
-
-    //PATCH /eventos/:id/status
+    
+    // PATCH /eventos/:id/status
     async alterarStatus(req, res) {
         const { id } = req.params;
         objectIdSchema.parse(id);
-
+        
         const parsedData = EventoUpdateSchema.parse({ status: req.body.status });
-
+        
         if (!['ativo', 'inativo'].includes(parsedData.status)) {
             throw new CustomError({
                 statusCode: HttpStatusCodes.BAD_REQUEST.code,
@@ -105,10 +93,27 @@ class EventoController {
                 customMessage: 'Status inválido. Use "ativo" ou "inativo".'
             });
         }
-
+        
         const statusAtualizado = await this.service.alterarStatus(id, parsedData.status);
-
+        
         return CommonResponse.success(res, statusAtualizado, 200, 'Status do evento atualizado com sucesso.');
+    }
+    
+    // PATCH /eventos/:id/permissoes
+    async adicionarPermissao(req, res) {
+        const { id } = req.params;
+        objectIdSchema.parse(id);
+
+        const evento = await this.service.listar(id);
+
+        await this.ensureUserIsOwner(evento, req.user._id);
+
+        const permissoes = Array.isArray(req.body) ? req.body : [req.body];
+        const permissoesValidas = permissoes.map(p => PermissaoSchema.parse(p));
+
+        const data = await this.service.adicionarPermissao(id, permissoesValidas);
+
+        return CommonResponse.success(res, data, 200, 'Permissão adicionada com sucesso.');
     }
 
     // DELETE /eventos/:id
@@ -132,18 +137,34 @@ class EventoController {
     }
 
     /**
-     * Garante que o usuário autenticado é o dono do evento.
+     * Garante que o usuário autenticado é o dono do evento ou possui permissão compartilhada válida.
      */
     async ensureUserIsOwner(evento, usuarioId) {
-        if (evento.organizador._id.toString() !== usuarioId) {
-            throw new CustomError({
-                statusCode: 403,
-                errorType: 'unauthorizedAccess',
-                field: 'Evento',
-                details: [],
-                customMessage: 'Você não tem permissão para manipular este evento.'
-            });
+        // Se for o dono, permite
+        if (evento.organizador._id.toString() === usuarioId) {
+            return;
         }
+
+        // Se tiver permissão compartilhada válida, permite
+        const agora = new Date();
+        const permissaoValida = (evento.permissoes || []).some(permissao =>
+            permissao.usuario.toString() === usuarioId &&
+            permissao.permissao === 'editar' &&
+            new Date(permissao.expiraEm) > agora
+        );
+
+        if (permissaoValida) {
+            return;
+        }
+
+        // Caso contrário, bloqueia
+        throw new CustomError({
+            statusCode: 403,
+            errorType: 'unauthorizedAccess',
+            field: 'Evento',
+            details: [],
+            customMessage: 'Você não tem permissão para alterar este evento.'
+        });
     }
 }
 

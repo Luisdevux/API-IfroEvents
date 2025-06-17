@@ -19,15 +19,6 @@ class EventoRepository {
         return await this.model.create(dadosEventos);
     }
 
-    // POST /eventos/:id/compartilhar
-    async compartilharPermissao(eventoId, permissao) {
-        return this.model.findByIdAndUpdate(
-            eventoId,
-            { $push: { permissoes: permissao} },
-            { new: true }
-        );
-    }
-
     // GET /eventos
     async listar() {
         const data = await this.model.find();

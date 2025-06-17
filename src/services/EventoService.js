@@ -14,56 +14,77 @@ class EventoService {
         const data = await this.repository.cadastrar(dadosEventos);
         return data;
     }
-
-    // POST /eventos/:id/compartilhar
-    async compartilharPermissao(eventoId, donoId, permissaoData) {
-        const evento = await this.repository.listarPorId(eventoId);
-
-        await this.ensureEventExists(eventoId);
-
-        if(evento.organizador._id.toString() !== donoId) {
-            throw new CustomError({
-                statusCode: HttpStatusCodes.FORBIDDEN.code,
-                errorType: 'unauthorizedAccess',
-                field: 'compartilharPermissao',
-                details: [],
-                customMessage: messages.error.permissionError('Você não tem permissão para compartilhar este evento.'),
-            });
-        }
-
-        const permissao = {
-            usuario: permissaoData.usuarioId,
-            permissao: 'editar',
-            expiraEm: new Date(permissaoData.expiraEm)
-        };
-
-        return await this.repository.compartilharPermissao(eventoId, permissao);
-    }
-
+    
     // GET /eventos && GET /eventos/:id
     async listar(req) {
         if(typeof req === 'string') {
             objectIdSchema.parse(req);
             return await this.repository.listarPorId(req);
         }
-
+        
         return await this.repository.listar();
     }
-
+    
     // PATCH /eventos/:id
     async alterar(id, parsedData) {
         await this.ensureEventExists(id);
-
+        
         const data = await this.repository.alterar(id, parsedData);
         return data;
     }
-
+    
     // PATCH /eventos/:id/status
     async alterarStatus(id, novoStatus) {
         await this.ensureEventExists(id);
-
+        
         const statusAtualizado = await this.repository.alterarStatus(id, novoStatus);
         return statusAtualizado;
+    }
+    
+    // PATCH /eventos/:id/permissoes
+    async adicionarPermissao(eventoId, permissaoData) {
+        await this.ensureEventExists(eventoId);
+
+        const permissoes = [];
+        const buscaEvento = await this.repository.listarPorId(eventoId);
+
+        permissaoData.forEach(perm => {
+            const existe = buscaEvento.permissoes.find(p => p.usuario.toString() === perm.usuarioId);
+            if(existe) {
+                permissoes.push({
+                    updateOne: {
+                        filter: { _id: eventoId, "permissoes.usuario": perm.usuarioId },
+                        update: {
+                            $set: {
+                                "permissoes.$.expiraEm": perm.expiraEm,
+                                "permissoes.$.permissao": perm.permissao,
+                            }
+                        }
+                    }
+                });
+            } else {
+                permissoes.push({
+                    updateOne: {
+                        filter: { _id: eventoId },
+                        update: {
+                            $push: {
+                                permissoes: {
+                                    usuario: perm.usuarioId,
+                                    expiraEm: perm.expiraEm,
+                                    permissao: perm.permissao
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        });
+
+        if(permissoes.length > 0) {
+            await this.repository.model.bulkWrite(permissoes);
+        }
+
+        return await this.repository.listarPorId(eventoId);
     }
 
     // DELETE /eventos/:id
