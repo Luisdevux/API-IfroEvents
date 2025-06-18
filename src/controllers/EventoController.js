@@ -51,13 +51,16 @@ class EventoController {
             if(!data) {
                 throw new CustomError(messages.event.notFound(), HttpStatusCodes.NOT_FOUND.code);
             }
-            
+
+            if(req.user) {
+                // Verifica se o evento é do usuário autenticado
+                await this.ensureUserIsOwner(data, req.user._id);
+            }
             return CommonResponse.success(res, data);
         }
         
         const data = await this.service.listar(req);
         return CommonResponse.success(res, data);
-        
     }
     
     // PATCH /eventos/:id
@@ -82,6 +85,12 @@ class EventoController {
     async alterarStatus(req, res) {
         const { id } = req.params;
         objectIdSchema.parse(id);
+
+        // Busca o evento para garantir que o usuário é o dono
+        const evento = await this.service.listar(id);
+        
+        // Verifica se o evento é do usuário autenticado
+        await this.ensureUserIsOwner(evento, req.user._id);
         
         const parsedData = EventoUpdateSchema.parse({ status: req.body.status });
         
@@ -104,8 +113,10 @@ class EventoController {
         const { id } = req.params;
         objectIdSchema.parse(id);
 
+        // Busca o evento para garantir que o usuário é o dono
         const evento = await this.service.listar(id);
-
+        
+        // Verifica se o evento é do usuário autenticado
         await this.ensureUserIsOwner(evento, req.user._id);
 
         const permissoes = Array.isArray(req.body) ? req.body : [req.body];
@@ -119,6 +130,12 @@ class EventoController {
     // DELETE /eventos/:id
     async deletar(req, res) {
         const { id } = req.params || {};
+
+        // Busca o evento para garantir que o usuário é o dono
+        const evento = await this.service.listar(id);
+
+        // Verifica se o evento é do usuário autenticado
+        await this.ensureUserIsOwner(evento, req.user._id);
 
         if(!id) {
             throw new CustomError({
@@ -163,7 +180,7 @@ class EventoController {
             errorType: 'unauthorizedAccess',
             field: 'Evento',
             details: [],
-            customMessage: 'Você não tem permissão para alterar este evento.'
+            customMessage: 'Você não tem permissão para manipular este evento.'
         });
     }
 }

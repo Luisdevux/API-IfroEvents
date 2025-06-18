@@ -35,6 +35,24 @@ class AuthMiddleware {
             const decoded = await promisify(jwt.verify)(token, JWT_SECRET_ACCESS_TOKEN);
 
             if(decoded?.id) {
+              const tokenData = await this.service.carregatokens(decoded.id);
+
+              if (!tokenData?.data?.accesstoken) {
+                req.user = null;
+                req.user_id = null;
+                return next();
+              }
+
+              // Se o token for válido, anexa o user_id à requisição
+              const usuario = await this.service.repository.listarPorId(decoded.id);
+
+              if(usuario) {
+                req.user = {
+                  _id: usuario._id.toString(),
+                  nome: usuario.nome,
+                  email: usuario.email,
+                }
+              }
               req.user_id = decoded.id;
             }
           } catch (err) {
