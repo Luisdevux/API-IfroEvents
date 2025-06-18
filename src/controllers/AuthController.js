@@ -42,16 +42,13 @@ class AuthController {
   }
 
   /**
-      * Atualiza a senha do próprio usuário em dois cenários NÃO autenticados:
+      * Atualiza a senha do próprio usuário em um cenário NÃO autenticado:
       *
-      * 1) Normal (token único passado na URL como query: `?token=<JWT_PASSWORD_RECOVERY>`) 
+      *   Normal (token único passado na URL como query: `?token=<JWT_PASSWORD_RECOVERY>`) 
       *    + { senha } no body.
       *    → Decodifica JWT, extrai usuarioId, salva o hash da nova senha mesmo que usuário esteja inativo.
       *
-      * 2) Recuperação por código (envia `{ codigo_recupera_senha, senha }` no body).
-      *    → Busca usuário pelo campo `codigo_recupera_senha`, salva hash da nova senha (mesmo se inativo),
-      *      e “zera” o campo `codigo_recupera_senha`.
-      */
+    */
   async atualizarSenhaToken(req, res, next) {
     const tokenRecuperacao = req.query.token || req.params.token || null; // token de recuperação passado na URL
     const senha = req.body.senha || null; // nova senha passada no body

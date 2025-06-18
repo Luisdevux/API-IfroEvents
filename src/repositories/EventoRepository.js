@@ -42,6 +42,24 @@ class EventoRepository {
         return data;
     }
 
+    // GET /eventos/eventosPermitidos
+    async listarEventosPermitidos(usuarioId) {
+        const dataAtual = new Date();
+        return this.model.find({
+            $or: [
+                { 'organizador._id': usuarioId },
+                {
+                    permissoes: {
+                        $elemMatch: {
+                            usuario: usuarioId,
+                            expiraEm: { $gt: dataAtual }
+                        }
+                    }
+                }
+            ]
+        });
+    }
+
     // PATCH /eventos/:id
     async alterar(id, parsedData) {
         const evento = await this.model.findByIdAndUpdate(id, parsedData, { new: true })
