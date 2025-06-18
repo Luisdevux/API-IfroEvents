@@ -117,7 +117,7 @@ class EventoController {
         const evento = await this.service.listar(id);
         
         // Verifica se o evento é do usuário autenticado
-        await this.ensureUserIsOwner(evento, req.user._id);
+        await this.ensureUserIsOwner(evento, req.user._id, true);
 
         const permissoes = Array.isArray(req.body) ? req.body : [req.body];
         const permissoesValidas = permissoes.map(p => PermissaoSchema.parse(p));
@@ -135,7 +135,7 @@ class EventoController {
         const evento = await this.service.listar(id);
 
         // Verifica se o evento é do usuário autenticado
-        await this.ensureUserIsOwner(evento, req.user._id);
+        await this.ensureUserIsOwner(evento, req.user._id, true);
 
         if(!id) {
             throw new CustomError({
@@ -155,14 +155,28 @@ class EventoController {
 
     /**
      * Garante que o usuário autenticado é o dono do evento ou possui permissão compartilhada válida.
+     * @param {Object} evento - O evento a ser verificado
+     * @param {String} usuarioId - ID do usuário a verificar
+     * @param {Boolean} ownerOnly - Se true, apenas o proprietário original é permitido
      */
-    async ensureUserIsOwner(evento, usuarioId) {
-        // Se for o dono, permite
+    async ensureUserIsOwner(evento, usuarioId, ownerOnly = false) {
+        // Se for o dono, permite sempre as requisiçoes
         if (evento.organizador._id.toString() === usuarioId) {
             return;
         }
 
-        // Se tiver permissão compartilhada válida, permite
+        // Se o modo estrito estiver ativado, apenas o dono é permitido
+        if (ownerOnly) {
+            throw new CustomError({
+                statusCode: 403,
+                errorType: 'unauthorizedAccess',
+                field: 'Evento',
+                details: [],
+                customMessage: 'Apenas o proprietário do evento pode realizar esta operação.'
+            });
+        }
+
+        // Verificação de permissão compartilhada (só chega aqui se não for modo estrito)
         const agora = new Date();
         const permissaoValida = (evento.permissoes || []).some(permissao =>
             permissao.usuario.toString() === usuarioId &&
