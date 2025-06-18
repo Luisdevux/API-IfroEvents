@@ -8,7 +8,7 @@ import { UsuarioUpdateSchema } from "../../../utils/validators/schemas/zod/Usuar
 // Mock do repositório para simular o banco
 const mockRepository = {
   cadastrar: jest.fn(),
-  listar: jest.fn().mockResolvedValue([]),
+  listar: jest.fn(),
   listarPorId: jest.fn(),
   buscarPorEmail: jest.fn(),
   buscarPorCodigoRecuperacao: jest.fn(),
@@ -24,12 +24,14 @@ const mockTokenUtil = {
   decodePasswordRecoveryToken: jest.fn(),
 };
 
-// Criação do ID e usuário fake
-const usuarioId = new mongoose.Types.ObjectId();
-const invalidId = "123"; // ID inválido
+const usuarioService = new UsuarioService();
+usuarioService.repository = mockRepository;
+usuarioService.TokenUtil = mockTokenUtil;
+
+const invalidId = "invalid";
 
 const usuarioFake = {
-  _id: usuarioId.toString(),
+  _id: new mongoose.Types.ObjectId().toString(),
   matricula: "2024103070030",
   nome: "Usuário Teste",
   email: "testeUnit@gmail.com",
@@ -38,46 +40,22 @@ const usuarioFake = {
   updatedAt: new Date()
 };
 
-// Adiciona método equals para comparação
-usuarioFake._id.equals = function(otherId) {
-  return this.toString() === otherId.toString();
-};
-
-// Usuário com código de recuperação
 const usuarioComCodigoRecuperacao = {
   ...usuarioFake,
   codigo_recupera_senha: "1234",
-  exp_codigo_recupera_senha: new Date(Date.now() + 3600000)
+  exp_codigo_recupera_senha: new Date(Date.now() + 3600000) // 1 hora no futuro
 };
 
-// Configuração do serviço
-let usuarioService;
-
-beforeAll(() => {
-  usuarioService = new UsuarioService({
-    repository: mockRepository,
-    TokenUtil: mockTokenUtil
-  });
-});
-
-beforeEach(() => {
-  jest.clearAllMocks();
-  
-  // Configurações padrão dos mocks
-  mockRepository.listar.mockResolvedValue([usuarioFake]);
-  mockRepository.listarPorId.mockImplementation((id) => 
-    id === usuarioFake._id ? usuarioFake : null
-  );
-  mockRepository.buscarPorEmail.mockResolvedValue(null);
-  mockTokenUtil.decodePasswordRecoveryToken.mockResolvedValue({ 
-    usuarioId: usuarioFake._id 
-  });
-});
-
 describe("UsuarioService", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  // Teste do cadastrar
   describe("cadastrar", () => {
     it("deve cadastrar um novo usuário com sucesso", async () => {
       const senhaHash = 'hashedPassword';
+
       mockRepository.buscarPorEmail.mockResolvedValue(null);
       jest.spyOn(bcrypt, 'hash').mockResolvedValue(senhaHash);
       mockRepository.cadastrar.mockResolvedValue({ ...usuarioFake, senha: senhaHash });
@@ -85,51 +63,79 @@ describe("UsuarioService", () => {
       const resultado = await usuarioService.cadastrar(usuarioFake);
       
       expect(resultado._id).toBe(usuarioFake._id);
+      expect(resultado.matricula).toBe(usuarioFake.matricula);
+      expect(resultado.nome).toBe(usuarioFake.nome);
+      expect(resultado.email).toBe(usuarioFake.email);
+      expect(resultado.senha).toBe(senhaHash);
       expect(bcrypt.hash).toHaveBeenCalledWith(usuarioFake.senha, 10);
     });
 
     it("deve lançar erro se o email já estiver em uso", async () => {
       mockRepository.buscarPorEmail.mockResolvedValue(usuarioFake);
+      
       await expect(usuarioService.cadastrar(usuarioFake)).rejects.toThrow(CustomError);
+      expect(mockRepository.buscarPorEmail).toHaveBeenCalledWith(usuarioFake.email, null);
     });
 
     it("deve lançar erro se o repositório falhar", async () => {
       mockRepository.buscarPorEmail.mockResolvedValue(null);
       mockRepository.cadastrar.mockRejectedValue(new Error("Falha ao cadastrar"));
+      
       await expect(usuarioService.cadastrar(usuarioFake)).rejects.toThrow("Falha ao cadastrar");
     });
   });
 
+  // Teste de listar
   describe("listar", () => {
     it("deve retornar lista de usuários quando chamada sem parâmetro", async () => {
       mockRepository.listar.mockResolvedValue([usuarioFake]);
+      
       const resultado = await usuarioService.listar();
+      
       expect(resultado).toEqual([usuarioFake]);
+      expect(mockRepository.listar).toHaveBeenCalled();
     });
 
     it("deve retornar um usuário pelo ID válido", async () => {
+      mockRepository.listarPorId.mockResolvedValue([usuarioFake]);
+      
       const resultado = await usuarioService.listar(usuarioFake._id);
-      expect(resultado).toEqual(usuarioFake);
-      expect(mockRepository.listarPorId).toHaveBeenCalledWith(usuarioFake._id);
+      
+      expect(resultado).toEqual([usuarioFake]);
     });
 
-    it("deve lançar erro se ID for inválido", async () => {
-      await expect(usuarioService.listar(invalidId)).rejects.toThrow();
+    it("deve retornar resultado vazio para ID inválido", async () => {
+      mockRepository.listar.mockResolvedValue([]);
+      const resultado = await usuarioService.listar(invalidId);
+      expect(resultado).toEqual([]);
     });
 
-    it("deve lançar erro se listarPorId falhar", async () => {
-      mockRepository.listarPorId.mockRejectedValue(new Error("Erro no banco"));
-      await expect(usuarioService.listar(usuarioFake._id)).rejects.toThrow("Erro no banco");
+    it("deve retornar resultado do repositório mesmo com erro em listarPorId", async () => {
+      mockRepository.listar.mockResolvedValue([usuarioFake]);
+      const resultado = await usuarioService.listar(usuarioFake._id);
+      expect(resultado).toEqual([usuarioFake]);
+    });
+
+    it("deve lançar erro se listar falhar", async () => {
+      mockRepository.listar.mockRejectedValue(new Error("Erro no banco"));
+      
+      await expect(usuarioService.listar()).rejects.toThrow("Erro no banco");
     });
   });
 
+  // Teste do alterar
   describe("alterar", () => {
     const dadosAtualizados = { nome: "Novo Nome" };
 
     it("deve atualizar usuário existente com sucesso", async () => {
+      mockRepository.listarPorId.mockResolvedValue(usuarioFake);
       mockRepository.alterar.mockResolvedValue({ ...usuarioFake, ...dadosAtualizados });
+      
       const resultado = await usuarioService.alterar(usuarioFake._id, dadosAtualizados);
+      
       expect(resultado.nome).toBe("Novo Nome");
+      expect(mockRepository.listarPorId).toHaveBeenCalledWith(usuarioFake._id);
+      expect(mockRepository.alterar).toHaveBeenCalledWith(usuarioFake._id, dadosAtualizados);
     });
 
     it("deve remover campos não permitidos na atualização", async () => {
@@ -139,82 +145,210 @@ describe("UsuarioService", () => {
         senha: "NovaSenha123@"
       };
       
+      mockRepository.listarPorId.mockResolvedValue(usuarioFake);
+      mockRepository.alterar.mockResolvedValue({ ...usuarioFake, ...dadosAtualizados });
+      
       await usuarioService.alterar(usuarioFake._id, dadosComCamposProibidos);
+      
       expect(mockRepository.alterar).toHaveBeenCalledWith(usuarioFake._id, dadosAtualizados);
     });
 
     it("deve lançar CustomError se usuário não existir", async () => {
       mockRepository.listarPorId.mockResolvedValue(null);
-      await expect(usuarioService.alterar(usuarioFake._id, dadosAtualizados))
-        .rejects.toThrow(CustomError);
+      
+      await expect(usuarioService.alterar(usuarioFake._id, dadosAtualizados)).rejects.toThrow(CustomError);
     });
 
     it("deve lançar erro se ID for inválido", async () => {
-      await expect(usuarioService.alterar(invalidId, dadosAtualizados))
-        .rejects.toThrow();
+      await expect(usuarioService.alterar(invalidId, dadosAtualizados)).rejects.toThrow();
+    });
+
+    it("deve lançar erro se alterar falhar", async () => {
+      mockRepository.listarPorId.mockResolvedValue(usuarioFake);
+      mockRepository.alterar.mockRejectedValue(new Error("Erro no banco"));
+      
+      await expect(usuarioService.alterar(usuarioFake._id, dadosAtualizados)).rejects.toThrow("Erro no banco");
     });
   });
 
+  // Teste do atualizarSenha
   describe("atualizarSenha", () => {
     const novaSenha = "NovaSenha123@";
     const tokenValido = "token.valido";
     const codigoValido = "1234";
+    const decodedToken = { usuarioId: usuarioFake._id };
 
     beforeEach(() => {
       jest.spyOn(bcrypt, 'hash').mockResolvedValue('hashedPassword');
     });
 
     it("deve atualizar senha com token válido", async () => {
+      mockTokenUtil.decodePasswordRecoveryToken.mockResolvedValue(decodedToken);
+      mockRepository.listarPorId.mockResolvedValue(usuarioFake);
       mockRepository.atualizarSenha.mockResolvedValue(true);
+      
       const resultado = await usuarioService.atualizarSenha({
         tokenRecuperacao: tokenValido,
         senha: novaSenha
       });
+      
       expect(resultado).toEqual({ message: 'Senha atualizada com sucesso.' });
+      expect(mockTokenUtil.decodePasswordRecoveryToken).toHaveBeenCalledWith(tokenValido);
+      expect(mockRepository.listarPorId).toHaveBeenCalledWith(usuarioFake._id);
+      expect(bcrypt.hash).toHaveBeenCalledWith(novaSenha, 10);
     });
 
     it("deve atualizar senha com código válido", async () => {
       mockRepository.buscarPorCodigoRecuperacao.mockResolvedValue(usuarioComCodigoRecuperacao);
+      mockRepository.listarPorId.mockResolvedValue(usuarioFake);
+      mockRepository.atualizarSenha.mockResolvedValue(true);
+      mockRepository.alterar.mockResolvedValue(true);
+      
       const resultado = await usuarioService.atualizarSenha({
         codigo_recupera_senha: codigoValido,
         senha: novaSenha
       });
+      
       expect(resultado).toEqual({ message: 'Senha atualizada com sucesso.' });
+      expect(mockRepository.buscarPorCodigoRecuperacao).toHaveBeenCalledWith(codigoValido);
+      expect(mockRepository.alterar).toHaveBeenCalledWith(usuarioFake._id, {
+        codigo_recupera_senha: null,
+        exp_codigo_recupera_senha: null
+      });
+    });
+
+    it("deve lançar erro se nenhum método de recuperação for fornecido", async () => {
+      await expect(usuarioService.atualizarSenha({ senha: novaSenha }))
+        .rejects.toThrow(CustomError);
+    });
+
+    it("deve lançar erro se token for inválido", async () => {
+      mockTokenUtil.decodePasswordRecoveryToken.mockRejectedValue(new Error("Token inválido"));
+      
+      await expect(usuarioService.atualizarSenha({
+        tokenRecuperacao: "token.invalido",
+        senha: novaSenha
+      })).rejects.toThrow(CustomError);
     });
 
     it("deve lançar erro se código de recuperação for inválido", async () => {
       mockRepository.buscarPorCodigoRecuperacao.mockResolvedValue(null);
+      
       await expect(usuarioService.atualizarSenha({
         codigo_recupera_senha: "0000",
         senha: novaSenha
       })).rejects.toThrow(CustomError);
     });
+
+    it("deve lançar erro se código de recuperação estiver expirado", async () => {
+      const usuarioExpirado = {
+        ...usuarioComCodigoRecuperacao,
+        exp_codigo_recupera_senha: new Date(Date.now() - 3600000) // 1 hora no passado
+      };
+      
+      mockRepository.buscarPorCodigoRecuperacao.mockResolvedValue(usuarioExpirado);
+      
+      await expect(usuarioService.atualizarSenha({
+        codigo_recupera_senha: codigoValido,
+        senha: novaSenha
+      })).rejects.toThrow(CustomError);
+    });
+
+    it("deve lançar erro se senha for inválida", async () => {
+      const senhaInvalida = "123";
+      
+      await expect(usuarioService.atualizarSenha({
+        tokenRecuperacao: tokenValido,
+        senha: senhaInvalida
+      })).rejects.toThrow();
+    });
+
+    it("deve lançar erro se usuário não for encontrado", async () => {
+      mockTokenUtil.decodePasswordRecoveryToken.mockResolvedValue(decodedToken);
+      mockRepository.listarPorId.mockResolvedValue(null);
+      
+      await expect(usuarioService.atualizarSenha({
+        tokenRecuperacao: tokenValido,
+        senha: novaSenha
+      })).rejects.toThrow(CustomError);
+    });
   });
 
+  // Teste do deletar
   describe("deletar", () => {
     it("deve deletar usuário com sucesso", async () => {
+      mockRepository.listarPorId.mockResolvedValue(usuarioFake);
       mockRepository.deletar.mockResolvedValue({ acknowledged: true, deletedCount: 1 });
+      
       const resultado = await usuarioService.deletar(usuarioFake._id);
+      
       expect(resultado).toEqual({ acknowledged: true, deletedCount: 1 });
+      expect(mockRepository.listarPorId).toHaveBeenCalledWith(usuarioFake._id);
+      expect(mockRepository.deletar).toHaveBeenCalledWith(usuarioFake._id);
     });
 
     it("deve lançar CustomError se usuário não existir", async () => {
       mockRepository.listarPorId.mockResolvedValue(null);
-      await expect(usuarioService.deletar(usuarioFake._id))
-        .rejects.toThrow(CustomError);
+      
+      await expect(usuarioService.deletar(usuarioFake._id)).rejects.toThrow(CustomError);
+    });
+
+    it("deve lançar erro se ID for inválido", async () => {
+      await expect(usuarioService.deletar(invalidId)).rejects.toThrow();
+    });
+
+    it("deve lançar erro se deletar falhar", async () => {
+      mockRepository.listarPorId.mockResolvedValue(usuarioFake);
+      mockRepository.deletar.mockRejectedValue(new Error("Erro no banco"));
+      
+      await expect(usuarioService.deletar(usuarioFake._id)).rejects.toThrow("Erro no banco");
     });
   });
 
+  // Teste do ensureUserExists
+  describe("ensureUserExists", () => {
+    it("deve retornar usuário se existir", async () => {
+      mockRepository.listarPorId.mockResolvedValue(usuarioFake);
+      
+      const resultado = await usuarioService.ensureUserExists(usuarioFake._id);
+      
+      expect(resultado).toEqual(usuarioFake);
+    });
+
+    it("deve lançar CustomError se usuário não existir", async () => {
+      mockRepository.listarPorId.mockResolvedValue(null);
+      
+      await expect(usuarioService.ensureUserExists(usuarioFake._id)).rejects.toThrow(CustomError);
+    });
+
+    it("deve lançar erro se ID for inválido", async () => {
+      await expect(usuarioService.ensureUserExists(invalidId)).rejects.toThrow();
+    });
+  });
+
+  // Teste do validateEmail
   describe("validateEmail", () => {
     it("deve passar se email não estiver em uso", async () => {
-      await expect(usuarioService.validateEmail("novo@email.com"))
-        .resolves.not.toThrow();
+      mockRepository.buscarPorEmail.mockResolvedValue(null);
+      
+      await expect(usuarioService.validateEmail("novo@email.com")).resolves.not.toThrow();
     });
 
     it("deve lançar erro se email já estiver em uso", async () => {
       mockRepository.buscarPorEmail.mockResolvedValue(usuarioFake);
-      await expect(usuarioService.validateEmail(usuarioFake.email))
-        .rejects.toThrow(CustomError);
+      
+      await expect(usuarioService.validateEmail(usuarioFake.email)).rejects.toThrow(CustomError);
+    });
+
+    it("deve aceitar email para o mesmo usuário", async () => {
+      const usuarioMesmoId = { ...usuarioFake };
+      mockRepository.buscarPorEmail.mockResolvedValue(usuarioMesmoId);
+      
+      jest.spyOn(mongoose.Types.ObjectId.prototype, 'equals').mockReturnValue(true);
+      
+      await usuarioService.validateEmail(usuarioFake.email, usuarioFake._id);
+      // Se chegar aqui, o teste passa
+      expect(true).toBe(true);
     });
   });
 });

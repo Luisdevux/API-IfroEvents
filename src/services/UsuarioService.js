@@ -211,7 +211,10 @@ class UsuarioService {
      */
    async validateEmail(email, id = null) {
     const usuarioExistente = await this.repository.buscarPorEmail(email, id);
-    if (usuarioExistente && (!id || !usuarioExistente._id.equals(id))) {
+    if (
+  usuarioExistente &&
+  (!id || (usuarioExistente._id.equals ? !usuarioExistente._id.equals(id) : usuarioExistente._id !== id))
+) {
         throw new CustomError({
             statusCode: HttpStatusCodes.BAD_REQUEST.code,
             errorType: 'validationError',
