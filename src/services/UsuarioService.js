@@ -34,6 +34,7 @@ class UsuarioService {
         const data = await this.repository.listar(req);
         return data;
     }
+    
 
     /**
      * Atualiza um usuário existente.
@@ -208,18 +209,17 @@ class UsuarioService {
     /**
      * Valida a unicidade do email.
      */
-    async validateEmail(email, id = null) {
-        const usuarioExistente = await this.repository.buscarPorEmail(email, id);
-        if (usuarioExistente) {
+   async validateEmail(email, id = null) {
+    const usuarioExistente = await this.repository.buscarPorEmail(email, id);
+    if (usuarioExistente && (!id || !usuarioExistente._id.equals(id))) {
         throw new CustomError({
             statusCode: HttpStatusCodes.BAD_REQUEST.code,
             errorType: 'validationError',
             field: 'email',
-            details: [{ path: 'email', message: 'Email já está em uso.' }],
-            customMessage: 'Email já está em uso.',
+            customMessage: 'Email já está em uso.'
         });
-        }
     }
+}
 
     /**
      * Garante que o usuário existe.

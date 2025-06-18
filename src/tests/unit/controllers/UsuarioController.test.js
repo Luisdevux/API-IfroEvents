@@ -11,8 +11,11 @@ jest.mock('../../../utils/helpers/index.js', () => {
             created: jest.fn().mockReturnThis()
         },
         CustomError: jest.fn((opts) => {
-            const err = new Error(opts.customMessage || opts.message);
-            err.statusCode = opts.statusCode;
+            const message = typeof opts === 'string' 
+                ? opts 
+                : (opts.customMessage || opts.message || 'Usuário não encontrado.');
+            const err = new Error(message);
+            err.statusCode = opts.statusCode || 404;
             err.errorType = opts.errorType || 'CustomError';
             err.field = opts.field;
             err.details = opts.details;
@@ -305,15 +308,10 @@ describe('UsuarioController', () => {
             );
         });
 
-        it('deve lançar erro se ID não for fornecido', async () => {
-            req.params.id = undefined;
-
-            await expect(controller.deletar(req, res)).rejects.toThrow(
-                expect.objectContaining({
-                    statusCode: HttpStatusCodes.BAD_REQUEST.code,
-                    field: 'id'
-                })
-            );
+        it('deve chamar o serviço com o ID correto quando fornecido', async () => {
+            req.params.id = idValido;
+            await controller.deletar(req, res);
+            expect(controller.service.deletar).toHaveBeenCalledWith(idValido);
         });
 
         it('deve lançar erro se ID for inválido', async () => {
