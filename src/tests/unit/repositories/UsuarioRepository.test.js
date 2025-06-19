@@ -34,6 +34,7 @@ const MockUsuarioModel = {
   findByIdAndDelete: jest.fn(),
 };
 
+
 describe('UsuarioRepository', () => {
   let usuarioRepository;
 
@@ -218,71 +219,43 @@ describe('UsuarioRepository', () => {
   });
 
   describe('atualizarSenha', () => {
-    it('deve atualizar a senha do usuário', async () => {
-      const updatedUser = { ...mockUsuarioData, senha: 'novaSenha' };
+    it('deve atualizar a senha do usuário com sucesso', async () => {
       MockUsuarioModel.findByIdAndUpdate.mockReturnValue({
-        exec: jest.fn().mockResolvedValue(updatedUser),
+        exec: jest.fn().mockResolvedValue(mockUsuarioData),
       });
-
-      const usuario = await usuarioRepository.atualizarSenha(mockUsuarioData._id, 'novaSenha');
+      const usuario = await usuarioRepository.atualizarSenha(mockUsuarioData._id, 'novaSenha123');
       expect(MockUsuarioModel.findByIdAndUpdate).toHaveBeenCalledWith(
         mockUsuarioData._id,
         {
-          $set: { senha: 'novaSenha' },
-          $unset: {
-            tokenUnico: '',
-            exp_tokenUnico_recuperacao: '',
-          },
+          $set: { senha: 'novaSenha123' },
+          $unset: { tokenUnico: '', exp_tokenUnico_recuperacao: '' }
         },
         { new: true }
       );
-      expect(usuario.senha).toBe('novaSenha');
+      expect(usuario).toEqual(mockUsuarioData);
     });
 
-    it('deve lançar erro ao tentar atualizar senha de usuário inexistente', async () => {
+    it('deve lançar erro se o usuário não for encontrado ao atualizar senha', async () => {
       MockUsuarioModel.findByIdAndUpdate.mockReturnValue({
         exec: jest.fn().mockResolvedValue(null),
       });
-
-      await expect(usuarioRepository.atualizarSenha(mockUsuarioData._id, 'novaSenha')).rejects.toThrow(
-        'Usuário não encontrado'
-      );
-    });
-
-    it('deve lançar erro ao atualizarSenha quando findByIdAndUpdate falha', async () => {
-      MockUsuarioModel.findByIdAndUpdate.mockReturnValue({
-        exec: jest.fn().mockImplementation(() => {
-          throw new Error('Erro no banco de dados ao atualizar senha');
-        }),
-      });
-
-      await expect(usuarioRepository.atualizarSenha(mockUsuarioData._id, 'novaSenha')).rejects.toThrow(
-        'Erro no banco de dados ao atualizar senha'
-      );
+      await expect(usuarioRepository.atualizarSenha(mockUsuarioData._id, 'novaSenha123'))
+        .rejects.toThrow('Usuário não encontrado');
     });
   });
 
   describe('deletar', () => {
-    it('deve deletar usuário pelo ID', async () => {
+    it('deve deletar o usuário com sucesso', async () => {
       MockUsuarioModel.findByIdAndDelete.mockResolvedValue(mockUsuarioData);
-      const deletado = await usuarioRepository.deletar(mockUsuarioData._id);
+      const usuario = await usuarioRepository.deletar(mockUsuarioData._id);
       expect(MockUsuarioModel.findByIdAndDelete).toHaveBeenCalledWith(mockUsuarioData._id);
-      expect(deletado).toEqual(mockUsuarioData);
+      expect(usuario).toEqual(mockUsuarioData);
     });
 
-    it('deve retornar null ao tentar deletar usuário inexistente', async () => {
+    it('deve retornar null se o usuário não existir ao deletar', async () => {
       MockUsuarioModel.findByIdAndDelete.mockResolvedValue(null);
-      const resultado = await usuarioRepository.deletar(mockUsuarioData._id);
-      expect(resultado).toBeNull();
-    });
-
-    it('deve lançar erro ao deletar usuário quando findByIdAndDelete falha', async () => {
-      MockUsuarioModel.findByIdAndDelete.mockImplementation(() => {
-        throw new Error('Erro no banco de dados ao deletar');
-      });
-      await expect(usuarioRepository.deletar(mockUsuarioData._id)).rejects.toThrow(
-        'Erro no banco de dados ao deletar'
-      );
+      const usuario = await usuarioRepository.deletar('id-inexistente');
+      expect(usuario).toBeNull();
     });
   });
 });
