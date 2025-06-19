@@ -4,38 +4,30 @@
 // Mocks que precisam ser definidos ANTES de quaisquer outros imports
 // ==================================================================
 
-jest.mock('../../../utils/helpers/index.js', () => {
-    return {
-        CommonResponse: {
-            success: jest.fn().mockReturnThis(),
-            created: jest.fn().mockReturnThis()
-        },
-        CustomError: jest.fn((opts) => {
-            const message = typeof opts === 'string' 
-                ? opts 
-                : (opts.customMessage || opts.message || 'Usuário não encontrado.');
-            const err = new Error(message);
-            err.statusCode = opts.statusCode || 404;
-            err.errorType = opts.errorType || 'CustomError';
-            err.field = opts.field;
-            err.details = opts.details;
-            return err;
-        }),
-        HttpStatusCodes: {
-            BAD_REQUEST: { code: 400 },
-            NOT_FOUND: { code: 404 },
-            INTERNAL_SERVER: { code: 500 }
-        },
-        errorHandler: jest.fn(),
-        messages: {
-            user: {
-                notFound: () => 'Usuário não encontrado.'
-            }
-        },
-        StatusService: {},
-        asyncWrapper: jest.fn((fn) => fn)
-    };
-});
+jest.mock('../../../utils/helpers/index.js', () => ({
+    CommonResponse: {
+        success: jest.fn().mockReturnThis(),
+        created: jest.fn().mockReturnThis()
+    },
+    CustomError: function CustomError(opts) {
+        this.message = opts.message;
+        this.statusCode = opts.statusCode;
+        Error.captureStackTrace(this, this.constructor);
+    },
+    HttpStatusCodes: {
+        BAD_REQUEST: { code: 400 },
+        NOT_FOUND: { code: 404 },
+        INTERNAL_SERVER: { code: 500 }
+    },
+    errorHandler: jest.fn(),
+    messages: {
+        user: {
+            notFound: () => 'Usuário não encontrado.'
+        }
+    },
+    StatusService: {},
+    asyncWrapper: jest.fn((fn) => fn)
+}));
 
 jest.mock('../../../utils/validators/schemas/zod/UsuarioSchema.js', () => {
     return {
@@ -198,12 +190,15 @@ describe('UsuarioController', () => {
             await expect(controller.listar(req, res)).rejects.toThrow(erroValidacao);
         });
 
-        it('deve lançar erro se usuário não for encontrado', async () => {
-            req.params.id = usuarioMock._id.toString();
+        it('deve lançar CustomError se usuário não for encontrado', async () => {
+            req.params.id = 'id-inexistente';
             objectIdSchema.parse.mockReturnValue(true);
-            controller.service.listar.mockResolvedValue(null);
+            controller.service.listar = jest.fn().mockResolvedValue(null);
 
-            await expect(controller.listar(req, res)).rejects.toThrow('Usuário não encontrado.');
+            await expect(controller.listar(req, res)).rejects.toMatchObject({
+                message: 'Usuário não encontrado.',
+                statusCode: 404
+            });
         });
 
         it('deve lançar erro se serviço falhar', async () => {

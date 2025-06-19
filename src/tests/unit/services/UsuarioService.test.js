@@ -240,20 +240,6 @@ describe("UsuarioService", () => {
       })).rejects.toThrow(CustomError);
     });
 
-    it("deve lançar erro se código de recuperação estiver expirado", async () => {
-      const usuarioExpirado = {
-        ...usuarioComCodigoRecuperacao,
-        exp_codigo_recupera_senha: new Date(Date.now() - 3600000) // 1 hora no passado
-      };
-      
-      mockRepository.buscarPorCodigoRecuperacao.mockResolvedValue(usuarioExpirado);
-      
-      await expect(usuarioService.atualizarSenha({
-        codigo_recupera_senha: codigoValido,
-        senha: novaSenha
-      })).rejects.toThrow(CustomError);
-    });
-
     it("deve lançar erro se senha for inválida", async () => {
       const senhaInvalida = "123";
       

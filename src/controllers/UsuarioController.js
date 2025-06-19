@@ -71,40 +71,14 @@ class UsuarioController {
     };
     
     // DELETE /usuarios/:id
-    // async deletar(req, res) {
-    //   const { id } = req.params || {};
+     async deletar(req, res) {
+       const { id } = req.params || {};
 
-    //   objectIdSchema.parse(id);
+       objectIdSchema.parse(id);
 
-    //   const data = await this.service.deletar(id);
-    //   return CommonResponse.success(res, data, 200, 'Usuário excluído com sucesso.');
-    // };
-    async deletar(req, res) {
-    const { id } = req.params || {};
-    
-    // 1. Validação de presença do ID
-    if (id === undefined || id === null) {
-        throw new CustomError({
-            message: 'ID do usuário não fornecido',
-            statusCode: HttpStatusCodes.BAD_REQUEST.code,
-            field: 'id'
-        });
-    }
-
-    // 2. Validação do formato do ID
-    try {
-        objectIdSchema.parse(id);
-    } catch (error) {
-        throw new CustomError({
-            message: 'ID inválido',
-            statusCode: HttpStatusCodes.BAD_REQUEST.code,
-            field: 'id'
-        });
-    }
-
-    const data = await this.service.deletar(id);
-    return CommonResponse.success(res, data, 200, 'Usuário excluído com sucesso.');
-}
+       const data = await this.service.deletar(id);
+       return CommonResponse.success(res, data, 200, 'Usuário excluído com sucesso.');
+   }
 }
 
 export default UsuarioController;
