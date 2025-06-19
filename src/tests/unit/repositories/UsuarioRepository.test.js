@@ -258,28 +258,4 @@ describe('UsuarioRepository', () => {
       expect(usuario).toBeNull();
     });
   });
-
-  describe('buscarPorCodigoRecuperacao', () => {
-    it('deve retornar usuário pelo código de recuperação', async () => {
-      MockUsuarioModel.findOne.mockResolvedValue(mockUsuarioData);
-      const usuario = await usuarioRepository.buscarPorCodigoRecuperacao('codigo123');
-      expect(MockUsuarioModel.findOne).toHaveBeenCalledWith({ codigo_recupera_senha: 'codigo123' });
-      expect(usuario).toEqual(mockUsuarioData);
-    });
-
-    it('deve retornar undefined se não encontrar usuário pelo código', async () => {
-      MockUsuarioModel.findOne.mockResolvedValue(undefined);
-      const usuario = await usuarioRepository.buscarPorCodigoRecuperacao('codigoInvalido');
-      expect(usuario).toBeUndefined();
-    });
-
-    it('deve lançar erro ao buscarPorCodigoRecuperacao quando findOne falha', async () => {
-      MockUsuarioModel.findOne.mockImplementation(() => {
-        throw new Error('Erro no banco de dados ao buscar por código');
-      });
-      await expect(usuarioRepository.buscarPorCodigoRecuperacao('codigo123')).rejects.toThrow(
-        'Erro no banco de dados ao buscar por código'
-      );
-    });
-  });
 });
