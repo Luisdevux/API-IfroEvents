@@ -67,14 +67,6 @@ class UsuarioRepository {
         return documento;
     }
 
-    async buscarPorCodigoRecuperacao(codigo) {
-        try {
-            return await this.model.findOne({ codigo_recupera_senha: codigo });
-        } catch (err) {
-            throw new Error('Erro no banco de dados ao buscar por código');
-        }
-    }
-
     //PATH /usuarios
     async alterar(id, parsedData) {
         const usuario = await this.model.findByIdAndUpdate(id, parsedData, { new: true })

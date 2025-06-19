@@ -42,7 +42,7 @@ class UsuarioController {
 
         if (!data) {
             throw new CustomError({
-                message: messages.user.notFound(), // Certifique-se que esta mensagem é "Usuário não encontrado."
+                message: messages.user.notFound(),
                 statusCode: HttpStatusCodes.NOT_FOUND.code
             });
         }
