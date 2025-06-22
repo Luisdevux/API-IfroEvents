@@ -1,7 +1,8 @@
 // src/controllers/EventoController.js
 
 import EventoService from '../services/EventoService.js';
-import { EventoSchema, EventoUpdateSchema } from '../utils/validators/schemas/zod/EventoSchema.js'
+import { EventoSchema, EventoUpdateSchema } from '../utils/validators/schemas/zod/EventoSchema.js';
+import { EventoQuerySchema } from '../utils/validators/schemas/zod/querys/EventoQuerySchema.js';
 import PermissaoSchema from '../utils/validators/schemas/zod/PermissaoSchema.js';
 import objectIdSchema from '../utils/validators/schemas/zod/ObjectIdSchema.js';
 import {
@@ -13,6 +14,7 @@ import {
     StatusService,
     asyncWrapper
 } from '../utils/helpers/index.js';
+import QRCode from 'qrcode';
 
 
 class EventoController {
@@ -41,101 +43,37 @@ class EventoController {
     
     // GET /eventos && GET /eventos/:id
     async listar(req, res) {
-        const { id } = req.params;
+        const { id } = req.params || {};
+        const usuarioId = req.user?._id;
         
-        if(id) {
+        if (id) {
             objectIdSchema.parse(id);
-            
-            const data = await this.service.listar(id);
-            
-            if(!data) {
-                throw new CustomError(messages.event.notFound(), HttpStatusCodes.NOT_FOUND.code);
-            }
-
-            if(req.user) {
-                // Verifica se o evento é do usuário autenticado
-                await this.ensureUserIsOwner(data, req.user._id);
-            }
-            return CommonResponse.success(res, data);
         }
         
-        const data = await this.service.listar(req);
-        return CommonResponse.success(res, data);
-    }
-    
-    // PATCH /eventos/:id
-    async alterar(req, res) {
-        const { id } = req.params;
-        objectIdSchema.parse(id);
+        const query = req.query || {};
+        if (Object.keys(query).length !== 0) {
+            await EventoQuerySchema.parseAsync(query);
+        }
         
-        // Busca o evento para garantir que o usuário é o dono
-        const evento = await this.service.listar(id);
+        const data = await this.service.listar(req, usuarioId);
         
-        // Verifica se o evento é do usuário autenticado
-        await this.ensureUserIsOwner(evento, req.user._id);
-        
-        const parsedData = EventoUpdateSchema.parse(req.body);
-        
-        const data = await this.service.alterar(id, parsedData);
-        
-        return CommonResponse.success(res, data, 200, 'Evento atualizado com sucesso.');
-    }
-    
-    // PATCH /eventos/:id/status
-    async alterarStatus(req, res) {
-        const { id } = req.params;
-        objectIdSchema.parse(id);
-
-        // Busca o evento para garantir que o usuário é o dono
-        const evento = await this.service.listar(id);
-        
-        // Verifica se o evento é do usuário autenticado
-        await this.ensureUserIsOwner(evento, req.user._id);
-        
-        const parsedData = EventoUpdateSchema.parse({ status: req.body.status });
-        
-        if (!['ativo', 'inativo'].includes(parsedData.status)) {
+        if (id && !data) {
             throw new CustomError({
-                statusCode: HttpStatusCodes.BAD_REQUEST.code,
-                errorType: 'validationError',
-                field: 'status',
-                customMessage: 'Status inválido. Use "ativo" ou "inativo".'
+                statusCode: HttpStatusCodes.NOT_FOUND.code,
+                errorType: 'resourceNotFound',
+                field: 'Evento',
+                details: [],
+                customMessage: messages.error.resourceNotFound('Evento')
             });
         }
         
-        const statusAtualizado = await this.service.alterarStatus(id, parsedData.status);
-        
-        return CommonResponse.success(res, statusAtualizado, 200, 'Status do evento atualizado com sucesso.');
+        return CommonResponse.success(res, data);
     }
-    
-    // PATCH /eventos/:id/permissoes
-    async adicionarPermissao(req, res) {
+
+    // GET /eventos/:id/qrcode
+    async gerarQRCode(req, res) {
         const { id } = req.params;
         objectIdSchema.parse(id);
-
-        // Busca o evento para garantir que o usuário é o dono
-        const evento = await this.service.listar(id);
-        
-        // Verifica se o evento é do usuário autenticado
-        await this.ensureUserIsOwner(evento, req.user._id, true);
-
-        const permissoes = Array.isArray(req.body) ? req.body : [req.body];
-        const permissoesValidas = permissoes.map(p => PermissaoSchema.parse(p));
-
-        const data = await this.service.adicionarPermissao(id, permissoesValidas);
-
-        return CommonResponse.success(res, data, 200, 'Permissão adicionada com sucesso.');
-    }
-
-    // DELETE /eventos/:id
-    async deletar(req, res) {
-        const { id } = req.params || {};
-
-        // Busca o evento para garantir que o usuário é o dono
-        const evento = await this.service.listar(id);
-
-        // Verifica se o evento é do usuário autenticado
-        await this.ensureUserIsOwner(evento, req.user._id, true);
 
         if(!id) {
             throw new CustomError({
@@ -143,58 +81,100 @@ class EventoController {
                 errorType: 'validationError',
                 field: 'id',
                 details: [],
-                customMessage: 'ID do evento é obrigatório para deletar.'
+                customMessage: 'ID do evento é obrigatório para gerar o QR Code.'
             });
         }
 
-        objectIdSchema.parse(id);
+        const evento = await this.service.listar(id, req.user?._id);
         
-        const data = await this.service.deletar(id);
-        return CommonResponse.success(res, data, 200, 'Evento excluído com sucesso.');
+        if(!evento) {
+            throw new CustomError(messages.event.notFound(), HttpStatusCodes.NOT_FOUND.code);
+        }
+        
+        const qrCode = await QRCode.toDataURL(evento.linkInscricao);
+
+        return CommonResponse.success(res, { evento: evento._id, linkInscricao: evento.linkInscricao, qrcode: qrCode }, 200, 'QR Code gerado com sucesso.');
     }
 
-    /**
-     * Garante que o usuário autenticado é o dono do evento ou possui permissão compartilhada válida.
-     * @param {Object} evento - O evento a ser verificado
-     * @param {String} usuarioId - ID do usuário a verificar
-     * @param {Boolean} ownerOnly - Se true, apenas o proprietário original é permitido
-     */
-    async ensureUserIsOwner(evento, usuarioId, ownerOnly = false) {
-        // Se for o dono, permite sempre as requisiçoes
-        if (evento.organizador._id.toString() === usuarioId) {
-            return;
-        }
+    // PATCH /eventos/:id
+    async alterar(req, res) {
+        const { id } = req.params;
+        const usuarioLogado = req.user;
+        
+        objectIdSchema.parse(id);
+        
+        const parseData = EventoUpdateSchema.parse(req.body);
+        
+        const data = await this.service.alterar(id, parseData, usuarioLogado._id);
+        
+        return CommonResponse.success(res, data);
+    }
 
-        // Se o modo estrito estiver ativado, apenas o dono é permitido
-        if (ownerOnly) {
+    // PATCH /eventos/:id/status
+    async alterarStatus(req, res) {
+        const { id } = req.params;
+        const usuarioLogado = req.user;
+        
+        objectIdSchema.parse(id);
+        
+        const { status } = req.body;
+        
+        if(!status || !['ativo', 'inativo', 'cancelado'].includes(status)) {
             throw new CustomError({
-                statusCode: 403,
-                errorType: 'unauthorizedAccess',
-                field: 'Evento',
+                statusCode: HttpStatusCodes.BAD_REQUEST.code,
+                errorType: 'validationError',
+                field: 'status',
                 details: [],
-                customMessage: 'Apenas o proprietário do evento pode realizar esta operação.'
+                customMessage: 'Status deve ser ativo, inativo ou cancelado.'
             });
         }
+        
+        const data = await this.service.alterarStatus(id, status, usuarioLogado._id);
+        
+        return CommonResponse.success(res, data);
+    }
 
-        // Verificação de permissão compartilhada (só chega aqui se não for modo estrito)
-        const agora = new Date();
-        const permissaoValida = (evento.permissoes || []).some(permissao =>
-            permissao.usuario.toString() === usuarioId &&
-            permissao.permissao === 'editar' &&
-            new Date(permissao.expiraEm) > agora
-        );
+    // PATCH /eventos/:id/permissoes
+    async adicionarPermissao(req, res) {
+        const { id } = req.params;
+        const usuarioLogado = req.user;
+        
+        objectIdSchema.parse(id);
+        
+        const permissoesData = Array.isArray(req.body) ? req.body : [req.body];
 
-        if (permissaoValida) {
-            return;
-        }
+        // Validando cada permissão do array
+        permissoesData.forEach((permissao, index) => {
+            try {
+                PermissaoSchema.parse(permissao);
+            } catch (error) {
+                throw new CustomError({
+                    statusCode: HttpStatusCodes.BAD_REQUEST.code,
+                    errorType: 'validationError',
+                    field: `permissoes[${index}]`,
+                    details: error.errors,
+                    customMessage: `Erro de validação na permissão ${index + 1}.`
+                });
+            }
+        });
 
-        // Caso contrário, bloqueia
-        throw new CustomError({
-            statusCode: 403,
-            errorType: 'unauthorizedAccess',
-            field: 'Evento',
-            details: [],
-            customMessage: 'Você não tem permissão para manipular este evento.'
+        const data = await this.service.adicionarPermissao(id, permissoesData, usuarioLogado._id);
+        
+        return CommonResponse.success(res, data);
+    }
+
+    // DELETE /eventos/:id
+    async deletar(req, res) {
+        const { id } = req.params;
+        const usuarioLogado = req.user;
+        
+        objectIdSchema.parse(id);
+        
+        const data = await this.service.deletar(id, usuarioLogado._id);
+        
+        return CommonResponse.success(res, { 
+            message: messages.success.resourceDeleted('Evento'),
+            data 
         });
     }
 }
