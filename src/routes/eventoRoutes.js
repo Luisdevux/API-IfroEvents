@@ -24,7 +24,7 @@ router
     .delete("/eventos/:id", AuthMiddleware, asyncWrapper(eventoController.deletar.bind(eventoController)))
 
     // Rotas Adicionais (Mídias)
-    .post("/eventos/:id/midia/:tipo", upload.single('file'), AuthMiddleware, asyncWrapper(uploadController.adicionarMidia.bind(uploadController)))
+    .post("/eventos/:id/midia/:tipo", AuthMiddleware, upload.single('file'), asyncWrapper(uploadController.adicionarMidia.bind(uploadController)))
     .get("/eventos/:id/midias", AuthMiddleware, asyncWrapper(uploadController.listarTodasMidias.bind(uploadController)))
     .get("/eventos/:id/midia/capa", AuthMiddleware, asyncWrapper(uploadController.listarMidiaCapa.bind(uploadController)))
     .get("/eventos/:id/midia/video", AuthMiddleware, asyncWrapper(uploadController.listarMidiaVideo.bind(uploadController)))

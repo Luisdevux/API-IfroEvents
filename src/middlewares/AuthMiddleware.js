@@ -6,33 +6,79 @@ import TokenExpiredError from '../utils/errors/TokenExpiredError.js';
 import { CustomError } from '../utils/helpers/index.js';
 import AuthService from '../services/AuthService.js';
 
-// Certifique-se de que as variáveis de ambiente estejam carregadas
-const JWT_SECRET_ACCESS_TOKEN = process.env.JWT_SECRET_ACCESS_TOKEN;
-
 class AuthMiddleware {
   constructor() {
     this.service = new AuthService();
-
-    /**
-     * Vinculação para grantir ao método handle o contexto 'this' correto
-     * Ao usar bind(this) no método handle garantimos independentemente de como ou onde o método é chamado, 
-     * this sempre se referirá à instância atual de AuthMiddleware.
-     */
+    // Garante que o 'this' do método se mantenha ao usá-lo como callback
     this.handle = this.handle.bind(this);
+  }
+
+  /**
+   * Extrai o token e devolve { token, secret }
+   * - Authorization: Bearer <token>          → JWT_SECRET_ACCESS_TOKEN
+   * - body.token                             → JWT_SECRET_ACCESS_TOKEN
+   * - query.token                            → JWT_SECRET_PASSWORD_RECOVERY
+   */
+  _getTokenAndSecret(req, requisicaoTotem = false) {
+    // 1. Header Authorization ───────────────────────────────
+    const authHeader = req.headers?.authorization ?? null;
+    if(authHeader) {
+      // Permite “Bearer <token>” ou apenas o token cru
+      const parts = authHeader.split(' ');
+      const token = parts.length === 2 ? parts[1] : parts[0];
+      return { 
+        token,
+        secret: process.env.JWT_SECRET_ACCESS_TOKEN
+      };
+    }
+    
+    // 2. Query String (para recuperação de senha) ────────────────
+    if(req.query?.token) {
+      return {
+        token: req.query.token,
+        secret: process.env.JWT_SECRET_PASSWORD_RECOVERY
+      }
+    }
+
+    // 3. Autenticação opcional, retorna null se não encontrar nada (Somente rotas GET de eventos - lógica pensada para o totem) ────────────────
+    if (requisicaoTotem) {
+      return null;
+    }
+    
+    // 4. Nas rotas onde a autenticação é obrigatória, se nada for encontrado, lança erro ────────────────
+    throw new AuthenticationError("Token não informado!");
+  }
+
+  // Função auxiliar para enriquecer os dados do usuário na requisição para uso em outras partes da aplicação
+  async _userData(req, userId) {
+    const usuario = await this.service.repository.listarPorId(userId);
+    
+    if (usuario) {
+      req.user = {
+        _id: usuario._id.toString(),
+        nome: usuario.nome,
+        email: usuario.email,
+      };
+      req.user_id = userId;
+      return true;
+    }
+    
+    return false;
   }
 
   async handle(req, res, next) {
     try {
-      const authHeader = req.headers.authorization;
       const isGetEventMethod = req.method === 'GET' && req.path.startsWith('/eventos');
 
       // Se for um GET do totem para eventos, não requer autenticação
       if(isGetEventMethod) {
-        if(authHeader && authHeader.startsWith('Bearer ')) {
-          const token = authHeader.split(' ')[1];
-
+        // Tenta obter token opcional (não lança erro se não existir)
+        const tokenAndSecret = this._getTokenAndSecret(req, true);
+        
+        if(tokenAndSecret) {
           try {
-            const decoded = await promisify(jwt.verify)(token, JWT_SECRET_ACCESS_TOKEN);
+            const { token, secret } = tokenAndSecret;
+            const decoded = await promisify(jwt.verify)(token, secret);
 
             if(decoded?.id) {
               const tokenData = await this.service.carregatokens(decoded.id);
@@ -41,19 +87,8 @@ class AuthMiddleware {
                 req.user = null;
                 req.user_id = null;
                 return next();
-              }
-
-              // Se o token for válido, anexa o user_id à requisição
-              const usuario = await this.service.repository.listarPorId(decoded.id);
-
-              if(usuario) {
-                req.user = {
-                  _id: usuario._id.toString(),
-                  nome: usuario.nome,
-                  email: usuario.email,
-                }
-              }
-              req.user_id = decoded.id;
+              }              // Se o token for válido, enriquece os dados do usuário
+              await this._enrichUserData(req, decoded.id);
             }
           } catch (err) {
             // Token inválido em GET público é ignorado e segue pois a requisição é liberada para o totem
@@ -62,42 +97,41 @@ class AuthMiddleware {
         return next();
       }
 
-      // Token obrigatório para outras rotas
-      if (!authHeader) {
-        throw new AuthenticationError("O token de autenticação não existe!");
-      }
-
-      const [scheme, token] = authHeader.split(' ');
-
-      if (scheme !== 'Bearer' || !token) {
-        throw new AuthenticationError("Formato do token de autenticação inválido!");
-      }
+      // Para outros métodos, requer autenticação obrigatória
+      const { token, secret } = this._getTokenAndSecret(req);
 
       // Verifica e decodifica o token
-      const decoded = await promisify(jwt.verify)(token, JWT_SECRET_ACCESS_TOKEN);
-
-      if (!decoded) { // Se não ocorrer a decodificação do token
-        throw new TokenExpiredError("Teste novamente, o token JWT está expirado! ");
+      const decoded = await promisify(jwt.verify)(token, secret);
+      
+      // Se falhou a verificação, jwt.verify já lança JsonWebTokenError / TokenExpiredError
+      // porém incluímos este “if” por segurança contra valores falsy   
+      if (!decoded) {
+        throw new TokenExpiredError("Token JWT expirado, tente novamente.");
       }
 
-      // Verifica se o refreshtoken está presente no banco de dados e se é válido
-      const tokenData = await this.service.carregatokens(decoded.id);
+      /**
+       * Caso seja um token de acesso normal, verificamos se o refresh token
+       * continua válido no banco. Se for um token de recuperação de senha,
+       * essa checagem não é necessária.
+       */
 
-      if (!tokenData?.data?.refreshtoken) {
-        throw new CustomError({
-          statusCode: 401,
-          errorType: 'unauthorized',
-          field: 'Token',
-          details: [],
-          customMessage: 'Refresh token inválido, autentique novamente!'
-        });
-      }
+      if(secret === process.env.JWT_SECRET_ACCESS_TOKEN) {
+        // Verifica se o refreshtoken está presente no banco de dados e se é válido
+        const tokenData = await this.service.carregatokens(decoded.id);
 
-      // Se o token for válido, anexa o user_id à requisição
-      req.user_id = decoded.id;
-
-      // Busca o usuário completo no banco para anexar informações adicionais e usar em outras partes da aplicação
-      const usuario = await this.service.repository.listarPorId(decoded.id);
+        if (!tokenData?.data?.refreshtoken) {
+          throw new CustomError({
+            statusCode: 401,
+            errorType: 'unauthorized',
+            field: 'Token',
+            details: [],
+            customMessage: 'Refresh token inválido, autentique novamente!'
+          });
+        }
+      }      
+      
+      // Token válido → enriquece os dados do usuário
+      const usuario = await this._userData(req, decoded.id);
 
       if (!usuario) {
         throw new CustomError({
@@ -108,26 +142,21 @@ class AuthMiddleware {
           customMessage: 'Usuário não encontrado!'
         });
       }
-
-      req.user = {
-        _id: usuario._id.toString(),
-        nome: usuario.nome,
-        email: usuario.email,
-      }
-
+      
       next();
 
     } catch (err) {
       if (err.name === 'JsonWebTokenError') {
-        next(new AuthenticationError("Token JWT inválido!"));
-      } else if (err.name === 'TokenExpiredError') {
-        next(new TokenExpiredError("Teste novamente, o token JWT está expirado! "));
-      } else {
-        next(err); // Passa outros erros para o errorHandler
+        return next(new AuthenticationError('Token JWT inválido!'));
       }
+      if (err.name === 'TokenExpiredError') {
+        return next(new TokenExpiredError('Token JWT expirado, faça login novamente.'));
+      }
+      // Outros erros seguem para o errorHandler global
+      return next(err);
     }
   }
 }
 
-// Instanciar e exportar apenas o método 'handle' como função de middleware
+// Exportar apenas a função middleware já vinculada
 export default new AuthMiddleware().handle;

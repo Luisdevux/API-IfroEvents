@@ -48,7 +48,7 @@ class TokenUtil {
       jwt.sign(
         { id },
         process.env.JWT_SECRET_PASSWORD_RECOVERY,
-        { expiresIn: process.env.JWT_PASSWORD_RECOVERY_EXPIRATION || '1h' },
+        { expiresIn: process.env.JWT_PASSWORD_RECOVERY_EXPIRATION || '30m' },
         (err, token) => {
           if (err) {
             return reject(err);
@@ -94,7 +94,6 @@ class TokenUtil {
             // Pode ser JsonWebTokenError, TokenExpiredError, etc.
             return reject(err);
           }
-
           // Se decodificou corretamente, retorna apenas o campo 'id'
           // (supondo que sempre haja um `id` no payload)
           resolve(decoded.id);
@@ -106,25 +105,34 @@ class TokenUtil {
   /**
    * Decodifica um token de recuperação de senha e retorna o payload.id ou rejeita com o erro
    */
-  decodePasswordRecoveryToken(token) {
+  decodePasswordRecoveryToken(token, key = process.env.JWT_SECRET_PASSWORD_RECOVERY) {
     return new Promise((resolve, reject) => {
-      jwt.verify(
-        token,
-        process.env.JWT_SECRET_PASSWORD_RECOVERY,
-        (err, decoded) => {
-          if (err) {
-            // Pode ser JsonWebTokenError, TokenExpiredError, etc.
-            return reject(err);
-          }
+      try {
+        jwt.verify(
+          token,
+          key,
+          (err, decoded) => {
+            if (err) {
+              // Pode ser JsonWebTokenError, TokenExpiredError, etc.
+              return reject(err);
+            }
 
-          // Se decodificou corretamente, retorna apenas o campo 'id'
-          // (supondo que sempre haja um `id` no payload)
-          resolve(decoded.id);
-        }
-      );
+            // Se decodificou corretamente, retorna apenas o campo 'id'
+            // (supondo que sempre haja um `id` no payload)
+            resolve(decoded.id);
+          }
+        );
+      } catch (error) {
+        throw new CustomError({
+          statusCode: HttpStatusCodes.UNAUTHORIZED.code,
+          errorType: 'unauthorized',
+          field: 'Token',
+          details: [],
+          customMessage: messages.error.unauthorized('Token inválido')
+        });
+      }
     });
   }
-
 }
 
 export default new TokenUtil();

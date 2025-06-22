@@ -95,7 +95,7 @@ class EventoRepository {
             page: parseInt(page),
             limit: parseInt(itemsPorPagina),
             sort: { eventoCriadoEm: -1 },
-            lean: true
+            lean: false
         };
 
         const resultado = await this.model.paginate(filtros, options);
