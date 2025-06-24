@@ -172,10 +172,7 @@ class EventoController {
         
         const data = await this.service.deletar(id, usuarioLogado._id);
         
-        return CommonResponse.success(res, { 
-            message: messages.success.resourceDeleted('Evento'),
-            data 
-        });
+        return CommonResponse.success(res, { message: messages.validation.generic.resourceDeleted('Evento'), data });
     }
 }
 

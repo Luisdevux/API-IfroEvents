@@ -3,7 +3,7 @@ import path from "path";
 import { v4 as uuidv4 } from "uuid";
 import fs from "fs";
 
-// Define os tipos de mídias aceitos e seus respectivos dirtórios
+// Define os tipos de mídias aceitos e seus respectivos diretórios
 const tiposDiretorios = {
   capa: 'uploads/capa',
   carrossel: 'uploads/carrossel',
