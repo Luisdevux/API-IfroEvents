@@ -19,6 +19,7 @@ class UploadController {
     // POST /eventos/:id/midia/:tipo
     async adicionarMidia(req, res) {
         const { id: eventoId, tipo } = req.params;
+        const usuarioLogado = req.user;
         const file = req.file;
 
         if(!file) {
@@ -30,9 +31,9 @@ class UploadController {
             });
         }
 
-        const midia = await this.service.adicionarMidia(eventoId, tipo, file);
+        const midia = await this.service.adicionarMidia(eventoId, tipo, file, usuarioLogado._id);
 
-        return CommonResponse.created(res, midia, `Midia (${tipo}) salva com sucesso.`);
+        return CommonResponse.created(res, midia, `Mídia (${tipo}) salva com sucesso.`);
     }
 
     // GET /eventos/:id/midias
@@ -74,8 +75,9 @@ class UploadController {
     //DELETE /eventos/:id/midia/:tipo/:id
     async deletarMidia(req, res) {
         const { eventoId, tipo, midiaId } = req.params;
+        const usuarioLogado = req.user;
 
-        const evento = await this.service.deletarMidia(eventoId, tipo, midiaId);
+        const evento = await this.service.deletarMidia(eventoId, tipo, midiaId, usuarioLogado._id);
 
         return CommonResponse.success(res, evento, 200, `Midia '${tipo}' do evento deletada com sucesso.`);
     }

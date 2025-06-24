@@ -24,10 +24,21 @@ const EventoSchema = z.object({
     linkInscricao: z.string().url('Link de inscrição inválido'),
     tags: z.array(z.string().min(1)).min(1, 'Insira pelo menos uma tag'),
     categoria: z.string().min(1, 'Campo categoria é obrigatório'),
-    status: z.enum(['ativo', 'inativo']).default('ativo'),
-    midiaVideo: z.array(MidiaSchema).min(1, 'Campo mídia é obrigatório'),
-    midiaCapa: z.array(MidiaSchema).min(1, 'Campo mídia é obrigatório'),
-    midiaCarrossel: z.array(MidiaSchema).min(1, 'Campo mídia é obrigatório'),
+    status: z.enum(['ativo', 'inativo']).default('inativo').optional(),
+    midiaVideo: z.array(MidiaSchema).default([]).optional(),
+    midiaCapa: z.array(MidiaSchema).default([]).optional(),
+    midiaCarrossel: z.array(MidiaSchema).default([]).optional(),
+});
+
+EventoSchema.refine((data) => {
+    // Se status for 'ativo', mídias são obrigatórias
+    if (data.status === 'ativo') {
+        return data.midiaVideo.length > 0 && data.midiaCapa.length > 0 && data.midiaCarrossel.length > 0;
+    }
+    return true;
+}, {
+    message: 'Eventos ativos devem ter todas as mídias (capa, vídeo e carrossel)',
+    path: ['midias']
 });
 
 const EventoUpdateSchema = EventoSchema.partial();

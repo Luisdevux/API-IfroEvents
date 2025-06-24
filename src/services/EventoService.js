@@ -73,6 +73,11 @@ class EventoService {
         
         await this.ensureUserIsOwner(evento, usuarioId, true);
         
+        // Se está tentando ativar o evento, validar se tem todas as mídias
+        if (novoStatus === 'ativo') {
+            await this.validarMidiasObrigatorias(evento);
+        }
+        
         const statusAtualizado = await this.repository.alterarStatus(id, novoStatus);
         return statusAtualizado;
     }
@@ -202,6 +207,36 @@ class EventoService {
             customMessage: 'Você não tem permissão para manipular este evento.'
         });
     }
+
+    /**
+     * Valida se o evento tem todas as mídias obrigatórias antes de ativar
+     */
+    async validarMidiasObrigatorias(evento) {
+        const midiaErrors = [];
+        
+        if (!evento.midiaVideo || evento.midiaVideo.length === 0) {
+            midiaErrors.push('Vídeo é obrigatório');
+        }
+        
+        if (!evento.midiaCapa || evento.midiaCapa.length === 0) {
+            midiaErrors.push('Capa é obrigatória');
+        }
+        
+        if (!evento.midiaCarrossel || evento.midiaCarrossel.length === 0) {
+            midiaErrors.push('Carrossel é obrigatório');
+        }
+        
+        if (midiaErrors.length > 0) {
+            throw new CustomError({
+                statusCode: HttpStatusCodes.BAD_REQUEST.code,
+                errorType: 'validationError',
+                field: 'midias',
+                details: midiaErrors,
+                customMessage: `Não é possível ativar o evento. Mídias faltando: ${midiaErrors.join(', ')}`
+            });
+        }
+    }
+
 }
 
 export default EventoService;

@@ -1,6 +1,7 @@
 // src/controllers/EventoController.js
 
 import EventoService from '../services/EventoService.js';
+import UploadService from '../services/UploadService.js';
 import { EventoSchema, EventoUpdateSchema } from '../utils/validators/schemas/zod/EventoSchema.js';
 import { EventoQuerySchema } from '../utils/validators/schemas/zod/querys/EventoQuerySchema.js';
 import PermissaoSchema from '../utils/validators/schemas/zod/PermissaoSchema.js';
@@ -20,20 +21,28 @@ import QRCode from 'qrcode';
 class EventoController {
     constructor() {
         this.service = new EventoService();
+        this.uploadService = new UploadService();
     }
 
     // POST /eventos
     async cadastrar(req, res) {
         // Pega o usuário autenticado
         const usuarioLogado = req.user;
+        const files = req.files || {};
 
-        const dadosEvento = {
+        let dadosEvento = {
             ...req.body,
             organizador: {
                 _id: usuarioLogado._id,
                 nome: usuarioLogado.nome
             }
         };
+
+        // Se há arquivos, processar no UploadService
+        if (Object.keys(files).length > 0) {
+            const midiasProcessadas = await this.uploadService.processarArquivosParaCadastro(files);
+            dadosEvento = { ...dadosEvento, ...midiasProcessadas };
+        }
 
         const parseData = EventoSchema.parse(dadosEvento);
         const data = await this.service.cadastrar(parseData);
@@ -95,6 +104,26 @@ class EventoController {
 
         return CommonResponse.success(res, { evento: evento._id, linkInscricao: evento.linkInscricao, qrcode: qrCode }, 200, 'QR Code gerado com sucesso.');
     }
+    
+    // PATCH /eventos/:id/finalizar-cadastro
+    async finalizarCadastro(req, res) {
+        const { id } = req.params;
+        const usuarioLogado = req.user;
+        
+        objectIdSchema.parse(id);
+        
+        // Busca o evento para validar se tem todas as mídias
+        const evento = await this.service.ensureEventExists(id);
+        await this.service.ensureUserIsOwner(evento, usuarioLogado._id, false);
+        
+        // Valida se todas as mídias estão presentes
+        await this.service.validarMidiasObrigatorias(evento);
+        
+        // Ativa o evento
+        const data = await this.service.alterarStatus(id, 'ativo', usuarioLogado._id);
+        
+        return CommonResponse.success(res, data, 200, 'Evento cadastrado e ativado com sucesso!');
+    }
 
     // PATCH /eventos/:id
     async alterar(req, res) {
@@ -119,13 +148,13 @@ class EventoController {
         
         const { status } = req.body;
         
-        if(!status || !['ativo', 'inativo', 'cancelado'].includes(status)) {
+        if(!status || !['ativo', 'inativo'].includes(status)) {
             throw new CustomError({
                 statusCode: HttpStatusCodes.BAD_REQUEST.code,
                 errorType: 'validationError',
                 field: 'status',
                 details: [],
-                customMessage: 'Status deve ser ativo, inativo ou cancelado.'
+                customMessage: 'Status deve ser ativo ou inativo.'
             });
         }
         

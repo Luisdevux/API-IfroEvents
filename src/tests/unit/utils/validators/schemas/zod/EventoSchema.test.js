@@ -157,12 +157,12 @@ describe('EventoSchema', () => {
             expect(resultado.error.issues[0].path).toContain('status');
         });
 
-        it('deve setar "ativo" como padrão se não fornecido', () => {
+        it('deve setar "inativo" como padrão se não fornecido', () => {
             const copiaEvento = { ...eventoValido };
             delete copiaEvento.status;
             const resultado = EventoSchema.safeParse(copiaEvento);
             expect(resultado.success).toBe(true);
-            expect(resultado.data.status).toBe('ativo');
+            expect(resultado.data.status).toBe('inativo');
         });
     });
 });
