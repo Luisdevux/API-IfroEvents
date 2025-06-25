@@ -41,7 +41,7 @@ describe('UsuarioSchema', () => {
       const usuarioInvalido = { ...usuarioValido, matricula: '12345678901234' };
       const resultado = UsuarioSchema.safeParse(usuarioInvalido);
       expect(resultado.success).toBe(false);
-      expect(resultado.error.issues[0].message).toContain('matricula');
+      expect(resultado.error.issues[0].message).toContain('Matrícula deve ter no máximo 13 caracteres');
     });
   });
 
