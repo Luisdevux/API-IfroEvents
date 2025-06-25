@@ -31,30 +31,43 @@ class UploadService {
         
         const filePath = path.resolve(`uploads/${tipo}/${file.filename}`);
         
-        // Obtem metadados da imagem que está sendo enviada
-        const metadata = await sharp(filePath).metadata();
+        let midia;
+        
+        if (tipo === 'video') {
+            // Para vídeos, não usar Sharp - usar dimensões padrão
+            const { altura, largura } = midiasDimensoes[tipo];
+            midia = {
+                _id: new mongoose.Types.ObjectId(),
+                url: `/uploads/${tipo}/${file.filename}`,
+                tamanhoMb: +(file.size / (1024 * 1024)).toFixed(2),
+                altura,
+                largura,
+            };
+        } else {
+            // Para imagens, usar Sharp para obter metadados e validar dimensões
+            const metadata = await sharp(filePath).metadata();
+            const { altura: alturaEsperada, largura: larguraEsperada } = midiasDimensoes[tipo];
 
-        const { altura: alturaEsperada, largura: larguraEsperada } = midiasDimensoes[tipo];
+            if(metadata.height !== alturaEsperada || metadata.width !== larguraEsperada) {
+                // Limpa os arquivo carregados antes de lançar erro
+                this.limparArquivo(filePath);
+                
+                throw new CustomError({
+                    statusCode: HttpStatusCodes.BAD_REQUEST.code,
+                    errorType: 'validationError',
+                    field: 'dimensoes',
+                    customMessage: `Dimensões inválidas. Esperado: ${larguraEsperada}x${alturaEsperada}px, recebido: ${metadata.width}x${metadata.height}px.`
+                });
+            }
 
-        if(metadata.height !== alturaEsperada || metadata.width !== larguraEsperada) {
-            // Limpa os arquivo carregados antes de lançar erro
-            this.limparArquivo(filePath);
-            
-            throw new CustomError({
-                statusCode: HttpStatusCodes.BAD_REQUEST.code,
-                errorType: 'validationError',
-                field: 'dimensoes',
-                customMessage: `Dimensões inválidas. Esperado: ${alturaEsperada}x${larguraEsperada}px, recebido: ${metadata.width}x${metadata.height}px.`
-            });
+            midia = {
+                _id: new mongoose.Types.ObjectId(),
+                url: `/uploads/${tipo}/${file.filename}`,
+                tamanhoMb: +(file.size / (1024 * 1024)).toFixed(2),
+                altura: metadata.height,
+                largura: metadata.width,
+            };
         }
-
-        const midia = {
-            _id: new mongoose.Types.ObjectId(),
-            url: `/uploads/${tipo}/${file.filename}`,
-            tamanhoMb: +(file.size / (1024 * 1024)).toFixed(2),
-            altura: metadata.height,
-            largura: metadata.width,
-        };
 
         return await this.repository.adicionarMidia(eventoId, tipo, midia);
     }
