@@ -11,9 +11,9 @@ import path from "path";
 
 // Constantes para dimensões de mídia
 const midiasDimensoes = {
-    carrossel: { altura: 1280, largura: 720 },
-    capa: { altura: 1280, largura: 720 },
-    video: { altura: 1280, largura: 720 }
+    carrossel: { altura: 720, largura: 1280 },
+    capa: { altura: 720, largura: 1280 },
+    video: { altura: 720, largura: 1280 }
 };
 
 class UploadService {
@@ -44,7 +44,7 @@ class UploadService {
                 statusCode: HttpStatusCodes.BAD_REQUEST.code,
                 errorType: 'validationError',
                 field: 'dimensoes',
-                customMessage: `Dimensões inválidas. Esperado: ${larguraEsperada}x${alturaEsperada}px, recebido: ${metadata.width}x${metadata.height}px.`
+                customMessage: `Dimensões inválidas. Esperado: ${alturaEsperada}x${larguraEsperada}px, recebido: ${metadata.width}x${metadata.height}px.`
             });
         }
 
