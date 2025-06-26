@@ -35,7 +35,7 @@ describe('EventoSchema', () => {
     });
 
     describe('Validação de campos obrigatórios', () => {
-        const obrigatorios = [ 'titulo', 'descricao', 'local', 'dataEvento', 'organizador', 'linkInscricao', 'tags', 'categoria', 'midiaVideo', 'midiaCapa', 'midiaCarrossel' ];
+        const obrigatorios = [ 'titulo', 'descricao', 'local', 'dataEvento', 'organizador', 'linkInscricao', 'tags', 'categoria' ];
 
         obrigatorios.forEach(campo => {
             it(`deve falhar se o campo ${campo} não estiver presente`, () => {
@@ -83,14 +83,29 @@ describe('EventoSchema', () => {
         expect(resultado.error.issues[0].path).toContain('dataEvento');
     });
 
-    it('deve falhar se as mídias estiverem vazias', () => {
-        const camposMidia = ['midiaVideo', 'midiaCapa', 'midiaCarrossel'];
-        camposMidia.forEach((campo) => {
-            const eventoInvalido = { ...eventoValido, [campo]: [] };
-            const resultado = EventoSchema.safeParse(eventoInvalido);
-            expect(resultado.success).toBe(false);
-            expect(resultado.error.issues[0].path).toContain(campo);
-        });
+    it('deve aceitar mídias vazias para eventos inativos', () => {
+        const eventoComMidiasVazias = { 
+            ...eventoValido, 
+            status: 'inativo',
+            midiaVideo: [],
+            midiaCapa: [],
+            midiaCarrossel: []
+        };
+        const resultado = EventoSchema.safeParse(eventoComMidiasVazias);
+        expect(resultado.success).toBe(true);
+    });
+
+    it('deve falhar se evento ativo tiver mídias vazias', () => {
+        const eventoAtivoSemMidias = { 
+            ...eventoValido, 
+            status: 'ativo',
+            midiaVideo: [],
+            midiaCapa: [],
+            midiaCarrossel: []
+        };
+        const resultado = EventoSchema.safeParse(eventoAtivoSemMidias);
+        expect(resultado.success).toBe(false);
+        expect(resultado.error.issues[0].path).toContain('midias');
     });
 
     it('deve falhar se uma mídia tiver campo inválido', () => {
@@ -158,12 +173,47 @@ describe('EventoSchema', () => {
         });
 
         it('deve setar "inativo" como padrão se não fornecido', () => {
-            const copiaEvento = { ...eventoValido };
-            delete copiaEvento.status;
-            const resultado = EventoSchema.safeParse(copiaEvento);
+            const eventoSemStatus = { 
+                ...eventoValido,
+                status: undefined // Zod default só funciona com undefined, não com propriedade deletada
+            };
+            delete eventoSemStatus.status; // Remove a propriedade completamente
+            const resultado = EventoSchema.safeParse(eventoSemStatus);
             expect(resultado.success).toBe(true);
             expect(resultado.data.status).toBe('inativo');
         });
+    });
+
+    it('deve aceitar URLs relativas válidas para mídias', () => {
+        const midiaComUrlRelativa = {
+            url: '/uploads/video/arquivo.mp4',
+            tamanhoMb: 2.5,
+            altura: 720,
+            largura: 1280,
+        };
+        const eventoComUrlRelativa = { ...eventoValido, midiaVideo: [midiaComUrlRelativa] };
+        const resultado = EventoSchema.safeParse(eventoComUrlRelativa);
+        expect(resultado.success).toBe(true);
+    });
+
+    it('deve aceitar URLs completas para mídias', () => {
+        const midiaComUrlCompleta = {
+            url: 'https://example.com/video.mp4',
+            tamanhoMb: 2.5,
+            altura: 720,
+            largura: 1280,
+        };
+        const eventoComUrlCompleta = { ...eventoValido, midiaVideo: [midiaComUrlCompleta] };
+        const resultado = EventoSchema.safeParse(eventoComUrlCompleta);
+        expect(resultado.success).toBe(true);
+    });
+
+    it('deve falhar se a URL da mídia for inválida', () => {
+        const midiaInvalida = { ...midiaValida, url: 'url-inválida' };
+        const eventoInvalido = { ...eventoValido, midiaCapa: [midiaInvalida] };
+        const resultado = EventoSchema.safeParse(eventoInvalido);
+        expect(resultado.success).toBe(false);
+        expect(resultado.error.issues[0].path).toContain('midiaCapa');
     });
 });
 

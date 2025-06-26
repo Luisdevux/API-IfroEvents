@@ -48,6 +48,7 @@ class EventoService {
         return await this.repository.listar(req);
     }
     
+    // Listar somente eventos visíveis para o usuário, ou seja, eventos criados por ele ou eventos compartilhados com ele
     async listarEventosVisiveis(usuarioId) {
         const req = { 
             query: {},
@@ -73,7 +74,6 @@ class EventoService {
         
         await this.ensureUserIsOwner(evento, usuarioId, true);
         
-        // Se está tentando ativar o evento, validar se tem todas as mídias
         if (novoStatus === 'ativo') {
             await this.validarMidiasObrigatorias(evento);
         }
@@ -136,6 +136,9 @@ class EventoService {
         
         await this.ensureUserIsOwner(evento, usuarioId, true);
         
+        const { default: UploadService } = await import('./UploadService.js');
+        new UploadService().limparMidiasDoEvento(evento);
+        
         const data = await this.repository.deletar(id);
         return data;
     }
@@ -186,7 +189,7 @@ class EventoService {
             });
         }
 
-        // Verificação de permissão compartilhada
+        // Verificação de permissão compartilhada com o usuário
         const agora = new Date();
         const permissaoValida = (evento.permissoes || []).some(permissao =>
             permissao.usuario.toString() === usuarioId &&
@@ -198,7 +201,7 @@ class EventoService {
             return;
         }
 
-        // Caso contrário, bloqueia
+        // Caso contrário, bloqueia o acesso do usuário
         throw new CustomError({
             statusCode: 403,
             errorType: 'unauthorizedAccess',
@@ -232,7 +235,7 @@ class EventoService {
                 errorType: 'validationError',
                 field: 'midias',
                 details: midiaErrors,
-                customMessage: `Não é possível ativar o evento. Mídias faltando: ${midiaErrors.join(', ')}`
+                customMessage: `Não é possível ativar o evento. Não possui mídias obrigatórias: ${midiaErrors.join(', ')}`
             });
         }
     }

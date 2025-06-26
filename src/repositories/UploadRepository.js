@@ -1,7 +1,5 @@
 // src/repositories/UploadRepository.js
 
-import path from "path";
-import fs from "fs";
 import EventoModel from "../models/Evento.js";
 import { CommonResponse, CustomError, HttpStatusCodes, errorHandler, messages, StatusService, asyncWrapper } from '../utils/helpers/index.js';
 
@@ -53,6 +51,49 @@ class UploadRepository {
         await evento.save();
 
         return midia;
+    }
+
+    // POST /eventos/:id/midia/carrossel
+    async adicionarMultiplasMidias(eventoId, tipo, midias) {
+        const tipos = {
+            capa: 'midiaCapa',
+            carrossel: 'midiaCarrossel',
+            video: 'midiaVideo',
+        };
+
+        const tipoCampo = tipos[tipo];
+
+        if(!tipoCampo) {
+            throw new CustomError({
+                statusCode: HttpStatusCodes.BAD_REQUEST.code,
+                errorType: 'invalidField',
+                field: 'tipo',
+                customMessage: `Tipo de mídia '${tipo}' não é permitido.`
+            });
+        }
+
+        const evento = await this._ensureEventExists(eventoId);
+
+        const eventoAtualizado = await this.model.findByIdAndUpdate(
+            eventoId,
+            { 
+                $push: { 
+                    [tipoCampo]: { $each: midias } 
+                } 
+            },
+            { new: true }
+        );
+
+        if(!eventoAtualizado) {
+            throw new CustomError({
+                statusCode: HttpStatusCodes.INTERNAL_SERVER_ERROR.code,
+                errorType: 'databaseError',
+                field: 'Evento',
+                customMessage: 'Erro ao adicionar mídias ao evento.'
+            });
+        }
+
+        return eventoAtualizado;
     }
 
     // GET /eventos/:id/midias

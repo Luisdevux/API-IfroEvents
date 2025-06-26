@@ -24,36 +24,21 @@ const mimeTypesPermitidos = {
   video: ['video/mp4']
 }
 
+// Storage unico para todos os tipos de upload
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const tipo = req.params.tipo;
-    const diretorio = tiposDiretorios[tipo];
-
-    if(!diretorio) {
-      return cb(new Error("Tipo de mídia inválido."), false);
-    }
-
-    if(!fs.existsSync(diretorio)) {
-      fs.mkdirSync(diretorio, { recursive: true });
-    }
-
-    cb(null, diretorio);
-  },
-
-  filename: (req, file, cb) => {
-    const extensao = path.extname(file.originalname).toLowerCase();
-    const nomeArquivo = `${uuidv4()}${extensao}`;
-    cb(null, nomeArquivo);
-  },
-});
-
-// Storage para upload múltiplo
-const storageMultiplo = multer.diskStorage({
   destination: (req, file, cb) => {
     let diretorio;
     
-    // Determinar diretório baseado no fieldname do arquivo
-    if (file.fieldname === 'midiaVideo') {
+    if (req.params && req.params.tipo) {
+      const tipo = req.params.tipo;
+      diretorio = tiposDiretorios[tipo];
+      
+      if (!diretorio) {
+        return cb(new Error("Tipo de mídia inválido."), false);
+      }
+    }
+    // Para uploads no cadastro
+    else if (file.fieldname === 'midiaVideo') {
       diretorio = 'uploads/video';
     } else if (file.fieldname === 'midiaCapa') {
       diretorio = 'uploads/capa';
@@ -78,14 +63,27 @@ const storageMultiplo = multer.diskStorage({
 });
 
 const upload = multer({
-  storage,
+  storage: storage,
   limits: {
     fileSize: 25 * 1024 * 1024, // Equivalente para 25 MB
   },
   fileFilter: (req, file, cb) => {
-    const tipo = req.params.tipo;
     const extensao = path.extname(file.originalname).toLowerCase();
     const mimeType = file.mimetype;
+    
+    // Determinar tipo para validação
+    let tipo;
+    if (req.params && req.params.tipo) {
+      tipo = req.params.tipo;
+    } else if (file.fieldname === 'midiaVideo') {
+      tipo = 'video';
+    } else if (file.fieldname === 'midiaCapa') {
+      tipo = 'capa';
+    } else if (file.fieldname === 'midiaCarrossel') {
+      tipo = 'carrossel';
+    } else {
+      return cb(new Error("Campo de mídia inválido."));
+    }
 
     // Valida se o tipo é permitido
     const tiposPermitidos = extensoesPermitidas[tipo];
@@ -106,7 +104,7 @@ const upload = multer({
 
 // Upload múltiplo para cadastro
 const uploadMultiplo = multer({
-  storage: storageMultiplo,
+  storage: storage,
   limits: {
     fileSize: 25 * 1024 * 1024,
     files: 12 // Limita o número de arquivos a 12 na requisição
@@ -115,7 +113,7 @@ const uploadMultiplo = multer({
     const extensao = path.extname(file.originalname).toLowerCase();
     const mimeType = file.mimetype;
     
-    // Determinar tipo baseado no fieldname
+    // Determina tipo baseado no fieldname
     let tipo;
     if (file.fieldname === 'midiaVideo') {
       tipo = 'video';
@@ -127,7 +125,7 @@ const uploadMultiplo = multer({
       return cb(new Error("Campo de mídia inválido."));
     }
 
-    // Validar extensão e MIME type
+    // Valida extensão e MIME type
     const tiposPermitidos = extensoesPermitidas[tipo];
     const mimeTypesPermitidosTipo = mimeTypesPermitidos[tipo];
     
@@ -144,15 +142,28 @@ const uploadMultiplo = multer({
 });
 
 // Middleware condicional que só processa upload se for multipart/form-data
-const uploadCondicional = (fields) => {
-  return (req, res, next) => {
-    if (req.is('multipart/form-data')) {
-      return uploadMultiplo.fields(fields)(req, res, next);
-    } else {
-      next();
-    }
-  };
+const uploadMultiploIntegrado = (req, res, next) => {
+  if (req.is('multipart/form-data')) {
+    const fields = [
+      { name: 'midiaVideo', maxCount: 1 }, 
+      { name: 'midiaCapa', maxCount: 1 }, 
+      { name: 'midiaCarrossel', maxCount: 10 }
+    ];
+    return uploadMultiplo.fields(fields)(req, res, next);
+  } else {
+    next();
+  }
 };
 
-export { uploadMultiplo, uploadCondicional };
-export default upload;
+// Middleware para uploads dependendo do tipo de mídia
+const uploadMultiploParcial = (req, res, next) => {
+  const tipo = req.params.tipo;
+  
+  if (tipo === 'carrossel') {
+    return upload.array('files', 10)(req, res, next);
+  }
+  
+  return upload.single('file')(req, res, next);
+};
+
+export { uploadMultiploIntegrado, uploadMultiploParcial };

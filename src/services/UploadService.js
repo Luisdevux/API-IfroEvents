@@ -9,7 +9,6 @@ import sharp from "sharp";
 import fs from "fs";
 import path from "path";
 
-// Constantes para dimensões de mídia
 const midiasDimensoes = {
     carrossel: { altura: 720, largura: 1280 },
     capa: { altura: 720, largura: 1280 },
@@ -34,7 +33,7 @@ class UploadService {
         let midia;
         
         if (tipo === 'video') {
-            // Para vídeos, não usar Sharp - usar dimensões padrão
+            // Para vídeos, não é usado Sharp pois é usado somente para validar imagens
             const { altura, largura } = midiasDimensoes[tipo];
             midia = {
                 _id: new mongoose.Types.ObjectId(),
@@ -44,13 +43,12 @@ class UploadService {
                 largura,
             };
         } else {
-            // Para imagens, usar Sharp para obter metadados e validar dimensões
+            // Para imagens, é usado para obter os metadados e validar as dimensões
             const metadata = await sharp(filePath).metadata();
             const { altura: alturaEsperada, largura: larguraEsperada } = midiasDimensoes[tipo];
 
             if(metadata.height !== alturaEsperada || metadata.width !== larguraEsperada) {
-                // Limpa os arquivo carregados antes de lançar erro
-                this.limparArquivo(filePath);
+                this.removerArquivo(filePath);
                 
                 throw new CustomError({
                     statusCode: HttpStatusCodes.BAD_REQUEST.code,
@@ -70,6 +68,47 @@ class UploadService {
         }
 
         return await this.repository.adicionarMidia(eventoId, tipo, midia);
+    }
+
+    // POST /eventos/:id/midia/carrossel
+    async adicionarMultiplasMidias(eventoId, tipo, files, usuarioId) {
+        objectIdSchema.parse(eventoId);
+    
+        const evento = await this.eventoService.ensureEventExists(eventoId);
+        await this.eventoService.ensureUserIsOwner(evento, usuarioId, false);
+        
+        const midiasProcessadas = [];
+        const { altura: alturaEsperada, largura: larguraEsperada } = midiasDimensoes[tipo];
+
+        for (const file of files) {
+            const filePath = path.resolve(`uploads/${tipo}/${file.filename}`);
+            
+            const metadata = await sharp(filePath).metadata();
+
+            if(metadata.height !== alturaEsperada || metadata.width !== larguraEsperada) {
+                // Limpa todos os arquivos já processados em caso de erro
+                files.forEach(f => this.removerArquivo(path.resolve(`uploads/${tipo}/${f.filename}`)));
+                
+                throw new CustomError({
+                    statusCode: HttpStatusCodes.BAD_REQUEST.code,
+                    errorType: 'validationError',
+                    field: 'dimensoes',
+                    customMessage: `Dimensões inválidas no arquivo "${file.originalname}". Esperado: ${larguraEsperada}x${alturaEsperada}px, recebido: ${metadata.width}x${metadata.height}px.`
+                });
+            }
+
+            const midia = {
+                _id: new mongoose.Types.ObjectId(),
+                url: `/uploads/${tipo}/${file.filename}`,
+                tamanhoMb: +(file.size / (1024 * 1024)).toFixed(2),
+                altura: metadata.height,
+                largura: metadata.width,
+            };
+            
+            midiasProcessadas.push(midia);
+        }
+
+        return await this.repository.adicionarMultiplasMidias(eventoId, tipo, midiasProcessadas);
     }
 
     // GET /eventos/:id/midias
@@ -122,14 +161,13 @@ class UploadService {
 
         const midiaRemovida = await this.repository.deletarMidia(eventoId, tipo, midiaId);
         
-        // Limpar arquivo físico após remoção bem-sucedida do banco
-        this.limparArquivoFisico(midiaRemovida.url);
+        this.removerArquivo(midiaRemovida.url);
 
         return midiaRemovida;
     }
 
     /**
-     * Processa arquivos para cadastro de evento (sem salvar no banco)
+     * Processa arquivos para cadastro de evento
      */
     async processarArquivosParaCadastro(files) {
         const midiasProcessadas = {
@@ -138,7 +176,7 @@ class UploadService {
             midiaCarrossel: []
         };
 
-        // Processar cada tipo de mídia
+        // Processa cada tipo de mídia
         for (const [tipo, arquivos] of Object.entries(files)) {
             if (!midiasProcessadas.hasOwnProperty(tipo)) continue;
 
@@ -155,14 +193,22 @@ class UploadService {
                         largura
                     };
                 } else {
-                    // Obtem metadados da imagem
-                    const metadata = await sharp(filePath).metadata();
+                    const metadata = await sharp(filePath).metadata().catch(() => {
+                        // Limpar todos os arquivos em caso de erro ao ler metadados
+                        this.limparArquivosProcessados(files);
+                        throw new CustomError({
+                            statusCode: HttpStatusCodes.BAD_REQUEST.code,
+                            errorType: 'validationError',
+                            field: 'arquivo',
+                            customMessage: `Arquivo "${arquivo.originalname}" está corrompido ou não é uma imagem válida.`
+                        });
+                    });
 
                     const tipoParaValidacao = tipo.replace('midia', '').toLowerCase();
                     const { altura: alturaEsperada, largura: larguraEsperada } = midiasDimensoes[tipoParaValidacao];
 
                     if (metadata.height !== alturaEsperada || metadata.width !== larguraEsperada) {
-                        // Limpar todos os arquivos em caso de erro
+                        // Limpar todos os arquivos em caso de erro ao validar dimensões
                         this.limparArquivosProcessados(files);
                         
                         throw new CustomError({
@@ -189,37 +235,61 @@ class UploadService {
     }
 
     /**
-     * Utilitário para limpar arquivo em caso de erro
+     * Remove arquivo de forma única, método criado para ser reutilizado
      */
-    limparArquivo(filePath) {
-        if (fs.existsSync(filePath)) {
-            fs.unlinkSync(filePath);
-        }
-    }
-
-    /**
-     * Limpar arquivo físico baseado na URL da mídia
-     */
-    limparArquivoFisico(url) {
-        const fileName = path.basename(url);
-        const filePath = path.resolve('uploads', path.dirname(url).replace('/uploads/', ''), fileName);
+    removerArquivo(caminho) {
+        let caminhoCompleto;
         
-        if (fs.existsSync(filePath)) {
-            fs.unlinkSync(filePath);
+        // Se é uma URL relativa, converte para caminho absoluto
+        if (caminho.startsWith('/uploads/')) {
+            caminhoCompleto = path.join(process.cwd(), caminho);
+        } 
+        // Se é uma URL relativa, monta o caminho
+        else if (caminho.startsWith('/')) {
+            caminhoCompleto = path.join(process.cwd(), caminho);
         }
+        else {
+            caminhoCompleto = path.resolve(caminho);
+        }
+        return fs.existsSync(caminhoCompleto) && 
+               fs.rmSync(caminhoCompleto, { force: true, recursive: false }) === undefined;
     }
 
     /**
-     * Limpa todos os arquivos de um upload múltiplo em caso de erro
+     * Limpa todos os arquivos de um upload múltiplo em caso de erro ao cadastrar evento
      */
     limparArquivosProcessados(files) {
         for (const [tipo, arquivos] of Object.entries(files)) {
             for (const arquivo of arquivos) {
-                this.limparArquivo(arquivo.path);
+                this.removerArquivo(arquivo.path);
             }
         }
     }
 
+    /**
+     * Limpa todos os arquivos físicos de mídia de um evento após ele ser excluído do banco de dados
+     */
+    limparMidiasDoEvento(evento) {
+        const tiposMidia = ['midiaVideo', 'midiaCapa', 'midiaCarrossel'];
+        
+        let arquivosRemovidos = 0;
+        let totalArquivos = 0;
+
+        tiposMidia.forEach(campo => {
+            const midias = evento[campo] || [];
+            
+            midias.forEach(midia => {
+                if (!midia.url || !midia.url.startsWith('/')) {
+                    return;
+                }
+
+                totalArquivos++;
+                if (this.removerArquivo(midia.url)) {
+                    arquivosRemovidos++;
+                }
+            });
+        });
+    }
 }
 
 export default UploadService;

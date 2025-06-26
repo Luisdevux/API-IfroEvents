@@ -38,14 +38,42 @@ class EventoController {
             }
         };
 
-        // Se há arquivos, processar no UploadService
+        const dadosParaValidacaoPrevia = {
+            ...dadosEvento,
+            midiaVideo: [],
+            midiaCapa: [],
+            midiaCarrossel: []
+        };
+        
+        const validacaoPrevia = EventoSchema.safeParse(dadosParaValidacaoPrevia);
+        
+        if (!validacaoPrevia.success) {
+            if (Object.keys(files).length > 0) {
+                this.uploadService.limparArquivosProcessados(files);
+            }
+            
+            throw validacaoPrevia.error;
+        }
+
         if (Object.keys(files).length > 0) {
             const midiasProcessadas = await this.uploadService.processarArquivosParaCadastro(files);
             dadosEvento = { ...dadosEvento, ...midiasProcessadas };
         }
 
-        const parseData = EventoSchema.parse(dadosEvento);
-        const data = await this.service.cadastrar(parseData);
+        const parseData = EventoSchema.safeParse(dadosEvento);
+        if (!parseData.success) {
+            if (Object.keys(files).length > 0) {
+                this.uploadService.limparArquivosProcessados(files);
+            }
+            throw parseData.error;
+        }
+
+        const data = await this.service.cadastrar(parseData.data).catch(error => {
+            if (Object.keys(files).length > 0) {
+                this.uploadService.limparArquivosProcessados(files);
+            }
+            throw error;
+        });
         
         return CommonResponse.created(res, data);
     }
@@ -104,26 +132,6 @@ class EventoController {
 
         return CommonResponse.success(res, { evento: evento._id, linkInscricao: evento.linkInscricao, qrcode: qrCode }, 200, 'QR Code gerado com sucesso.');
     }
-    
-    // PATCH /eventos/:id/finalizar-cadastro
-    async finalizarCadastro(req, res) {
-        const { id } = req.params;
-        const usuarioLogado = req.user;
-        
-        objectIdSchema.parse(id);
-        
-        // Busca o evento para validar se tem todas as mídias
-        const evento = await this.service.ensureEventExists(id);
-        await this.service.ensureUserIsOwner(evento, usuarioLogado._id, false);
-        
-        // Valida se todas as mídias estão presentes
-        await this.service.validarMidiasObrigatorias(evento);
-        
-        // Ativa o evento
-        const data = await this.service.alterarStatus(id, 'ativo', usuarioLogado._id);
-        
-        return CommonResponse.success(res, data, 200, 'Evento cadastrado e ativado com sucesso!');
-    }
 
     // PATCH /eventos/:id
     async alterar(req, res) {
@@ -146,7 +154,7 @@ class EventoController {
         
         objectIdSchema.parse(id);
         
-        const { status } = req.body;
+        const { status, validarMidias = false } = req.body;
         
         if(!status || !['ativo', 'inativo'].includes(status)) {
             throw new CustomError({
@@ -157,10 +165,18 @@ class EventoController {
                 customMessage: 'Status deve ser ativo ou inativo.'
             });
         }
+
+        if (status === 'ativo' && validarMidias) {
+            const evento = await this.service.ensureEventExists(id);
+            await this.service.ensureUserIsOwner(evento, usuarioLogado._id, false);
+            await this.service.validarMidiasObrigatorias(evento);
+        }
         
         const data = await this.service.alterarStatus(id, status, usuarioLogado._id);
         
-        return CommonResponse.success(res, data);
+        const message = (status === 'ativo' && validarMidias) ? 'Evento cadastrado e ativado com sucesso!' : 'Status do evento alterado com sucesso!';
+        
+        return CommonResponse.success(res, data, 200, message);
     }
 
     // PATCH /eventos/:id/permissoes

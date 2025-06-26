@@ -48,7 +48,7 @@ async function seedEventos(usuarios) {
             midiaVideo: [
                 {
                     _id: new mongoose.Types.ObjectId(),
-                    url: "videoApresentativo.mp4",
+                    url: "/uploads/video/videoApresentativo.mp4",
                     tamanhoMb: 12.3,
                     altura: 720,
                     largura: 1280,
@@ -57,7 +57,7 @@ async function seedEventos(usuarios) {
             midiaCapa: [
                 {
                     _id: new mongoose.Types.ObjectId(),
-                    url: "capaEvento.jpg",
+                    url: "/uploads/capa/capaEvento.jpg",
                     tamanhoMb: 2.5,
                     altura: 720,
                     largura: 1280,
@@ -66,14 +66,14 @@ async function seedEventos(usuarios) {
             midiaCarrossel: [
                 {
                     _id: new mongoose.Types.ObjectId(),
-                    url: "carrosselEvento1.jpg",
+                    url: "/uploads/carrossel/carrosselEvento1.jpg",
                     tamanhoMb: 1.5,
                     altura: 720,
                     largura: 1280,
                 },
                 {
                     _id: new mongoose.Types.ObjectId(),
-                    url: "carrosselEvento2.jpg",
+                    url: "/uploads/carrossel/carrosselEvento2.jpg",
                     tamanhoMb: 1.8,
                     altura: 720,
                     largura: 1280,
@@ -97,7 +97,7 @@ async function seedEventos(usuarios) {
             midiaVideo: [
                 {
                     _id: new mongoose.Types.ObjectId(),
-                    url: "videoApresentativo.mp4",
+                    url: "/uploads/video/videoApresentativo.mp4",
                     tamanhoMb: 12.3,
                     altura: 720,
                     largura: 1280,
@@ -106,7 +106,7 @@ async function seedEventos(usuarios) {
             midiaCapa: [
                 {
                     _id: new mongoose.Types.ObjectId(),
-                    url: "capaEvento.jpg",
+                    url: "/uploads/capa/capaEvento.jpg",
                     tamanhoMb: 2.5,
                     altura: 720,
                     largura: 1280,
@@ -115,14 +115,14 @@ async function seedEventos(usuarios) {
             midiaCarrossel: [
                 {
                     _id: new mongoose.Types.ObjectId(),
-                    url: "carrosselEvento1.jpg",
+                    url: "/uploads/carrossel/carrosselEvento1.jpg",
                     tamanhoMb: 1.5,
                     altura: 720,
                     largura: 1280,
                 },
                 {
                     _id: new mongoose.Types.ObjectId(),
-                    url: "carrosselEvento2.jpg",
+                    url: "/uploads/carrossel/carrosselEvento2.jpg",
                     tamanhoMb: 1.8,
                     altura: 720,
                     largura: 1280,
