@@ -38,13 +38,12 @@ class EventoRepository {
 
             return data;
         }
-
+        
         const { 
             titulo, 
             descricao, 
             local, 
             categoria,
-            status,
             tags, 
             tipo,
             dataInicio,
@@ -53,6 +52,9 @@ class EventoRepository {
             limite = 10,
             organizadorId
         } = req.query;
+        
+        // Tratamento para o status que pode ser string ou array de string
+        const status = Array.isArray(req.query.status) ? req.query.status : req.query.status;
 
         const itemsPorPagina = Math.min(parseInt(limite, 10) || 10, 100);
 
