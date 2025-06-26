@@ -70,8 +70,8 @@ const fakeMappings = {
                 _id: new mongoose.Types.ObjectId(),
                 url:  faker.internet.url() + "/" + uuid() + ".jpg",
                 tamanhoMb: faker.number.float({ max: 25 }),
-                altura: 768,
-                largura: 1024,
+                altura: 720,
+                largura: 1280,
             },
         ],
         permissoes: () => [
