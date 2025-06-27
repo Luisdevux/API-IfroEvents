@@ -1,9 +1,10 @@
 // src/services/UsuarioService.js
 
 import UsuarioRepository from "../repositories/UsuarioRepository.js";
-import { UsuarioSchema, UsuarioUpdateSchema } from "../utils/validators/schemas/zod/UsuarioSchema.js";
+import { UsuarioUpdateSchema } from "../utils/validators/schemas/zod/UsuarioSchema.js";
 import objectIdSchema from "../utils/validators/schemas/zod/ObjectIdSchema.js";
 import TokenUtil from "../utils/TokenUtil.js";
+import bcrypt from "bcryptjs";
 import { CommonResponse, CustomError, HttpStatusCodes, errorHandler, messages, StatusService, asyncWrapper } from "../utils/helpers/index.js";
 
 class UsuarioService {
@@ -15,7 +16,16 @@ class UsuarioService {
     // POST /usuario
     async cadastrar(dadosUsuario) {
         await this.validateEmail(dadosUsuario.email);
-        const data = await this.repository.cadastrar(dadosUsuario);
+
+        // Aplica o Hash da senha ao cadastrar
+        const senhaHash = await bcrypt.hash(dadosUsuario.senha, 10);
+
+        const dadosSeguros = {
+            ...dadosUsuario,
+            senha: senhaHash,
+        };
+
+        const data = await this.repository.cadastrar(dadosSeguros);
         return data;
     }
 
@@ -24,6 +34,7 @@ class UsuarioService {
         const data = await this.repository.listar(req);
         return data;
     }
+    
 
     /**
      * Atualiza um usuário existente.
@@ -198,18 +209,20 @@ class UsuarioService {
     /**
      * Valida a unicidade do email.
      */
-    async validateEmail(email, id = null) {
-        const usuarioExistente = await this.repository.buscarPorEmail(email, id);
-        if (usuarioExistente) {
+   async validateEmail(email, id = null) {
+    const usuarioExistente = await this.repository.buscarPorEmail(email, id);
+    if (
+  usuarioExistente &&
+  (!id || (usuarioExistente._id.equals ? !usuarioExistente._id.equals(id) : usuarioExistente._id !== id))
+) {
         throw new CustomError({
             statusCode: HttpStatusCodes.BAD_REQUEST.code,
             errorType: 'validationError',
             field: 'email',
-            details: [{ path: 'email', message: 'Email já está em uso.' }],
-            customMessage: 'Email já está em uso.',
+            customMessage: 'Email já está em uso.'
         });
-        }
     }
+}
 
     /**
      * Garante que o usuário existe.

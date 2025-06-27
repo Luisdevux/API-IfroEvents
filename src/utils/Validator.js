@@ -112,7 +112,7 @@ class Validator {
     validarURL(url, campoNome) {
         const urlRegex = /^(http|https):\/\/[^ "]+$/;
         return this._validar(
-            () => typeof url !== 'string' || urlRegex.test(url),
+            () => typeof url !== 'string' || !urlRegex.test(url),
             'invalidURL',
             { campoNome }
         );

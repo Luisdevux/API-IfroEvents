@@ -36,22 +36,19 @@ class AuthController {
     const body = req.body || {};
 
     // Validar apenas o email
-    const validatedBody = UsuarioUpdateSchema.parse(req.body);
-    const data = await this.service.recuperaSenha(req, validatedBody);
+    const validatedBody = UsuarioUpdateSchema.parse(body);
+    const data = await this.service.recuperaSenha(validatedBody);
     return CommonResponse.success(res, data);
   }
 
   /**
-      * Atualiza a senha do próprio usuário em dois cenários NÃO autenticados:
+      * Atualiza a senha do próprio usuário em um cenário NÃO autenticado:
       *
-      * 1) Normal (token único passado na URL como query: `?token=<JWT_PASSWORD_RECOVERY>`) 
+      *   Normal (token único passado na URL como query: `?token=<JWT_PASSWORD_RECOVERY>`) 
       *    + { senha } no body.
       *    → Decodifica JWT, extrai usuarioId, salva o hash da nova senha mesmo que usuário esteja inativo.
       *
-      * 2) Recuperação por código (envia `{ codigo_recupera_senha, senha }` no body).
-      *    → Busca usuário pelo campo `codigo_recupera_senha`, salva hash da nova senha (mesmo se inativo),
-      *      e “zera” o campo `codigo_recupera_senha`.
-      */
+    */
   async atualizarSenhaToken(req, res, next) {
     const tokenRecuperacao = req.query.token || req.params.token || null; // token de recuperação passado na URL
     const senha = req.body.senha || null; // nova senha passada no body
@@ -80,48 +77,6 @@ class AuthController {
       HttpStatusCodes.OK.code, 'Senha atualizada com sucesso.',
       { message: 'Senha atualizada com sucesso via token de recuperação.' },
     );
-  }
-
-
-  async atualizarSenhaCodigo(req, res, next) {
-    const codigo_recupera_senha = req.body.codigo_recupera_senha || null; // código de recuperação passado no body
-    const senha = req.body.senha || null; // nova senha passada no body
-
-    // 1) Verifica se veio o código de recuperação
-    if (!codigo_recupera_senha) {
-      throw new CustomError({
-        statusCode: HttpStatusCodes.UNAUTHORIZED.code,
-        errorType: 'unauthorized',
-        field: 'authentication',
-        details: [],
-        customMessage:
-          'Código de recuperação no body é obrigatório para troca da senha.'
-      });
-    }
-
-    // Validar a senha com o schema
-    const senhaSchema = UsuarioUpdateSchema.parse({ senha });
-
-    // atualiza a senha 
-    await this.service.atualizarSenhaCodigo(codigo_recupera_senha, senhaSchema);
-
-    return CommonResponse.success(
-      res,
-      null,
-      HttpStatusCodes.OK.code, 'Senha atualizada com sucesso.',
-      { message: 'Senha atualizada com sucesso via código de recuperação.' },
-    );
-  }
-
-  /**
-   * Método para fazer o revoke do token 
-   */
-  revoke = async (req, res) => {
-    // Extrai ID do usuario a ter o token revogado do body
-    const id = req.body.id;
-    // remove o token do banco de dados e retorna uma resposta de sucesso
-    const data = await this.service.revoke(id);
-    return CommonResponse.success(res);
   }
 
   /**
@@ -184,59 +139,14 @@ class AuthController {
       });
     }
 
+    objectIdSchema.parse(decoded.id);
+
     // Encaminha o token para o serviço de logout
     const data = await this.service.logout(decoded.id, token);
 
     // Retorna uma resposta de sucesso
     return CommonResponse.success(res, null, messages.success.logout);
   }
-
-  /**
-   * Método para validar o token
-   */
-  pass = async (req, res) => {
-    // 1. Validação estrutural
-    const bodyrequest = req.body || {};
-
-    // 2. Decodifica e verifica o JWT
-    const decoded = /** @type {{ id: string, exp?: number, iat?: number, nbf?: number, client_id?: string, aud?: string }} */ (
-      await promisify(jwt.verify)(bodyrequest.accesstoken, process.env.JWT_SECRET_ACCESS_TOKEN)
-    );
-
-    // 3. Valida ID de usuário
-    objectIdSchema.parse(decoded.id);
-
-    // 4. Prepara campos de introspecção
-    const now = Math.floor(Date.now() / 1000);
-    const exp = decoded.exp ?? null; // timestamp UNIX de expiração
-    const iat = decoded.iat ?? null; // timestamp UNIX de emissão 
-    const nbf = decoded.nbf ?? iat; // não válido antes deste timestamp
-    const active = exp > now;
-
-    // tenta extrair o client_id do próprio token; cai em aud se necessário
-    const clientId = decoded.client_id || decoded.id || decoded.aud || null;
-
-    /**
-     * 5. Prepara resposta de introspecção
-     */
-    const introspection = {
-      active,               // token ainda válido (não expirado)
-      client_id: clientId,  // ID do cliente OAuth
-      token_type: 'Bearer', // conforme RFC 6749
-      exp,                  // timestamp UNIX de expiração
-      iat,                  // timestamp UNIX de emissão
-      nbf,                  // não válido antes deste timestamp
-      // …adicione aqui quaisquer campos de extensão necessários…
-    };
-
-    // 5. Retorna resposta no padrão CommonResponse
-    return CommonResponse.success(
-      res,
-      introspection,
-      HttpStatusCodes.OK.code,
-      messages.authorized.default
-    );
-  };
 }
 
 export default AuthController;

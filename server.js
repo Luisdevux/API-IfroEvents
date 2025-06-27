@@ -1,7 +1,9 @@
+// server.js
+
 import "dotenv/config";
 import app from "./src/app.js";
 
-const port = process.env.PORT || 5011;
+const port = process.env.APP_PORT || 5001;
 
 //Mensagem com o link do servidor//
 app.listen(port, () => {

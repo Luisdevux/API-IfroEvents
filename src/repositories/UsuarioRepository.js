@@ -54,16 +54,7 @@ class UsuarioRepository {
             filtro._id = { $ne: idIgnorado };
         }
 
-        const documento = await this.model.findOne(filtro, ['+senha', '+codigo_recupera_senha', '+exp_codigo_recupera_senha'])
-        return documento;
-    }
-
-    /**
-     * Busca um usuário pelo código de recuperação de senha.
-     */
-    async buscarPorCodigoRecuperacao(codigo) {
-        const filtro = { codigo_recupera_senha: codigo };
-        const documento = await this.model.findOne(filtro, ['+senha', '+codigo_recupera_senha', '+exp_codigo_recupera_senha'])
+        const documento = await this.model.findOne(filtro, ['+senha', '+tokenUnico', '+exp_tokenUnico_recuperacao'])
         return documento;
     }
 
@@ -72,7 +63,7 @@ class UsuarioRepository {
      */
     async buscarPorTokenUnico(tokenUnico) {
         const filtro = { tokenUnico };
-        const documento = await this.model.findOne(filtro)
+        const documento = await this.model.findOne(filtro, ['+senha', '+tokenUnico', '+exp_tokenUnico_recuperacao']);
         return documento;
     }
 
@@ -102,8 +93,7 @@ class UsuarioRepository {
                 // remove os campos de código de recuperação e token único
                 $unset: {
                     tokenUnico: "",
-                    codigo_recupera_senha: "",
-                    exp_codigo_recupera_senha: ""
+                    exp_tokenUnico_recuperacao: ""
                 }
             },
             { new: true } // Retorna o documento atualizado
@@ -125,6 +115,44 @@ class UsuarioRepository {
     //DELETE /usuarios/:id
     async deletar(id) {
         const usuario = await this.model.findByIdAndDelete(id);
+        return usuario;
+    }
+
+    /**
+     * Armazenar accesstoken e refreshtoken no banco de dados
+     */
+    async armazenarTokens(id, accesstoken, refreshtoken) {
+        const documento = await this.model.findByIdAndUpdate(id, 
+            {
+                $set: { accesstoken, refreshtoken },
+            },
+            { new: true }
+        ).select('+accesstoken +refreshtoken').exec();
+
+        return documento;
+    }
+
+    /**
+     * Atualizar usuário removendo accesstoken e refreshtoken
+     */
+    async removeToken(id) {
+        // Criar objeto com os campos a serem atualizados
+        const parsedData = {
+            accesstoken: null,
+            refreshtoken: null
+        };
+        const usuario = await this.model.findByIdAndUpdate(id, parsedData, { new: true }).exec();
+
+        // Validar se o usuário atualizado foi retornado
+        if (!usuario) {
+            throw new CustomError({
+                statusCode: 404,
+                errorType: 'resourceNotFound',
+                field: 'Usuário',
+                details: [],
+                customMessage: messages.error.resourceNotFound('Usuário')
+            });
+        }
         return usuario;
     }
 }

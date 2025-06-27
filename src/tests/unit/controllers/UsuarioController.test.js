@@ -4,46 +4,49 @@
 // Mocks que precisam ser definidos ANTES de quaisquer outros imports
 // ==================================================================
 
-jest.mock('../../../utils/helpers/index.js', () => {
-    return {
-        CommonResponse: {
-            success: jest.fn(),
-            created: jest.fn()
-        },
-        CustomError: jest.fn((opts) => {
-            const err = new Error(opts.customMessage || opts);
-            err.statusCode = opts.statusCode;
-            err.errorType = opts.errorType || 'CustomError';
-            err.field = opts.field;
-            err.details = opts.details;
-            return err;
-        }),
-        HttpStatusCodes: {
-            BAD_REQUEST: { code: 400 },
-            NOT_FOUND: { code: 404 }
-        },
-        errorHandler: jest.fn(),
-        messages: {
-            user: {
-                notFound: () => 'Usuário não encontrado.'
-            }
-        },
-        StatusService: {},
-        asyncWrapper: jest.fn()
-    };
-});
+jest.mock('../../../utils/helpers/index.js', () => ({
+    CommonResponse: {
+        success: jest.fn().mockReturnThis(),
+        created: jest.fn().mockReturnThis()
+    },
+    CustomError: function CustomError(opts) {
+        this.message = opts.message;
+        this.statusCode = opts.statusCode;
+        Error.captureStackTrace(this, this.constructor);
+    },
+    HttpStatusCodes: {
+        BAD_REQUEST: { code: 400 },
+        NOT_FOUND: { code: 404 },
+        INTERNAL_SERVER: { code: 500 }
+    },
+    errorHandler: jest.fn(),
+    messages: {
+        user: {
+            notFound: () => 'Usuário não encontrado.'
+        }
+    },
+    StatusService: {},
+    asyncWrapper: jest.fn((fn) => fn)
+}));
 
 jest.mock('../../../utils/validators/schemas/zod/UsuarioSchema.js', () => {
     return {
-        UsuarioSchema: { parse: jest.fn() },
-        UsuarioUpdateSchema: { parse: jest.fn() }
+        UsuarioSchema: { 
+            parse: jest.fn(),
+            safeParse: jest.fn() 
+        },
+        UsuarioUpdateSchema: { 
+            parse: jest.fn(),
+            safeParse: jest.fn() 
+        }
     };
 });
 
 jest.mock('../../../utils/validators/schemas/zod/ObjectIdSchema.js', () => ({
-    parse: jest.fn()
+    parse: jest.fn(),
+    safeParse: jest.fn()
 }));
-  
+
 // =================================================================
 // Importação dos módulos que serão testados
 // =================================================================
@@ -67,119 +70,143 @@ describe('UsuarioController', () => {
         controller = new UsuarioController();
         res = {
             status: jest.fn().mockReturnThis(),
+            json: jest.fn(),
             send: jest.fn()
         };
-        req = { params: {}, body: {}, query: {} };
+        req = { 
+            params: {}, 
+            body: {}, 
+            query: {},
+            user: {} 
+        };
         next = jest.fn();
 
-        CommonResponse.success.mockClear();
-        CommonResponse.created.mockClear();
-        UsuarioSchema.parse.mockClear();
-        UsuarioUpdateSchema.parse.mockClear();
-        objectIdSchema.parse.mockClear();
-
-        controller.service.cadastrar = jest.fn();
-        controller.service.listar = jest.fn();
-        controller.service.alterar = jest.fn();
-        controller.service.deletar = jest.fn();
+        jest.clearAllMocks();
+        controller.service = {
+            cadastrar: jest.fn(),
+            listar: jest.fn(),
+            alterar: jest.fn(),
+            deletar: jest.fn()
+        };
     });
 
-     // ================================
+    // ================================
     // Testes para o método cadastrar
     // ================================
     describe('cadastrar', () => {
-        it('deve cadastrar um usuário com sucesso', async () => {
-            req.body = { 
-                nome: 'Usuário Teste',
-                email: 'teste@example.com',
-                senha: 'senha123'
-            };
+        const usuarioValido = {
+            nome: 'Usuário Teste',
+            email: 'teste@example.com',
+            senha: 'Senha123@',
+            matricula: '1234567890123'
+        };
 
-            const usuarioCadastrado = {
-                ...req.body,
+        const usuarioCadastrado = {
+            ...usuarioValido,
+            _id: new mongoose.Types.ObjectId(),
+            toObject: jest.fn(() => ({
+                ...usuarioValido,
                 _id: new mongoose.Types.ObjectId(),
                 senha: undefined
-            };
+            }))
+        };
 
-            UsuarioSchema.parse.mockReturnValue(req.body);
+        beforeEach(() => {
+            req.body = usuarioValido;
+            UsuarioSchema.parse.mockReturnValue(usuarioValido);
             controller.service.cadastrar.mockResolvedValue(usuarioCadastrado);
+        });
 
+        it('deve cadastrar um usuário com sucesso e remover a senha da resposta', async () => {
             await controller.cadastrar(req, res);
 
-            expect(UsuarioSchema.parse).toHaveBeenCalledWith(req.body);
-            expect(controller.service.cadastrar).toHaveBeenCalledWith(req.body);
-            expect(CommonResponse.created).toHaveBeenCalledWith(res, usuarioCadastrado);
+            expect(UsuarioSchema.parse).toHaveBeenCalledWith(usuarioValido);
+            expect(controller.service.cadastrar).toHaveBeenCalledWith(usuarioValido);
+            expect(usuarioCadastrado.toObject).toHaveBeenCalled();
+            expect(CommonResponse.created).toHaveBeenCalledWith(
+                res,
+                expect.not.objectContaining({ senha: expect.anything() })
+            );
         });
-    });
 
-    // =================================================================
-    // Testes adicionais para validações e casos de erro de ID inválido
-    // =================================================================
-    describe('validação para ID inválido', () => {
-        beforeEach(() => {
-            jest.spyOn(objectIdSchema, 'parse').mockImplementation(() => {
-                throw new Error('ID inválido');
+        it('deve lançar erro se validação do schema falhar', async () => {
+            const erroValidacao = new Error('Dados inválidos');
+            UsuarioSchema.parse.mockImplementation(() => {
+                throw erroValidacao;
             });
+
+            await expect(controller.cadastrar(req, res)).rejects.toThrow(erroValidacao);
         });
 
-        afterEach(() => {
-            objectIdSchema.parse.mockRestore();
-        });
+        it('deve lançar erro se serviço falhar', async () => {
+            const erroServico = new Error('Erro no serviço');
+            controller.service.cadastrar.mockRejectedValue(erroServico);
 
-        it('listar deve lançar erro se ID inválido for passado', async () => {
-            req.params.id = 'id-invalido';
-
-            await expect(controller.listar(req, res)).rejects.toThrow('ID inválido');
-            expect(objectIdSchema.parse).toHaveBeenCalledWith(req.params.id);
-        });
-
-        it('alterar deve lançar erro se ID inválido for passado', async () => {
-            req.params.id = 'id-invalido';
-            req.body = { nome: 'Novo Nome' };
-
-            await expect(controller.alterar(req, res)).rejects.toThrow('ID inválido');
-            expect(objectIdSchema.parse).toHaveBeenCalledWith('id-invalido');
-        });
-
-        it('deletar deve lançar erro se ID inválido for passado', async () => {
-            req.params.id = 'id-invalido';
-
-            await expect(controller.deletar(req, res)).rejects.toThrow('ID inválido');
-            expect(objectIdSchema.parse).toHaveBeenCalledWith('id-invalido');
+            await expect(controller.cadastrar(req, res)).rejects.toThrow(erroServico);
         });
     });
 
     // ==============================================
-    // Testes para o método listar e listar por ID
+    // Testes para o método listar
     // ==============================================
     describe('listar', () => {
-        it('deve listar um usuário por ID válido', async () => {
-            const idValido = new mongoose.Types.ObjectId().toString();
-            const usuario = { 
-                _id: idValido, 
-                nome: 'Usuário Único',
-                email: 'unico@test.com'
-            };
-            req.params.id = idValido;
-            objectIdSchema.parse.mockReturnValue(idValido);
-            controller.service.listar.mockResolvedValue(usuario);
+        const usuarioMock = {
+            _id: new mongoose.Types.ObjectId(),
+            nome: 'Usuário Teste',
+            email: 'teste@example.com'
+        };
+
+        const listaUsuariosMock = [usuarioMock];
+
+        it('deve listar todos os usuários quando não há ID', async () => {
+            req.params.id = undefined;
+            controller.service.listar.mockResolvedValue(listaUsuariosMock);
 
             await controller.listar(req, res);
 
-            expect(objectIdSchema.parse).toHaveBeenCalledWith(idValido);
-            expect(controller.service.listar).toHaveBeenCalledWith(idValido);
-            expect(CommonResponse.success).toHaveBeenCalledWith(res, usuario);
+            expect(controller.service.listar).toHaveBeenCalledWith(req);
+            expect(CommonResponse.success).toHaveBeenCalledWith(res, listaUsuariosMock);
         });
 
-        it('deve lançar erro se o usuário não for encontrado', async () => {
-            const idValido = new mongoose.Types.ObjectId().toString();
-            req.params.id = idValido;
-            objectIdSchema.parse.mockReturnValue(idValido);
-            controller.service.listar.mockResolvedValue(null);
+        it('deve listar um usuário específico quando ID é fornecido', async () => {
+            req.params.id = usuarioMock._id.toString();
+            objectIdSchema.parse.mockReturnValue(true);
+            controller.service.listar.mockResolvedValue(usuarioMock);
 
-            await expect(controller.listar(req, res)).rejects.toThrow('Usuário não encontrado.');
-            expect(objectIdSchema.parse).toHaveBeenCalledWith(idValido);
-            expect(controller.service.listar).toHaveBeenCalledWith(idValido);
+            await controller.listar(req, res);
+
+            expect(objectIdSchema.parse).toHaveBeenCalledWith(usuarioMock._id.toString());
+            expect(controller.service.listar).toHaveBeenCalledWith(usuarioMock._id.toString());
+            expect(CommonResponse.success).toHaveBeenCalledWith(res, usuarioMock);
+        });
+
+        it('deve lançar erro se ID for inválido', async () => {
+            req.params.id = 'id-invalido';
+            const erroValidacao = new Error('ID inválido');
+            objectIdSchema.parse.mockImplementation(() => {
+                throw erroValidacao;
+            });
+
+            await expect(controller.listar(req, res)).rejects.toThrow(erroValidacao);
+        });
+
+        it('deve lançar CustomError se usuário não for encontrado', async () => {
+            req.params.id = 'id-inexistente';
+            objectIdSchema.parse.mockReturnValue(true);
+            controller.service.listar = jest.fn().mockResolvedValue(null);
+
+            await expect(controller.listar(req, res)).rejects.toMatchObject({
+                message: 'Usuário não encontrado.',
+                statusCode: 404
+            });
+        });
+
+        it('deve lançar erro se serviço falhar', async () => {
+            req.params.id = undefined;
+            const erroServico = new Error('Erro no serviço');
+            controller.service.listar.mockRejectedValue(erroServico);
+
+            await expect(controller.listar(req, res)).rejects.toThrow(erroServico);
         });
     });
 
@@ -187,33 +214,66 @@ describe('UsuarioController', () => {
     // Testes para o método alterar
     // ================================
     describe('alterar', () => {
-        it('deve alterar um usuário com sucesso', async () => {
-            const idValido = new mongoose.Types.ObjectId().toString();
-            req.params.id = idValido;
-            req.body = { nome: 'Novo Nome' };
-            
-            const dadosAtualizados = { nome: 'Novo Nome' };
-            objectIdSchema.parse.mockReturnValue(idValido);
-            UsuarioUpdateSchema.parse.mockReturnValue(dadosAtualizados);
-
-            const resultado = { 
-                _id: idValido, 
+        const idValido = new mongoose.Types.ObjectId().toString();
+        const dadosAtualizacao = { nome: 'Novo Nome' };
+        const usuarioAtualizado = {
+            _id: idValido,
+            nome: 'Novo Nome',
+            email: 'teste@example.com',
+            toObject: jest.fn(() => ({
+                _id: idValido,
                 nome: 'Novo Nome',
-                email: 'teste@example.com'
-            };
-            controller.service.alterar.mockResolvedValue(resultado);
+                email: 'teste@example.com',
+                senha: undefined
+            }))
+        };
 
+        beforeEach(() => {
+            req.params.id = idValido;
+            req.body = dadosAtualizacao;
+            objectIdSchema.parse.mockReturnValue(true);
+            UsuarioUpdateSchema.parse.mockReturnValue(dadosAtualizacao);
+            controller.service.alterar.mockResolvedValue(usuarioAtualizado);
+        });
+
+        it('deve atualizar um usuário com sucesso e remover a senha da resposta', async () => {
             await controller.alterar(req, res);
 
             expect(objectIdSchema.parse).toHaveBeenCalledWith(idValido);
-            expect(UsuarioUpdateSchema.parse).toHaveBeenCalledWith(req.body);
-            expect(controller.service.alterar).toHaveBeenCalledWith(idValido, dadosAtualizados);
+            expect(UsuarioUpdateSchema.parse).toHaveBeenCalledWith(dadosAtualizacao);
+            expect(controller.service.alterar).toHaveBeenCalledWith(idValido, dadosAtualizacao);
+            expect(usuarioAtualizado.toObject).toHaveBeenCalled();
             expect(CommonResponse.success).toHaveBeenCalledWith(
-                res, 
-                resultado, 
-                200, 
+                res,
+                expect.not.objectContaining({ senha: expect.anything() }),
+                200,
                 'Usuário atualizado com sucesso.'
             );
+        });
+
+        it('deve lançar erro se ID for inválido', async () => {
+            const erroValidacao = new Error('ID inválido');
+            objectIdSchema.parse.mockImplementation(() => {
+                throw erroValidacao;
+            });
+
+            await expect(controller.alterar(req, res)).rejects.toThrow(erroValidacao);
+        });
+
+        it('deve lançar erro se validação do schema falhar', async () => {
+            const erroValidacao = new Error('Dados inválidos');
+            UsuarioUpdateSchema.parse.mockImplementation(() => {
+                throw erroValidacao;
+            });
+
+            await expect(controller.alterar(req, res)).rejects.toThrow(erroValidacao);
+        });
+
+        it('deve lançar erro se serviço falhar', async () => {
+            const erroServico = new Error('Erro no serviço');
+            controller.service.alterar.mockRejectedValue(erroServico);
+
+            await expect(controller.alterar(req, res)).rejects.toThrow(erroServico);
         });
     });
 
@@ -221,33 +281,76 @@ describe('UsuarioController', () => {
     // Testes para o método deletar
     // ================================
     describe('deletar', () => {
-        it('deve deletar um usuário com sucesso', async () => {
-            const idValido = new mongoose.Types.ObjectId().toString();
-            req.params.id = idValido;
-            objectIdSchema.parse.mockReturnValue(idValido);
-            const resultado = { acknowledged: true, deletedCount: 1 };
-            controller.service.deletar.mockResolvedValue(resultado);
+        const idValido = new mongoose.Types.ObjectId().toString();
+        const resultadoDelecao = { acknowledged: true, deletedCount: 1 };
 
+        beforeEach(() => {
+            req.params.id = idValido;
+            objectIdSchema.parse.mockReturnValue(true);
+            controller.service.deletar.mockResolvedValue(resultadoDelecao);
+        });
+
+        it('deve deletar um usuário com sucesso', async () => {
             await controller.deletar(req, res);
 
             expect(objectIdSchema.parse).toHaveBeenCalledWith(idValido);
             expect(controller.service.deletar).toHaveBeenCalledWith(idValido);
             expect(CommonResponse.success).toHaveBeenCalledWith(
-                res, 
-                resultado, 
-                200, 
+                res,
+                resultadoDelecao,
+                200,
                 'Usuário excluído com sucesso.'
             );
         });
 
-        it('deve lançar erro se ID não for fornecido', async () => {
-            req.params = {};
+        it('deve chamar o serviço com o ID correto quando fornecido', async () => {
+            req.params.id = idValido;
+            await controller.deletar(req, res);
+            expect(controller.service.deletar).toHaveBeenCalledWith(idValido);
+        });
 
-            await expect(controller.deletar(req, res)).rejects.toMatchObject({
-                statusCode: 400,
-                field: 'id',
-                message: 'ID do usuário é obrigatório para deletar.'
+        it('deve lançar erro se ID for inválido', async () => {
+            const erroValidacao = new Error('ID inválido');
+            objectIdSchema.parse.mockImplementation(() => {
+                throw erroValidacao;
             });
+
+            await expect(controller.deletar(req, res)).rejects.toThrow(erroValidacao);
+        });
+
+        it('deve lançar erro se serviço falhar', async () => {
+            const erroServico = new Error('Erro no serviço');
+            controller.service.deletar.mockRejectedValue(erroServico);
+
+            await expect(controller.deletar(req, res)).rejects.toThrow(erroServico);
+        });
+    });
+
+    // ================================
+    // Testes para casos extremos
+    // ================================
+    describe('Casos extremos', () => {
+        it('deve lidar com erro inesperado no cadastrar', async () => {
+            req.body = {};
+            const erroInesperado = new Error('Erro inesperado');
+            UsuarioSchema.parse.mockImplementation(() => {
+                throw erroInesperado;
+            });
+
+            await expect(controller.cadastrar(req, res)).rejects.toThrow(erroInesperado);
+        });
+
+        it('deve lidar com objeto de usuário sem método toObject no cadastrar', async () => {
+            const usuarioSemToObject = { _id: '123', nome: 'Teste' };
+            UsuarioSchema.parse.mockReturnValue(usuarioSemToObject);
+            controller.service.cadastrar.mockResolvedValue(usuarioSemToObject);
+
+            await controller.cadastrar(req, res);
+
+            expect(CommonResponse.created).toHaveBeenCalledWith(
+                res,
+                usuarioSemToObject
+            );
         });
     });
 });

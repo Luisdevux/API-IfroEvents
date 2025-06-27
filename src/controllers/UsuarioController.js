@@ -24,7 +24,7 @@ class UsuarioController {
       const parsedData = UsuarioSchema.parse(req.body);
       let data = await this.service.cadastrar(parsedData);
 
-      let usuarioLimpo = data.toObject();
+     let usuarioLimpo = data.toObject ? data.toObject() : { ...data };
 
       delete usuarioLimpo.senha; // Remove senha do objeto de resposta
 
@@ -32,24 +32,27 @@ class UsuarioController {
     };
 
     // GET /usuarios && GET /usuarios/:id
-    async listar(req, res) {
-      const { id } = req.params;
-      
-      if(id) {
+   async listar(req, res) {
+    const { id } = req.params;
+    
+    if(id) {
         objectIdSchema.parse(id);
 
         const data = await this.service.listar(id);
 
         if (!data) {
-          throw new CustomError(messages.user.notFound(), HttpStatusCodes.NOT_FOUND.code);
+            throw new CustomError({
+                message: messages.user.notFound(),
+                statusCode: HttpStatusCodes.NOT_FOUND.code
+            });
         }
 
         return CommonResponse.success(res, data);
-      }
+    }
 
-      const data = await this.service.listar(req);
-      return CommonResponse.success(res, data);
-    };
+    const data = await this.service.listar(req);
+    return CommonResponse.success(res, data);
+};
 
     //PATCH /usuarios/:id
     async alterar(req, res) {
@@ -68,14 +71,14 @@ class UsuarioController {
     };
     
     // DELETE /usuarios/:id
-    async deletar(req, res) {
-      const { id } = req.params || {};
+     async deletar(req, res) {
+       const { id } = req.params || {};
 
-      objectIdSchema.parse(id);
+       objectIdSchema.parse(id);
 
-      const data = await this.service.deletar(id);
-      return CommonResponse.success(res, data, 200, 'Usuário excluído com sucesso.');
-    };
+       const data = await this.service.deletar(id);
+       return CommonResponse.success(res, data, 200, 'Usuário excluído com sucesso.');
+   }
 }
 
 export default UsuarioController;
