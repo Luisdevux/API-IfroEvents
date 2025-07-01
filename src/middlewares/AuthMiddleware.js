@@ -96,8 +96,8 @@ class AuthMiddleware {
         }
         return next();
       }
-
-      // Para outros métodos, requer autenticação obrigatória
+      
+      // Para todas as outras rotas, requer autenticação obrigatória
       const { token, secret } = this._getTokenAndSecret(req);
 
       // Verifica e decodifica o token

@@ -50,11 +50,105 @@ const errorHandler = (err, req, res, next) => {
     );
   }
 
+  // Tratamento para erros do Multer
+  if (err.code === 'LIMIT_FILE_SIZE') {
+    logger.warn('Erro Multer: arquivo muito grande', { path: req.path, requestId });
+    return CommonResponse.error(
+      res,
+      400,
+      'validationError',
+      'file',
+      [{ path: 'file', message: 'Arquivo muito grande. Tamanho máximo permitido: 25MB.' }],
+      'Arquivo muito grande.'
+    );
+  }
+
+  if (err.code === 'LIMIT_FILE_COUNT') {
+    logger.warn('Erro Multer: muitos arquivos', { path: req.path, requestId });
+    return CommonResponse.error(
+      res,
+      400,
+      'validationError',
+      'files',
+      [{ path: 'files', message: 'Muitos arquivos enviados.' }],
+      'Muitos arquivos enviados.'
+    );
+  }
+
+  if (err.code === 'LIMIT_UNEXPECTED_FILE') {
+    logger.warn('Erro Multer: campo inesperado', { field: err.field, path: req.path, requestId });
+    return CommonResponse.error(
+      res,
+      400,
+      'validationError',
+      err.field,
+      [{ path: err.field, message: `Campo de arquivo inesperado: "${err.field}".` }],
+      'Campo de arquivo não esperado.'
+    );
+  }
+
+  // Tratamento para erros personalizados do fileFilter do Multer
+  if (err.message && (
+    err.message.includes('Extensão inválida') ||
+    err.message.includes('Tipo de arquivo inválido') ||
+    err.message.includes('Campo de mídia inválido') ||
+    err.message.includes('Tipo de mídia inválido')
+  )) {
+    logger.warn('Erro Multer: validação de arquivo', { message: err.message, path: req.path, requestId });
+    return CommonResponse.error(
+      res,
+      400,
+      'validationError',
+      'file',
+      [{ path: 'file', message: err.message }],
+      'Arquivo inválido.'
+    );
+  }
+
   // Tratamento para erros de validação do Mongoose
   if (err instanceof mongoose.Error.ValidationError) {
     const detalhes = Object.values(err.errors).map(e => ({ path: e.path, message: e.message }));
     logger.warn('Erro de validação do Mongoose', { details: detalhes, path: req.path, requestId });
     return CommonResponse.error(res, 400, 'validationError', null, detalhes);
+  }
+
+  // Tratamento para erros do MongoDB (conexão, rede, timeout, etc.)
+  if (err.name === 'MongoServerError' || err.name === 'MongoNetworkError' || err.name === 'MongoTimeoutError') {
+    logger.error('Erro de conexão MongoDB', { message: err.message, name: err.name, path: req.path, requestId });
+    return CommonResponse.error(
+      res,
+      503,
+      'serviceUnavailable',
+      'database',
+      [{ path: 'database', message: 'Serviço temporariamente indisponível. Tente novamente em alguns momentos.' }],
+      'Serviço temporariamente indisponível.'
+    );
+  }
+
+  // Tratamento para estado de conexão perdida do Mongoose
+  if (err.message?.includes('buffering timed out') || err.message?.includes('connection closed') || err.message?.includes('no connection available')) {
+    logger.error('Erro de conexão perdida', { message: err.message, path: req.path, requestId });
+    return CommonResponse.error(
+      res,
+      503,
+      'serviceUnavailable',
+      'database',
+      [{ path: 'database', message: 'Conexão com o banco de dados perdida. Tente novamente.' }],
+      'Serviço temporariamente indisponível.'
+    );
+  }
+
+  // Tratamento para erros de parsing JSON do body-parser
+  if (err.name === 'SyntaxError' || err.type === 'entity.parse.failed' || err.message?.includes('Unexpected token') || err.message?.includes('is not valid JSON')) {
+    logger.warn('Erro de parsing JSON', { message: err.message, path: req.path, requestId });
+    return CommonResponse.error(
+      res,
+      400,
+      'validationError',
+      'body',
+      [{ path: 'body', message: 'JSON inválido. Verifique a sintaxe do corpo da requisição.' }],
+      'Formato JSON inválido.'
+    );
   }
 
   // Tratamento para erros operacionais (erros esperados na aplicação)

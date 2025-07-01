@@ -1,5 +1,6 @@
 // src/controllers/EventoController.js
 
+import { z } from 'zod';
 import EventoService from '../services/EventoService.js';
 import UploadService from '../services/UploadService.js';
 import { EventoSchema, EventoUpdateSchema } from '../utils/validators/schemas/zod/EventoSchema.js';
@@ -125,7 +126,13 @@ class EventoController {
         const evento = await this.service.listar(id, req.user?._id);
         
         if(!evento) {
-            throw new CustomError(messages.event.notFound(), HttpStatusCodes.NOT_FOUND.code);
+            throw new CustomError({
+                statusCode: HttpStatusCodes.NOT_FOUND.code,
+                errorType: 'resourceNotFound',
+                field: 'Evento',
+                details: [],
+                customMessage: messages.event.notFound
+            });
         }
         
         const qrCode = await QRCode.toDataURL(evento.linkInscricao);
@@ -188,20 +195,9 @@ class EventoController {
         
         const permissoesData = Array.isArray(req.body) ? req.body : [req.body];
 
-        // Validando cada permissão do array
-        permissoesData.forEach((permissao, index) => {
-            try {
-                PermissaoSchema.parse(permissao);
-            } catch (error) {
-                throw new CustomError({
-                    statusCode: HttpStatusCodes.BAD_REQUEST.code,
-                    errorType: 'validationError',
-                    field: `permissoes[${index}]`,
-                    details: error.errors,
-                    customMessage: `Erro de validação na permissão ${index + 1}.`
-                });
-            }
-        });
+        // Validando array de permissões usando schema Zod
+        const PermissoesArraySchema = z.array(PermissaoSchema);
+        PermissoesArraySchema.parse(permissoesData);
 
         const data = await this.service.adicionarPermissao(id, permissoesData, usuarioLogado._id);
         
