@@ -6,6 +6,7 @@ import express from "express";
 // import swaggerUI from "swagger-ui-express";
 // import getSwaggerOptions from "../docs/config/head.js";
 import logRoutes from "../middlewares/LogRoutesMiddleware.js";
+import { CommonResponse } from "../utils/helpers/index.js";
 
 // routes
 import auth from "./authRoutes.js";
@@ -40,7 +41,7 @@ const routes = (app) => {
 
     // Se não é nenhuma rota válida, produz 404
     app.use((req, res) => {
-        res.status(404).json({ message: "Rota não encontrada" });
+        return CommonResponse.error(res, 404, 'notFound', null, [], 'Rota não encontrada.');
     });
 };
 

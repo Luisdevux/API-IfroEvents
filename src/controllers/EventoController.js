@@ -1,10 +1,10 @@
 // src/controllers/EventoController.js
 
+import { z } from 'zod';
 import EventoService from '../services/EventoService.js';
 import UploadService from '../services/UploadService.js';
 import { EventoSchema, EventoUpdateSchema } from '../utils/validators/schemas/zod/EventoSchema.js';
 import { EventoQuerySchema } from '../utils/validators/schemas/zod/querys/EventoQuerySchema.js';
-import PermissaoSchema from '../utils/validators/schemas/zod/PermissaoSchema.js';
 import objectIdSchema from '../utils/validators/schemas/zod/ObjectIdSchema.js';
 import {
     CommonResponse,
@@ -125,7 +125,13 @@ class EventoController {
         const evento = await this.service.listar(id, req.user?._id);
         
         if(!evento) {
-            throw new CustomError(messages.event.notFound(), HttpStatusCodes.NOT_FOUND.code);
+            throw new CustomError({
+                statusCode: HttpStatusCodes.NOT_FOUND.code,
+                errorType: 'resourceNotFound',
+                field: 'Evento',
+                details: [],
+                customMessage: messages.event.notFound
+            });
         }
         
         const qrCode = await QRCode.toDataURL(evento.linkInscricao);
@@ -179,33 +185,40 @@ class EventoController {
         return CommonResponse.success(res, data, 200, message);
     }
 
-    // PATCH /eventos/:id/permissoes
-    async adicionarPermissao(req, res) {
+    // PATCH /eventos/:id/compartilhar
+    async compartilharPermissao(req, res) {
         const { id } = req.params;
         const usuarioLogado = req.user;
         
         objectIdSchema.parse(id);
         
-        const permissoesData = Array.isArray(req.body) ? req.body : [req.body];
-
-        // Validando cada permissão do array
-        permissoesData.forEach((permissao, index) => {
-            try {
-                PermissaoSchema.parse(permissao);
-            } catch (error) {
-                throw new CustomError({
-                    statusCode: HttpStatusCodes.BAD_REQUEST.code,
-                    errorType: 'validationError',
-                    field: `permissoes[${index}]`,
-                    details: error.errors,
-                    customMessage: `Erro de validação na permissão ${index + 1}.`
-                });
-            }
-        });
-
-        const data = await this.service.adicionarPermissao(id, permissoesData, usuarioLogado._id);
+        const { email, permissao = 'editar', expiraEm } = req.body;
         
-        return CommonResponse.success(res, data);
+        // Validar email
+        if (!email || !email.includes('@')) {
+            throw new CustomError({
+                statusCode: HttpStatusCodes.BAD_REQUEST.code,
+                errorType: 'validationError',
+                field: 'email',
+                details: [],
+                customMessage: 'Email válido é obrigatório.'
+            });
+        }
+
+        // Validar data de expiração
+        if (!expiraEm || new Date(expiraEm) <= new Date()) {
+            throw new CustomError({
+                statusCode: HttpStatusCodes.BAD_REQUEST.code,
+                errorType: 'validationError', 
+                field: 'expiraEm',
+                details: [],
+                customMessage: 'Data de expiração deve ser futura.'
+            });
+        }
+
+        const data = await this.service.compartilharPermissao(id, email, permissao, expiraEm, usuarioLogado._id);
+        
+        return CommonResponse.success(res, data, 200, 'Permissão compartilhada com sucesso!');
     }
 
     // DELETE /eventos/:id

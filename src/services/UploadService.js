@@ -8,6 +8,7 @@ import { CommonResponse, CustomError, HttpStatusCodes, errorHandler, messages, S
 import sharp from "sharp";
 import fs from "fs";
 import path from "path";
+import logger from "../utils/logger.js";
 
 const midiasDimensoes = {
     carrossel: { altura: 720, largura: 1280 },
@@ -48,7 +49,12 @@ class UploadService {
             const { altura: alturaEsperada, largura: larguraEsperada } = midiasDimensoes[tipo];
 
             if(metadata.height !== alturaEsperada || metadata.width !== larguraEsperada) {
-                this.removerArquivo(filePath);
+                try {
+                    this.removerArquivo(filePath);
+                } catch (error) {
+                    // Falha na remoção não deve impedir o erro de validação de ser lançado
+                    logger.warn('Falha ao remover arquivo com dimensões inválidas', { filePath, error: error.message });
+                }
                 
                 throw new CustomError({
                     statusCode: HttpStatusCodes.BAD_REQUEST.code,
@@ -87,7 +93,16 @@ class UploadService {
 
             if(metadata.height !== alturaEsperada || metadata.width !== larguraEsperada) {
                 // Limpa todos os arquivos já processados em caso de erro
-                files.forEach(f => this.removerArquivo(path.resolve(`uploads/${tipo}/${f.filename}`)));
+                files.forEach(f => {
+                    try {
+                        this.removerArquivo(path.resolve(`uploads/${tipo}/${f.filename}`));
+                    } catch (error) {
+                        logger.warn('Falha ao limpar arquivo durante validação de múltiplas mídias', { 
+                            file: f.filename, 
+                            error: error.message 
+                        });
+                    }
+                });
                 
                 throw new CustomError({
                     statusCode: HttpStatusCodes.BAD_REQUEST.code,
@@ -161,7 +176,15 @@ class UploadService {
 
         const midiaRemovida = await this.repository.deletarMidia(eventoId, tipo, midiaId);
         
-        this.removerArquivo(midiaRemovida.url);
+        try {
+            this.removerArquivo(midiaRemovida.url);
+        } catch (error) {
+            // Falha na remoção física não deve impedir a remoção lógica
+            logger.warn('Falha ao remover arquivo físico após remoção lógica', { 
+                url: midiaRemovida.url, 
+                error: error.message 
+            });
+        }
 
         return midiaRemovida;
     }
@@ -261,7 +284,14 @@ class UploadService {
     limparArquivosProcessados(files) {
         for (const [tipo, arquivos] of Object.entries(files)) {
             for (const arquivo of arquivos) {
-                this.removerArquivo(arquivo.path);
+                try {
+                    this.removerArquivo(arquivo.path);
+                } catch (error) {
+                    logger.warn('Falha ao limpar arquivo processado', { 
+                        path: arquivo.path, 
+                        error: error.message 
+                    });
+                }
             }
         }
     }
@@ -284,8 +314,16 @@ class UploadService {
                 }
 
                 totalArquivos++;
-                if (this.removerArquivo(midia.url)) {
-                    arquivosRemovidos++;
+                try {
+                    if (this.removerArquivo(midia.url)) {
+                        arquivosRemovidos++;
+                    }
+                } catch (error) {
+                    logger.warn('Falha ao limpar mídia do evento', { 
+                        url: midia.url, 
+                        eventoId: evento._id, 
+                        error: error.message 
+                    });
                 }
             });
         });
