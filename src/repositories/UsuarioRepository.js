@@ -112,11 +112,6 @@ class UsuarioRepository {
         return usuario;
     }
 
-    //DELETE /usuarios/:id
-    async deletar(id) {
-        const usuario = await this.model.findByIdAndDelete(id);
-        return usuario;
-    }
 
     /**
      * Armazenar accesstoken e refreshtoken no banco de dados

@@ -260,37 +260,6 @@ describe("UsuarioService", () => {
     });
   });
 
-  // Teste do deletar
-  describe("deletar", () => {
-    it("deve deletar usuário com sucesso", async () => {
-      mockRepository.listarPorId.mockResolvedValue(usuarioFake);
-      mockRepository.deletar.mockResolvedValue({ acknowledged: true, deletedCount: 1 });
-      
-      const resultado = await usuarioService.deletar(usuarioFake._id);
-      
-      expect(resultado).toEqual({ acknowledged: true, deletedCount: 1 });
-      expect(mockRepository.listarPorId).toHaveBeenCalledWith(usuarioFake._id);
-      expect(mockRepository.deletar).toHaveBeenCalledWith(usuarioFake._id);
-    });
-
-    it("deve lançar CustomError se usuário não existir", async () => {
-      mockRepository.listarPorId.mockResolvedValue(null);
-      
-      await expect(usuarioService.deletar(usuarioFake._id)).rejects.toThrow(CustomError);
-    });
-
-    it("deve lançar erro se ID for inválido", async () => {
-      await expect(usuarioService.deletar(invalidId)).rejects.toThrow();
-    });
-
-    it("deve lançar erro se deletar falhar", async () => {
-      mockRepository.listarPorId.mockResolvedValue(usuarioFake);
-      mockRepository.deletar.mockRejectedValue(new Error("Erro no banco"));
-      
-      await expect(usuarioService.deletar(usuarioFake._id)).rejects.toThrow("Erro no banco");
-    });
-  });
-
   // Teste do ensureUserExists
   describe("ensureUserExists", () => {
     it("deve retornar usuário se existir", async () => {
