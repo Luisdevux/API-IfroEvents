@@ -104,4 +104,27 @@ describe('Modelo de Usuário', () => {
         expect(resultado.totalDocs).toBe(10);
         expect(resultado.totalPages).toBe(2);
     });
+
+    it("Deve criar um usuário com status padrão 'ativo'", async () => {
+        const user = new Usuario(userDataTest);
+        await user.save();
+
+        const savedUser = await Usuario.findById(user._id);
+
+        expect(savedUser.status).toBe("ativo");
+    });
+
+    it("Deve criar um usuário com status 'inativo'", async () => {
+        const user = new Usuario({ ...userDataTest, status: "inativo" });
+        await user.save();
+
+        const savedUser = await Usuario.findById(user._id);
+
+        expect(savedUser.status).toBe("inativo");
+    });
+
+    it("Deve falhar ao criar um usuário com status inválido", async () => {
+        const user = new Usuario({ ...userDataTest, status: "indefinido" });
+        await expect(user.save()).rejects.toThrow();
+    });
 });

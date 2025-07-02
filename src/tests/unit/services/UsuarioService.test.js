@@ -337,4 +337,40 @@ describe("UsuarioService", () => {
       expect(true).toBe(true);
     });
   });
+
+  // Teste do alterarStatus
+  describe("alterarStatus", () => {
+    const idValido = usuarioFake._id;
+    const statusValido = "ativo";
+
+    it("deve alterar o status de um usuário com sucesso", async () => {
+        mockRepository.listarPorId.mockResolvedValue(usuarioFake);
+        mockRepository.alterar.mockResolvedValue({ ...usuarioFake, status: statusValido });
+
+        const resultado = await usuarioService.alterarStatus(idValido, statusValido);
+
+        expect(mockRepository.listarPorId).toHaveBeenCalledWith(idValido);
+        expect(mockRepository.alterar).toHaveBeenCalledWith(idValido, { status: statusValido });
+        expect(resultado.status).toBe(statusValido);
+    });
+
+    it("deve lançar erro se o status for inválido", async () => {
+        const statusInvalido = "indefinido";
+
+        await expect(usuarioService.alterarStatus(idValido, statusInvalido)).rejects.toThrow(CustomError);
+    });
+
+    it("deve lançar erro se o usuário não existir", async () => {
+        mockRepository.listarPorId.mockResolvedValue(null);
+
+        await expect(usuarioService.alterarStatus(idValido, statusValido)).rejects.toThrow(CustomError);
+    });
+
+    it("deve lançar erro se o repositório falhar", async () => {
+        mockRepository.listarPorId.mockResolvedValue(usuarioFake);
+        mockRepository.alterar.mockRejectedValue(new Error("Erro no banco"));
+
+        await expect(usuarioService.alterarStatus(idValido, statusValido)).rejects.toThrow("Erro no banco");
+    });
+  });
 });

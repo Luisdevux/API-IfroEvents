@@ -327,6 +327,66 @@ describe('UsuarioController', () => {
     });
 
     // ================================
+    // Testes para o método alterarStatus
+    // ================================
+    describe('alterarStatus', () => {
+        const idValido = new mongoose.Types.ObjectId().toString();
+        const statusValido = 'ativo';
+        const usuarioAtualizado = {
+            _id: idValido,
+            nome: 'Usuário Teste',
+            email: 'teste@example.com',
+            status: statusValido
+        };
+
+        beforeEach(() => {
+            req.params.id = idValido;
+            req.body = { status: statusValido };
+            objectIdSchema.parse.mockReturnValue(true);
+            controller.service.alterarStatus = jest.fn().mockResolvedValue(usuarioAtualizado);
+        });
+
+        it('deve atualizar o status de um usuário com sucesso', async () => {
+            await controller.alterarStatus(req, res);
+
+            expect(objectIdSchema.parse).toHaveBeenCalledWith(idValido);
+            expect(controller.service.alterarStatus).toHaveBeenCalledWith(idValido, statusValido);
+            expect(CommonResponse.success).toHaveBeenCalledWith(
+                res,
+                usuarioAtualizado,
+                200,
+                `Status do usuário atualizado para ${statusValido}.`
+            );
+        });
+
+        it('deve lançar erro se ID for inválido', async () => {
+            const erroValidacao = new Error('ID inválido');
+            objectIdSchema.parse.mockImplementation(() => {
+                throw erroValidacao;
+            });
+
+            await expect(controller.alterarStatus(req, res)).rejects.toThrow(erroValidacao);
+        });
+
+        it('deve lançar erro se status for inválido', async () => {
+            req.body.status = 'status-invalido';
+            const erroValidacao = new Error('Status inválido');
+            controller.service.alterarStatus.mockImplementation(() => {
+                throw erroValidacao;
+            });
+
+            await expect(controller.alterarStatus(req, res)).rejects.toThrow(erroValidacao);
+        });
+
+        it('deve lançar erro se serviço falhar', async () => {
+            const erroServico = new Error('Erro no serviço');
+            controller.service.alterarStatus.mockRejectedValue(erroServico);
+
+            await expect(controller.alterarStatus(req, res)).rejects.toThrow(erroServico);
+        });
+    });
+
+    // ================================
     // Testes para casos extremos
     // ================================
     describe('Casos extremos', () => {

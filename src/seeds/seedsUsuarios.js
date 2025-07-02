@@ -42,13 +42,15 @@ async function seedUsuarios() {
             matricula: "2024103070017",
             nome: "Deivid",
             email: "dev@gmail.com",
-            senha: gerarSenhaHash()
+            senha: gerarSenhaHash(),
+            status: "ativo" 
         },
         {
             matricula: "2024103070011",
             nome: "Kauã",
             email: "app@gmail.com",
-            senha: gerarSenhaHash()
+            senha: gerarSenhaHash(),
+            status: "ativo" 
         }
     ];
 
@@ -66,7 +68,8 @@ async function seedUsuarios() {
             matricula: mapping.matricula(),
             nome: mapping.nome(),
             email: mapping.email(),
-            senha: gerarSenhaHash()
+            senha: gerarSenhaHash(),
+            status: i % 2 === 0 ? "ativo" : "inativo" // Alterna entre ativo e inativo
         });
     }
 

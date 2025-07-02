@@ -15,6 +15,7 @@ router
   .get("/usuarios/", AuthMiddleware, asyncWrapper(usuarioController.listar.bind(usuarioController)))
   .get("/usuarios/:id", AuthMiddleware, asyncWrapper(usuarioController.listar.bind(usuarioController)))
   .patch("/usuarios/:id", AuthMiddleware, asyncWrapper(usuarioController.alterar.bind(usuarioController)))
+  .patch("/usuarios/:id/status", AuthMiddleware, asyncWrapper(usuarioController.alterarStatus.bind(usuarioController)))
   .delete("/usuarios/:id", AuthMiddleware, asyncWrapper(usuarioController.deletar.bind(usuarioController)))
 
 export default router;
