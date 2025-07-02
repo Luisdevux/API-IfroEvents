@@ -88,7 +88,7 @@ class AuthMiddleware {
                 req.user_id = null;
                 return next();
               }              // Se o token for válido, enriquece os dados do usuário
-              await this._enrichUserData(req, decoded.id);
+              await this._userData(req, decoded.id);
             }
           } catch (err) {
             // Token inválido em GET público é ignorado e segue pois a requisição é liberada para o totem

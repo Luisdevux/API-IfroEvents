@@ -151,15 +151,14 @@ class EventoFilterBuilder {
         if (usuarioId && mongoose.Types.ObjectId.isValid(usuarioId)) {
             const dataAtual = new Date();
             
-            // Filtra eventos onde:
-            // 1. O usuário é o organizador, OU
-            // 2. O usuário tem permissão válida
             if (!this.filtros.$or) {
                 this.filtros.$or = [];
             }
             
             this.filtros.$or.push(
+                // Eventos próprios (organizador)
                 { 'organizador._id': new mongoose.Types.ObjectId(usuarioId) },
+                // Eventos com permissão compartilhada
                 {
                     permissoes: {
                         $elemMatch: {

@@ -19,13 +19,14 @@ class EventoService {
     }
     
     // GET /eventos && GET /eventos/:id
-    async listar(req, usuarioId) {
+    async listar(req, usuarioId, opcoes = {}) {
         if(typeof req === 'string') {
             objectIdSchema.parse(req);
             
             const eventoReq = { params: { id: req } };
             const evento = await this.repository.listar(eventoReq);
             
+            // Para usuários não autenticados, só mostrar eventos ativos
             if (!usuarioId && evento.status !== 'ativo') {
                 throw new CustomError({
                     statusCode: HttpStatusCodes.NOT_FOUND.code,
@@ -39,25 +40,23 @@ class EventoService {
             return evento;
         }
         
-        if (usuarioId) {
-            req.user = { id: usuarioId };
-        }
+        if (!req.query) req.query = {};
+        if (!req.user && usuarioId) req.user = { _id: usuarioId };
         
-        if (req.query) {
+        // Validar query parameters se existirem
+        if (Object.keys(req.query).length > 0) {
             EventoQuerySchema.parse(req.query);
         }
         
+        if (opcoes.apenasVisiveis && usuarioId) {
+            // Aqui em "Apenas visíveis" retorna eventos do usuário e eventos com permissão compartilhada
+            // Permite visualizar eventos de qualquer status (ativo, inativo)
+            // Ignora o filtro padrão que limita requisições não autenticadas a ver apenas eventos ativos (totem)
+            req.user = { _id: usuarioId };
+            req.query.ignorarFiltroStatusPadrao = true;
+        }
+
         return await this.repository.listar(req);
-    }
-    
-    // Listar somente eventos visíveis para o usuário, ou seja, eventos criados por ele ou eventos compartilhados com ele
-    async listarEventosVisiveis(usuarioId) {
-        const req = { 
-            query: {},
-            user: { id: usuarioId }
-        };
-        
-        return await this.listar(req, usuarioId);
     }
     
     // PATCH /eventos/:id

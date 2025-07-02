@@ -92,7 +92,13 @@ class EventoController {
             await EventoQuerySchema.parseAsync(query);
         }
         
-        const data = await this.service.listar(req, usuarioId);
+        // Verifica se a requisição é para eventos ativos (totem)
+        const opcoes = {};
+        if (query.apenasVisiveis === 'true' && usuarioId) {
+            opcoes.apenasVisiveis = true;
+        }
+        
+        const data = await this.service.listar(req, usuarioId, opcoes);
         
         if (id && !data) {
             throw new CustomError({
