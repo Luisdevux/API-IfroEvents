@@ -277,54 +277,6 @@ describe('UsuarioController', () => {
         });
     });
 
-    // ================================
-    // Testes para o método deletar
-    // ================================
-    describe('deletar', () => {
-        const idValido = new mongoose.Types.ObjectId().toString();
-        const resultadoDelecao = { acknowledged: true, deletedCount: 1 };
-
-        beforeEach(() => {
-            req.params.id = idValido;
-            objectIdSchema.parse.mockReturnValue(true);
-            controller.service.deletar.mockResolvedValue(resultadoDelecao);
-        });
-
-        it('deve deletar um usuário com sucesso', async () => {
-            await controller.deletar(req, res);
-
-            expect(objectIdSchema.parse).toHaveBeenCalledWith(idValido);
-            expect(controller.service.deletar).toHaveBeenCalledWith(idValido);
-            expect(CommonResponse.success).toHaveBeenCalledWith(
-                res,
-                resultadoDelecao,
-                200,
-                'Usuário excluído com sucesso.'
-            );
-        });
-
-        it('deve chamar o serviço com o ID correto quando fornecido', async () => {
-            req.params.id = idValido;
-            await controller.deletar(req, res);
-            expect(controller.service.deletar).toHaveBeenCalledWith(idValido);
-        });
-
-        it('deve lançar erro se ID for inválido', async () => {
-            const erroValidacao = new Error('ID inválido');
-            objectIdSchema.parse.mockImplementation(() => {
-                throw erroValidacao;
-            });
-
-            await expect(controller.deletar(req, res)).rejects.toThrow(erroValidacao);
-        });
-
-        it('deve lançar erro se serviço falhar', async () => {
-            const erroServico = new Error('Erro no serviço');
-            controller.service.deletar.mockRejectedValue(erroServico);
-
-            await expect(controller.deletar(req, res)).rejects.toThrow(erroServico);
-        });
-    });
 
     // ================================
     // Testes para casos extremos

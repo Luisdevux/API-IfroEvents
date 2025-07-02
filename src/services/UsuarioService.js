@@ -194,13 +194,7 @@ class UsuarioService {
         return { message: 'Senha atualizada com sucesso.' };
     }
 
-    // DELETE /usuario/:id
-    async deletar(id) {
-        await this.ensureUserExists(id);
 
-        const data = await this.repository.deletar(id);
-        return data;
-    }
 
     ////////////////////////////////////////////////////////////////////////////////
     // MÉTODOS AUXILIARES
