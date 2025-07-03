@@ -32,27 +32,26 @@ class UsuarioController {
     };
 
     // GET /usuarios && GET /usuarios/:id
-   async listar(req, res) {
-    const { id } = req.params;
-    
-    if(id) {
-        objectIdSchema.parse(id);
+    async listar(req, res) {
+        const { id } = req.params;
 
-        const data = await this.service.listar(id);
+        if (id) {
+            objectIdSchema.parse(id);
+            const data = await this.service.listar(id);
 
-        if (!data) {
-            throw new CustomError({
-                message: messages.user.notFound(),
-                statusCode: HttpStatusCodes.NOT_FOUND.code
-            });
+            if (!data) {
+                throw new CustomError({
+                    message: messages.user.notFound(),
+                    statusCode: HttpStatusCodes.NOT_FOUND.code
+                });
+            }
+
+            return CommonResponse.success(res, data);
         }
 
+        const data = await this.service.listar(req);
         return CommonResponse.success(res, data);
-    }
-
-    const data = await this.service.listar(req);
-    return CommonResponse.success(res, data);
-};
+    };
 
     //PATCH /usuarios/:id
     async alterar(req, res) {
@@ -69,10 +68,6 @@ class UsuarioController {
 
       return CommonResponse.success(res, usuarioLimpo, 200, 'Usuário atualizado com sucesso.');
     };
-
-       const data = await this.service.deletar(id);
-       return CommonResponse.success(res, data, 200, 'Usuário excluído com sucesso.');
-   }
 
     // PATCH /usuarios/:id/status
     async alterarStatus(req, res) {
