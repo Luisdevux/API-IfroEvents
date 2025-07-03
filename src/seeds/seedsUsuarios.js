@@ -39,16 +39,16 @@ async function seedUsuarios() {
 
     const usuariosFixos = [
         {
-            matricula: "2024103070017",
-            nome: "Deivid",
-            email: "dev@gmail.com",
+            matricula: "2024103070022",
+            nome: "Usuario Teste",
+            email: "devTeste@gmail.com",
             senha: gerarSenhaHash(),
-            status: "ativo" 
+            status: "ativo"
         },
         {
-            matricula: "2024103070011",
-            nome: "Kauã",
-            email: "app@gmail.com",
+            matricula: "2024103070030",
+            nome: "Luis Felipe Lopes",
+            email: "devMaster@gmail.com",
             senha: gerarSenhaHash(),
             status: "ativo" 
         }
@@ -69,7 +69,7 @@ async function seedUsuarios() {
             nome: mapping.nome(),
             email: mapping.email(),
             senha: gerarSenhaHash(),
-            status: i % 2 === 0 ? "ativo" : "inativo" // Alterna entre ativo e inativo
+            status: mapping.status()
         });
     }
 

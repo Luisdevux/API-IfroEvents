@@ -35,7 +35,6 @@ class UsuarioService {
         return data;
     }
     
-
     /**
      * Atualiza um usuário existente.
      * Atenção: É proibido alterar o email. No serviço o objeto sempre chegará sem, pois o controller impedirá.
@@ -194,8 +193,6 @@ class UsuarioService {
         return { message: 'Senha atualizada com sucesso.' };
     }
 
-
-
     /**
      * Atualiza o status de um usuário.
      */
@@ -222,20 +219,17 @@ class UsuarioService {
     /**
      * Valida a unicidade do email.
      */
-   async validateEmail(email, id = null) {
-    const usuarioExistente = await this.repository.buscarPorEmail(email, id);
-    if (
-  usuarioExistente &&
-  (!id || (usuarioExistente._id.equals ? !usuarioExistente._id.equals(id) : usuarioExistente._id !== id))
-) {
-        throw new CustomError({
-            statusCode: HttpStatusCodes.BAD_REQUEST.code,
-            errorType: 'validationError',
-            field: 'email',
-            customMessage: 'Email já está em uso.'
-        });
+    async validateEmail(email, id = null) {
+        const usuarioExistente = await this.repository.buscarPorEmail(email, id);
+        if (usuarioExistente && (!id || (usuarioExistente._id.equals ? !usuarioExistente._id.equals(id) : usuarioExistente._id !== id))) {
+            throw new CustomError({
+                statusCode: HttpStatusCodes.BAD_REQUEST.code,
+                errorType: 'validationError',
+                field: 'email',
+                customMessage: 'Email já está em uso.'
+            });
+        }
     }
-}
 
     /**
      * Garante que o usuário existe.
