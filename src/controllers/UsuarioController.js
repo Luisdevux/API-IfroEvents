@@ -70,6 +70,21 @@ class UsuarioController {
       return CommonResponse.success(res, usuarioLimpo, 200, 'Usuário atualizado com sucesso.');
     };
 
+       const data = await this.service.deletar(id);
+       return CommonResponse.success(res, data, 200, 'Usuário excluído com sucesso.');
+   }
+
+    // PATCH /usuarios/:id/status
+    async alterarStatus(req, res) {
+        const { id } = req.params;
+        const { status } = req.body;
+
+        objectIdSchema.parse(id);
+
+        const data = await this.service.alterarStatus(id, status);
+
+        return CommonResponse.success(res, data, 200, `Status do usuário atualizado para ${status}.`);
+    }
 }
 
 export default UsuarioController;

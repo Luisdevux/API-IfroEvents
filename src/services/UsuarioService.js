@@ -196,6 +196,25 @@ class UsuarioService {
 
 
 
+    /**
+     * Atualiza o status de um usuário.
+     */
+    async alterarStatus(id, status) {
+        await this.ensureUserExists(id);
+
+        if (!['ativo', 'inativo'].includes(status)) {
+            throw new CustomError({
+                statusCode: HttpStatusCodes.BAD_REQUEST.code,
+                errorType: 'validationError',
+                field: 'status',
+                customMessage: 'Status inválido. Use "ativo" ou "inativo".',
+            });
+        }
+
+        const data = await this.repository.alterar(id, { status });
+        return data;
+    }
+
     ////////////////////////////////////////////////////////////////////////////////
     // MÉTODOS AUXILIARES
     ////////////////////////////////////////////////////////////////////////////////

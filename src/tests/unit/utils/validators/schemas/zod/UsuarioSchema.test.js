@@ -118,6 +118,27 @@ describe('UsuarioSchema', () => {
       expect(resultado.error.issues.length).toBeGreaterThan(1);
     });
   });
+
+  describe("Validação de status", () => {
+    it("deve aceitar status 'ativo'", () => {
+        const usuarioValidoComStatus = { ...usuarioValido, status: "ativo" };
+        const resultado = UsuarioSchema.safeParse(usuarioValidoComStatus);
+        expect(resultado.success).toBe(true);
+    });
+
+    it("deve aceitar status 'inativo'", () => {
+        const usuarioValidoComStatus = { ...usuarioValido, status: "inativo" };
+        const resultado = UsuarioSchema.safeParse(usuarioValidoComStatus);
+        expect(resultado.success).toBe(true);
+    });
+
+    it("deve falhar se o status for inválido", () => {
+        const usuarioInvalido = { ...usuarioValido, status: "indefinido" };
+        const resultado = UsuarioSchema.safeParse(usuarioInvalido);
+        expect(resultado.success).toBe(false);
+        expect(resultado.error.issues[0].path).toContain("status");
+    });
+  });
 });
 
 describe('UsuarioUpdateSchema', () => {

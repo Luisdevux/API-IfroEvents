@@ -201,6 +201,17 @@ describe('UsuarioRepository', () => {
       expect(usuarioAtualizado.nome).toBe('Alterado');
     });
 
+    it('deve alterar o status do usuário com sucesso', async () => {
+      MockUsuarioModel.findByIdAndUpdate.mockResolvedValue({ ...mockUsuarioData, status: 'inativo' });
+      const usuarioAtualizado = await usuarioRepository.alterar(mockUsuarioData._id, { status: 'inativo' });
+      expect(MockUsuarioModel.findByIdAndUpdate).toHaveBeenCalledWith(
+        mockUsuarioData._id,
+        { status: 'inativo' },
+        { new: true }
+      );
+      expect(usuarioAtualizado.status).toBe('inativo');
+    });
+
     it('deve lançar erro ao tentar alterar usuário inexistente', async () => {
       MockUsuarioModel.findByIdAndUpdate.mockResolvedValue(null);
       await expect(usuarioRepository.alterar(mockUsuarioData._id, { nome: 'Alterado' })).rejects.toThrow(
