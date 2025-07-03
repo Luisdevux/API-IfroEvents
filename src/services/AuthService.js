@@ -146,10 +146,10 @@ class AuthService {
         }
 
         // ───────────────────────────────────────────────
-        // Passo 4 – Enviar e-mail com código + link
+        // Passo 4 – Enviar e-mail com token + link
         // ───────────────────────────────────────────────
         /**
-         * Usar CHAVE MAIL_API_KEI no .env para requisitar o envio de e-mail em https://edurondon.tplinkdns.com/mail/emails/send
+         * Usar CHAVE MAIL_API_KEY no .env para requisitar o envio de e-mail em https://edurondon.tplinkdns.com/mail/emails/send
          * Exemplo de corpo do e-mail:
          * Corpo do e-mail:
          * {
@@ -185,14 +185,15 @@ class AuthService {
 
 
         // Criar função para fazer a chamada para enviar o e-mai
-        //Necessário passa apiKey presente em MAIL_API_KEY
+        // Necessário passar apiKey presente em MAIL_API_KEY
         const sendMail = async (emailData) => {
             console.log('Enviando e-mail de recuperação de senha para:', emailData.to);
             try {
-                const response = await fetch(`${process.env.MAIL_API_URL}/emails/send?apiKey=${process.env.MAIL_API_KEY}`, {
+                const response = await fetch(`${process.env.MAIL_API_URL}/emails/send`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'x-api-key': process.env.MAIL_API_KEY
                     },
                     body: JSON.stringify(emailData)
                 });
