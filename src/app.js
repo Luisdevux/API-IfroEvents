@@ -8,32 +8,23 @@ import DbConnect from './config/DbConnect.js';
 import errorHandler from './utils/helpers/errorHandler.js';
 import logger from './utils/logger.js';
 import CommonResponse from './utils/helpers/CommonResponse.js';
-import fileUpload from 'express-fileupload';
 
 const app = express();
 
-/* ───────────── 1. Upload de arquivos ───────────── */
-app.use(fileUpload({
-  createParentPath: true,
-  limits: { fileSize: 25 * 1024 * 1024 }, // 5 MB
-  abortOnLimit: true,
-  responseOnLimit: 'Tamanho do arquivo excede o limite permitido.'
-}));
-
-/* ───────────── 2. Conexão ao banco ───────────── */
+/* ───────────── 1. Conexão ao banco ───────────── */
 await DbConnect.conectar();
 
-/* ───────────── 3. Middlewares globais ───────────── */
+/* ───────────── 2. Middlewares globais ───────────── */
 app.use(helmet());
 app.use(cors());
 app.use(compression());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-/* ───────────── 4. Rotas ───────────── */
+/* ───────────── 3. Rotas ───────────── */
 routes(app);
 
-/* ───────────── 5. 404 – rota não encontrada ───────────── */
+/* ───────────── 4. 404 – rota não encontrada ───────────── */
 app.use((req, res) => {
   return CommonResponse.error(
     res,
@@ -44,7 +35,7 @@ app.use((req, res) => {
   );
 });
 
-/* ───────────── 6. Eventos globais de erro não tratado ───────────── */
+/* ───────────── 5. Eventos globais de erro não tratado ───────────── */
 process.on('unhandledRejection', (reason, promise) => {
   logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
 });
@@ -53,7 +44,7 @@ process.on('uncaughtException', (error) => {
   logger.error('Uncaught Exception thrown:', error);
 });
 
-/* ───────────── 7. Middleware central de erros ───────────── */
+/* ───────────── 6. Middleware central de erros ───────────── */
 app.use(errorHandler);
 
 export default app;

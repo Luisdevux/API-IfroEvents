@@ -1,9 +1,10 @@
 // src/controllers/EventoController.js
 
+import { z } from 'zod';
 import EventoService from '../services/EventoService.js';
+import UploadService from '../services/UploadService.js';
 import { EventoSchema, EventoUpdateSchema } from '../utils/validators/schemas/zod/EventoSchema.js';
 import { EventoQuerySchema } from '../utils/validators/schemas/zod/querys/EventoQuerySchema.js';
-import PermissaoSchema from '../utils/validators/schemas/zod/PermissaoSchema.js';
 import objectIdSchema from '../utils/validators/schemas/zod/ObjectIdSchema.js';
 import {
     CommonResponse,
@@ -20,14 +21,16 @@ import QRCode from 'qrcode';
 class EventoController {
     constructor() {
         this.service = new EventoService();
+        this.uploadService = new UploadService();
     }
 
     // POST /eventos
     async cadastrar(req, res) {
         // Pega o usuário autenticado
         const usuarioLogado = req.user;
+        const files = req.files || {};
 
-        const dadosEvento = {
+        let dadosEvento = {
             ...req.body,
             organizador: {
                 _id: usuarioLogado._id,
@@ -35,8 +38,42 @@ class EventoController {
             }
         };
 
-        const parseData = EventoSchema.parse(dadosEvento);
-        const data = await this.service.cadastrar(parseData);
+        const dadosParaValidacaoPrevia = {
+            ...dadosEvento,
+            midiaVideo: [],
+            midiaCapa: [],
+            midiaCarrossel: []
+        };
+        
+        const validacaoPrevia = EventoSchema.safeParse(dadosParaValidacaoPrevia);
+        
+        if (!validacaoPrevia.success) {
+            if (Object.keys(files).length > 0) {
+                this.uploadService.limparArquivosProcessados(files);
+            }
+            
+            throw validacaoPrevia.error;
+        }
+
+        if (Object.keys(files).length > 0) {
+            const midiasProcessadas = await this.uploadService.processarArquivosParaCadastro(files);
+            dadosEvento = { ...dadosEvento, ...midiasProcessadas };
+        }
+
+        const parseData = EventoSchema.safeParse(dadosEvento);
+        if (!parseData.success) {
+            if (Object.keys(files).length > 0) {
+                this.uploadService.limparArquivosProcessados(files);
+            }
+            throw parseData.error;
+        }
+
+        const data = await this.service.cadastrar(parseData.data).catch(error => {
+            if (Object.keys(files).length > 0) {
+                this.uploadService.limparArquivosProcessados(files);
+            }
+            throw error;
+        });
         
         return CommonResponse.created(res, data);
     }
@@ -55,7 +92,13 @@ class EventoController {
             await EventoQuerySchema.parseAsync(query);
         }
         
-        const data = await this.service.listar(req, usuarioId);
+        // Verifica se a requisição é para eventos ativos (totem)
+        const opcoes = {};
+        if (query.apenasVisiveis === 'true' && usuarioId) {
+            opcoes.apenasVisiveis = true;
+        }
+        
+        const data = await this.service.listar(req, usuarioId, opcoes);
         
         if (id && !data) {
             throw new CustomError({
@@ -88,7 +131,13 @@ class EventoController {
         const evento = await this.service.listar(id, req.user?._id);
         
         if(!evento) {
-            throw new CustomError(messages.event.notFound(), HttpStatusCodes.NOT_FOUND.code);
+            throw new CustomError({
+                statusCode: HttpStatusCodes.NOT_FOUND.code,
+                errorType: 'resourceNotFound',
+                field: 'Evento',
+                details: [],
+                customMessage: messages.event.notFound
+            });
         }
         
         const qrCode = await QRCode.toDataURL(evento.linkInscricao);
@@ -117,50 +166,65 @@ class EventoController {
         
         objectIdSchema.parse(id);
         
-        const { status } = req.body;
+        const { status, validarMidias = false } = req.body;
         
-        if(!status || !['ativo', 'inativo', 'cancelado'].includes(status)) {
+        if(!status || !['ativo', 'inativo'].includes(status)) {
             throw new CustomError({
                 statusCode: HttpStatusCodes.BAD_REQUEST.code,
                 errorType: 'validationError',
                 field: 'status',
                 details: [],
-                customMessage: 'Status deve ser ativo, inativo ou cancelado.'
+                customMessage: 'Status deve ser ativo ou inativo.'
             });
+        }
+
+        if (status === 'ativo' && validarMidias) {
+            const evento = await this.service.ensureEventExists(id);
+            await this.service.ensureUserIsOwner(evento, usuarioLogado._id, false);
+            await this.service.validarMidiasObrigatorias(evento);
         }
         
         const data = await this.service.alterarStatus(id, status, usuarioLogado._id);
         
-        return CommonResponse.success(res, data);
+        const message = (status === 'ativo' && validarMidias) ? 'Evento cadastrado e ativado com sucesso!' : 'Status do evento alterado com sucesso!';
+        
+        return CommonResponse.success(res, data, 200, message);
     }
 
-    // PATCH /eventos/:id/permissoes
-    async adicionarPermissao(req, res) {
+    // PATCH /eventos/:id/compartilhar
+    async compartilharPermissao(req, res) {
         const { id } = req.params;
         const usuarioLogado = req.user;
         
         objectIdSchema.parse(id);
         
-        const permissoesData = Array.isArray(req.body) ? req.body : [req.body];
-
-        // Validando cada permissão do array
-        permissoesData.forEach((permissao, index) => {
-            try {
-                PermissaoSchema.parse(permissao);
-            } catch (error) {
-                throw new CustomError({
-                    statusCode: HttpStatusCodes.BAD_REQUEST.code,
-                    errorType: 'validationError',
-                    field: `permissoes[${index}]`,
-                    details: error.errors,
-                    customMessage: `Erro de validação na permissão ${index + 1}.`
-                });
-            }
-        });
-
-        const data = await this.service.adicionarPermissao(id, permissoesData, usuarioLogado._id);
+        const { email, permissao = 'editar', expiraEm } = req.body;
         
-        return CommonResponse.success(res, data);
+        // Validar email
+        if (!email || !email.includes('@')) {
+            throw new CustomError({
+                statusCode: HttpStatusCodes.BAD_REQUEST.code,
+                errorType: 'validationError',
+                field: 'email',
+                details: [],
+                customMessage: 'Email válido é obrigatório.'
+            });
+        }
+
+        // Validar data de expiração
+        if (!expiraEm || new Date(expiraEm) <= new Date()) {
+            throw new CustomError({
+                statusCode: HttpStatusCodes.BAD_REQUEST.code,
+                errorType: 'validationError', 
+                field: 'expiraEm',
+                details: [],
+                customMessage: 'Data de expiração deve ser futura.'
+            });
+        }
+
+        const data = await this.service.compartilharPermissao(id, email, permissao, expiraEm, usuarioLogado._id);
+        
+        return CommonResponse.success(res, data, 200, 'Permissão compartilhada com sucesso!');
     }
 
     // DELETE /eventos/:id
@@ -172,10 +236,7 @@ class EventoController {
         
         const data = await this.service.deletar(id, usuarioLogado._id);
         
-        return CommonResponse.success(res, { 
-            message: messages.success.resourceDeleted('Evento'),
-            data 
-        });
+        return CommonResponse.success(res, { message: messages.validation.generic.resourceDeleted('Evento'), data });
     }
 }
 

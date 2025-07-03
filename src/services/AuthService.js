@@ -167,56 +167,56 @@ class AuthService {
          * 
          */
 
-        // const resetUrl = `https://edurondon.tplinkdns.com/auth/?token=${tokenUnico}`;
-        // console.log('URL de redefinição de senha:', resetUrl);
-        // const emailData = {
-        //     to: userEncontrado.email,
-        //     subject: 'Redefinir senha',
-        //     template: 'password-reset',
-        //     data: {
-        //         name: userEncontrado.nome,
-        //         resetUrl: resetUrl,
-        //         expirationMinutes: 60, // Expiração em minutos
-        //         year: new Date().getFullYear(),
-        //         company: process.env.COMPANY_NAME || 'Auth'
-        //     }
-        // };
-        // console.log('Dados do e-mail:', emailData);
+        const resetUrl = `http://localhost:5013/auth/?token=${tokenUnico}`;
+        console.log('URL de redefinição de senha:', resetUrl);
+        const emailData = {
+            to: userEncontrado.email,
+            subject: 'Redefinir senha',
+            template: 'password-reset',
+            data: {
+                name: userEncontrado.nome,
+                resetUrl: resetUrl,
+                expirationMinutes: 60, // Expiração em minutos
+                year: new Date().getFullYear(),
+                company: process.env.COMPANY_NAME || 'Auth'
+            }
+        };
+        console.log('Dados do e-mail:', emailData);
 
 
-        // // Criar função para fazer a chamada para enviar o e-mai
-        // //Necessário passa apiKey presente em MAIL_API_KEY
-        // const sendMail = async (emailData) => {
-        //     console.log('Enviando e-mail de recuperação de senha para:', emailData.to);
-        //     try {
-        //         const response = await fetch(`https://edurondon.tplinkdns.com/mail/emails/send?apiKey=${process.env.MAIL_API_KEY}`, {
-        //             method: 'POST',
-        //             headers: {
-        //                 'Content-Type': 'application/json',
-        //             },
-        //             body: JSON.stringify(emailData)
-        //         });
-        //         if (!response.ok) {
-        //             throw new Error(`Erro ao enviar e-mail: ${response.status} ${response.statusText}`);
-        //         }
-        //         const responseData = await response.json();
-        //         console.log('E-mail enviado com sucesso:', responseData);
-        //     } catch (error) {
-        //         console.error('Erro ao enviar e-mail:', error);
-        //         throw new CustomError({
-        //             statusCode: HttpStatusCodes.INTERNAL_SERVER_ERROR.code,
-        //             field: 'E-mail',
-        //             details: [],
-        //             customMessage: 'Erro ao enviar e-mail de recuperação de senha.'
-        //         });
-        //     }
-        // };
+        // Criar função para fazer a chamada para enviar o e-mai
+        //Necessário passa apiKey presente em MAIL_API_KEY
+        const sendMail = async (emailData) => {
+            console.log('Enviando e-mail de recuperação de senha para:', emailData.to);
+            try {
+                const response = await fetch(`${process.env.MAIL_API_URL}/emails/send?apiKey=${process.env.MAIL_API_KEY}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(emailData)
+                });
+                if (!response.ok) {
+                    throw new Error(`Erro ao enviar e-mail: ${response.status} ${response.statusText}`);
+                }
+                const responseData = await response.json();
+                console.log('E-mail enviado com sucesso:', responseData);
+            } catch (error) {
+                console.error('Erro ao enviar e-mail:', error);
+                throw new CustomError({
+                    statusCode: HttpStatusCodes.INTERNAL_SERVER_ERROR.code,
+                    field: 'E-mail',
+                    details: [],
+                    customMessage: 'Erro ao enviar e-mail de recuperação de senha.'
+                });
+            }
+        };
 
-        // console.log('Antes de sendMail');
-        // await sendMail(emailData);
-        // console.log('Depois de sendMail');
+        console.log('Antes de sendMail');
+        await sendMail(emailData);
+        console.log('Depois de sendMail');
 
-        // console.log('Enviando e-mail de recuperação de senha');
+        console.log('Enviando e-mail de recuperação de senha');
 
         // ───────────────────────────────────────────────
         // Passo 5 – Retornar resposta ao cliente

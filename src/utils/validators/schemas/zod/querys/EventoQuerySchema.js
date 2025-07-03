@@ -43,12 +43,20 @@ export const EventoQuerySchema = z.object({
 
   // Campo de filtragem por status
   status: z
-    .string()
-    .optional()
-    .refine(
-      (value) => !value || ["ativo", "inativo", "cancelado"].includes(value),
-      { message: "Status deve ser 'ativo', 'inativo' ou 'cancelado'" }
-    ),
+    .union([
+      z.string()
+        .refine(
+          (value) => !value || ["ativo", "inativo"].includes(value),
+          { message: "Status deve ser 'ativo' ou 'inativo'" }
+        ),
+      z.array(
+        z.string().refine(
+          (value) => ["ativo", "inativo"].includes(value),
+          { message: "Cada status deve ser 'ativo' ou 'inativo'" }
+        )
+      )
+    ])
+    .optional(),
 
   // Campo para filtragem por data
   dataInicio: z

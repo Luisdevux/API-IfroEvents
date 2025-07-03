@@ -55,8 +55,17 @@ class EventoFilterBuilder {
     }
 
     comStatus(status) {
-        if (status && ['ativo', 'inativo', 'cancelado'].includes(status)) {
-            this.filtros.status = status;
+        if (status) {
+            if (Array.isArray(status)) {
+                // Se for um array, filtra apenas os valores e cria uma consulta válida
+                const statusValidos = status.filter(s => ['ativo', 'inativo'].includes(s));
+                if (statusValidos.length > 0) {
+                    this.filtros.status = { $in: statusValidos };
+                }
+            } else if (['ativo', 'inativo'].includes(status)) {
+                // Se for uma string única, mantém o comportamento original
+                this.filtros.status = status;
+            }
         }
         return this;
     }
@@ -142,15 +151,14 @@ class EventoFilterBuilder {
         if (usuarioId && mongoose.Types.ObjectId.isValid(usuarioId)) {
             const dataAtual = new Date();
             
-            // Filtra eventos onde:
-            // 1. O usuário é o organizador, OU
-            // 2. O usuário tem permissão válida
             if (!this.filtros.$or) {
                 this.filtros.$or = [];
             }
             
             this.filtros.$or.push(
+                // Eventos próprios (organizador)
                 { 'organizador._id': new mongoose.Types.ObjectId(usuarioId) },
+                // Eventos com permissão compartilhada
                 {
                     permissoes: {
                         $elemMatch: {

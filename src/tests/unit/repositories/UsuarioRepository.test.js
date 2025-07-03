@@ -254,19 +254,4 @@ describe('UsuarioRepository', () => {
         .rejects.toThrow('Usuário não encontrado');
     });
   });
-
-  describe('deletar', () => {
-    it('deve deletar o usuário com sucesso', async () => {
-      MockUsuarioModel.findByIdAndDelete.mockResolvedValue(mockUsuarioData);
-      const usuario = await usuarioRepository.deletar(mockUsuarioData._id);
-      expect(MockUsuarioModel.findByIdAndDelete).toHaveBeenCalledWith(mockUsuarioData._id);
-      expect(usuario).toEqual(mockUsuarioData);
-    });
-
-    it('deve retornar null se o usuário não existir ao deletar', async () => {
-      MockUsuarioModel.findByIdAndDelete.mockResolvedValue(null);
-      const usuario = await usuarioRepository.deletar('id-inexistente');
-      expect(usuario).toBeNull();
-    });
-  });
 });

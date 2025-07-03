@@ -69,12 +69,6 @@ class UsuarioController {
 
       return CommonResponse.success(res, usuarioLimpo, 200, 'Usuário atualizado com sucesso.');
     };
-    
-    // DELETE /usuarios/:id
-     async deletar(req, res) {
-       const { id } = req.params || {};
-
-       objectIdSchema.parse(id);
 
        const data = await this.service.deletar(id);
        return CommonResponse.success(res, data, 200, 'Usuário excluído com sucesso.');

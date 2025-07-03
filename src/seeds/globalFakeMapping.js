@@ -26,10 +26,9 @@ const fakeMappings = {
         email: () => faker.internet.email(),
         senha: () => faker.internet.password(),
         tokenUnico: () => TokenUtil.generateAccessToken(new mongoose.Types.ObjectId().toString()),
+        exp_tokenUnico_recuperacao: () => faker.date.future({ minutes: 60 }),
         refreshtoken: () => TokenUtil.generateRefreshToken(new mongoose.Types.ObjectId().toString()),
         accesstoken: () => TokenUtil.generateAccessToken(new mongoose.Types.ObjectId().toString()),
-        codigo_recupera_senha: () => faker.random.alphaNumeric(10).toUpperCase(),
-        exp_codigo_recupera_senha: () => faker.date.future({ minutes: 60 }),
     },
 
     // Mapping específico para o model Evento
@@ -71,10 +70,17 @@ const fakeMappings = {
                 _id: new mongoose.Types.ObjectId(),
                 url:  faker.internet.url() + "/" + uuid() + ".jpg",
                 tamanhoMb: faker.number.float({ max: 25 }),
-                altura: 768,
-                largura: 1024,
+                altura: 720,
+                largura: 1280,
             },
         ],
+        permissoes: () => [
+          {
+              usuario: new mongoose.Types.ObjectId(),
+              permissao: faker.helpers.arrayElement(['editar']),
+              expiraEm: faker.date.future({ days: 30 })
+          },
+      ]
     }
 }
 
