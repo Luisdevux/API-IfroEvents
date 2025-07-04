@@ -12,10 +12,18 @@ const mockRepository = {
   alterar: jest.fn(),
   alterarStatus: jest.fn(),
   deletar: jest.fn(),
+  model: {
+    updateOne: jest.fn()
+  }
+};
+
+const mockUsuarioRepository = {
+  buscarPorEmail: jest.fn()
 };
 
 const eventoService = new EventoService();
 eventoService.repository = mockRepository;
+eventoService.usuarioRepository = mockUsuarioRepository;
 
 // Mock dos métodos auxiliares
 eventoService.ensureEventExists = jest.fn();
@@ -83,9 +91,8 @@ const eventoFake = {
 describe("EventoService", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    eventoService.ensureEventExists.mockClear();
-    eventoService.ensureUserIsOwner.mockClear();
-    eventoService.validarMidiasObrigatorias.mockClear();
+    mockUsuarioRepository.buscarPorEmail.mockClear();
+    mockRepository.model.updateOne.mockClear();
   });
 
 
@@ -265,6 +272,237 @@ describe("EventoService", () => {
       mockRepository.deletar.mockRejectedValue(new Error("Erro no banco"));
       
       await expect(eventoService.deletar(eventoFake._id, mockUsuario._id)).rejects.toThrow("Erro no banco");
+    });
+  });
+
+  // =====================================================
+  // Testes para o método compartilharPermissao
+  // =====================================================
+  describe('compartilharPermissao', () => {
+    const usuarioDestino = {
+      _id: new mongoose.Types.ObjectId().toString(),
+      email: 'destino@example.com',
+      nome: 'Usuario Destino'
+    };
+
+    beforeEach(() => {
+      // Reset para usar os métodos reais nos testes auxiliares
+      eventoService.ensureEventExists = EventoService.prototype.ensureEventExists;
+      eventoService.ensureUserIsOwner = EventoService.prototype.ensureUserIsOwner;
+    });
+
+    it('deve compartilhar permissão com sucesso', async () => {
+      const eventoComPermissoes = { ...eventoFake, permissoes: [] };
+      
+      mockRepository.listarPorId.mockResolvedValue(eventoComPermissoes);
+      mockUsuarioRepository.buscarPorEmail.mockResolvedValue(usuarioDestino);
+      mockRepository.model.updateOne.mockResolvedValue({ acknowledged: true });
+      mockRepository.listarPorId.mockResolvedValueOnce(eventoComPermissoes);
+
+      const result = await eventoService.compartilharPermissao(
+        eventoFake._id,
+        usuarioDestino.email,
+        'editar',
+        '2024-12-31T23:59:59.999Z',
+        mockUsuario._id
+      );
+
+      expect(mockUsuarioRepository.buscarPorEmail).toHaveBeenCalledWith(usuarioDestino.email);
+      expect(mockRepository.model.updateOne).toHaveBeenCalled();
+      expect(result).toEqual(eventoComPermissoes);
+    });
+
+    it('deve lançar erro se usuário destinatário não for encontrado', async () => {
+      mockRepository.listarPorId.mockResolvedValue(eventoFake);
+      mockUsuarioRepository.buscarPorEmail.mockResolvedValue(null);
+
+      await expect(eventoService.compartilharPermissao(
+        eventoFake._id,
+        'naoexiste@example.com',
+        'editar',
+        '2024-12-31T23:59:59.999Z',
+        mockUsuario._id
+      )).rejects.toThrow('Usuário com email naoexiste@example.com não encontrado.');
+    });
+
+    it('deve lançar erro se usuário tentar compartilhar consigo mesmo', async () => {
+      const usuarioComMesmoId = { ...usuarioDestino, _id: mockUsuario._id };
+      
+      mockRepository.listarPorId.mockResolvedValue(eventoFake);
+      mockUsuarioRepository.buscarPorEmail.mockResolvedValue(usuarioComMesmoId);
+
+      await expect(eventoService.compartilharPermissao(
+        eventoFake._id,
+        usuarioDestino.email,
+        'editar',
+        '2024-12-31T23:59:59.999Z',
+        mockUsuario._id
+      )).rejects.toThrow('Você não pode compartilhar o evento consigo mesmo.');
+    });
+
+    it('deve lançar erro se usuário já possui permissão ativa', async () => {
+      const futureDate = new Date();
+      futureDate.setFullYear(futureDate.getFullYear() + 1);
+      
+      const eventoComPermissaoAtiva = {
+        ...eventoFake,
+        permissoes: [{
+          usuario: usuarioDestino._id,
+          permissao: 'editar',
+          expiraEm: futureDate.toISOString()
+        }]
+      };
+      
+      mockRepository.listarPorId.mockResolvedValue(eventoComPermissaoAtiva);
+      mockUsuarioRepository.buscarPorEmail.mockResolvedValue(usuarioDestino);
+
+      await expect(eventoService.compartilharPermissao(
+        eventoFake._id,
+        usuarioDestino.email,
+        'editar',
+        '2024-12-31T23:59:59.999Z',
+        mockUsuario._id
+      )).rejects.toThrow(`Usuário ${usuarioDestino.email} já possui permissão ativa para este evento.`);
+    });
+  });
+
+  // =====================================================
+  // Testes para métodos auxiliares
+  // =====================================================
+  describe('Métodos auxiliares', () => {
+    beforeEach(() => {
+      // Reset para usar os métodos reais
+      eventoService.ensureEventExists = EventoService.prototype.ensureEventExists;
+      eventoService.ensureUserIsOwner = EventoService.prototype.ensureUserIsOwner;
+      eventoService.validarMidiasObrigatorias = EventoService.prototype.validarMidiasObrigatorias;
+    });
+
+    describe('ensureEventExists', () => {
+      it('deve retornar evento se existir', async () => {
+        mockRepository.listarPorId.mockResolvedValue(eventoFake);
+
+        const result = await eventoService.ensureEventExists(eventoFake._id);
+
+        expect(result).toEqual(eventoFake);
+        expect(mockRepository.listarPorId).toHaveBeenCalledWith(eventoFake._id);
+      });
+
+      it('deve lançar erro se evento não existir', async () => {
+        mockRepository.listarPorId.mockResolvedValue(null);
+
+        await expect(eventoService.ensureEventExists(eventoFake._id)).rejects.toThrow(CustomError);
+      });
+
+      it('deve lançar erro se ID for inválido', async () => {
+        await expect(eventoService.ensureEventExists(invalidId)).rejects.toThrow();
+      });
+    });
+
+    describe('ensureUserIsOwner', () => {
+      it('deve permitir acesso ao proprietário do evento', async () => {
+        await expect(
+          eventoService.ensureUserIsOwner(eventoFake, mockUsuario._id)
+        ).resolves.not.toThrow();
+      });
+
+      it('deve permitir acesso a usuário com permissão compartilhada válida', async () => {
+        const outroUsuarioId = new mongoose.Types.ObjectId().toString();
+        const futureDate = new Date();
+        futureDate.setFullYear(futureDate.getFullYear() + 1);
+        
+        const eventoComPermissao = {
+          ...eventoFake,
+          permissoes: [{
+            usuario: outroUsuarioId,
+            permissao: 'editar',
+            expiraEm: futureDate.toISOString()
+          }]
+        };
+
+        await expect(
+          eventoService.ensureUserIsOwner(eventoComPermissao, outroUsuarioId, false)
+        ).resolves.not.toThrow();
+      });
+
+      it('deve bloquear acesso quando ownerOnly=true e usuário não é proprietário', async () => {
+        const outroUsuarioId = new mongoose.Types.ObjectId().toString();
+
+        await expect(
+          eventoService.ensureUserIsOwner(eventoFake, outroUsuarioId, true)
+        ).rejects.toThrow('Apenas o proprietário do evento pode realizar esta operação.');
+      });
+
+      it('deve bloquear acesso para usuário sem permissão', async () => {
+        const outroUsuarioId = new mongoose.Types.ObjectId().toString();
+
+        await expect(
+          eventoService.ensureUserIsOwner(eventoFake, outroUsuarioId, false)
+        ).rejects.toThrow('Você não tem permissão para manipular este evento.');
+      });
+
+      it('deve bloquear acesso para usuário com permissão expirada', async () => {
+        const outroUsuarioId = new mongoose.Types.ObjectId().toString();
+        const pastDate = new Date();
+        pastDate.setFullYear(pastDate.getFullYear() - 1);
+        
+        const eventoComPermissaoExpirada = {
+          ...eventoFake,
+          permissoes: [{
+            usuario: outroUsuarioId,
+            permissao: 'editar',
+            expiraEm: pastDate.toISOString()
+          }]
+        };
+
+        await expect(
+          eventoService.ensureUserIsOwner(eventoComPermissaoExpirada, outroUsuarioId, false)
+        ).rejects.toThrow('Você não tem permissão para manipular este evento.');
+      });
+    });
+
+    describe('validarMidiasObrigatorias', () => {
+      it('deve passar validação quando todas as mídias estão presentes', async () => {
+        await expect(
+          eventoService.validarMidiasObrigatorias(eventoFake)
+        ).resolves.not.toThrow();
+      });
+
+      it('deve lançar erro quando vídeo está ausente', async () => {
+        const eventoSemVideo = { ...eventoFake, midiaVideo: [] };
+
+        await expect(
+          eventoService.validarMidiasObrigatorias(eventoSemVideo)
+        ).rejects.toThrow('Vídeo é obrigatório');
+      });
+
+      it('deve lançar erro quando capa está ausente', async () => {
+        const eventoSemCapa = { ...eventoFake, midiaCapa: [] };
+
+        await expect(
+          eventoService.validarMidiasObrigatorias(eventoSemCapa)
+        ).rejects.toThrow('Capa é obrigatória');
+      });
+
+      it('deve lançar erro quando carrossel está ausente', async () => {
+        const eventoSemCarrossel = { ...eventoFake, midiaCarrossel: [] };
+
+        await expect(
+          eventoService.validarMidiasObrigatorias(eventoSemCarrossel)
+        ).rejects.toThrow('Carrossel é obrigatório');
+      });
+
+      it('deve lançar erro com todas as mídias ausentes', async () => {
+        const eventoSemMidias = { 
+          ...eventoFake, 
+          midiaVideo: [], 
+          midiaCapa: [], 
+          midiaCarrossel: [] 
+        };
+
+        await expect(
+          eventoService.validarMidiasObrigatorias(eventoSemMidias)
+        ).rejects.toThrow('Vídeo é obrigatório, Capa é obrigatória, Carrossel é obrigatório');
+      });
     });
   });
 });
