@@ -27,6 +27,24 @@ jest.mock('../../../utils/helpers/index.js', () => ({
   },
 }));
 
+// mock do EventoFilterBuilder
+jest.mock('../../../repositories/filters/EventoFilterBuilder.js', () => {
+  return jest.fn().mockImplementation(() => {
+    return {
+      comTitulo: jest.fn().mockReturnThis(),
+      comDescricao: jest.fn().mockReturnThis(),
+      comLocal: jest.fn().mockReturnThis(),
+      comCategoria: jest.fn().mockReturnThis(),
+      comStatus: jest.fn().mockReturnThis(),
+      comTags: jest.fn().mockReturnThis(),
+      comPermissao: jest.fn().mockReturnThis(),
+      comTipo: jest.fn().mockReturnThis(),
+      comIntervaloData: jest.fn().mockReturnThis(),
+      build: jest.fn().mockReturnValue({}),
+    };
+  });
+});
+
 // mock dos métodos da model
 const MockEventoModel = {
   create: jest.fn(),
@@ -34,6 +52,7 @@ const MockEventoModel = {
   findById: jest.fn(),
   findByIdAndUpdate: jest.fn(),
   findByIdAndDelete: jest.fn(),
+  paginate: jest.fn(),
 };
 
 // mock dos dados a serem utilizados para os testes
@@ -167,21 +186,31 @@ describe('EventoRepository', () => {
   describe('Listar', () => {
     // Testa listagem de eventos e erros de listagem
     it('deve listar todos os eventos', async () => {
-      MockEventoModel.find.mockResolvedValue([mockEventoData]);
+      const mockResultado = {
+        docs: [mockEventoData],
+        totalPages: 1,
+        page: 1,
+        limit: 10,
+        totalDocs: 1
+      };
+      
+      MockEventoModel.paginate.mockResolvedValue(mockResultado);
 
-      const eventos = await eventoRepository.listar();
+      const mockReq = { params: {}, query: {} };
+      const eventos = await eventoRepository.listar(mockReq);
 
-      expect(MockEventoModel.find).toHaveBeenCalled();
-      expect(eventos).toEqual([mockEventoData]);
+      expect(MockEventoModel.paginate).toHaveBeenCalled();
+      expect(eventos).toEqual(mockResultado);
     });
 
 
     it('deve lançar erro ao listar todos os eventos quando find falha', async () => {
-      MockEventoModel.find.mockImplementation(() => {
+      MockEventoModel.paginate.mockImplementation(() => {
         throw new Error('Erro no banco de dados ao listar');
       });
 
-      await expect(eventoRepository.listar()).rejects.toThrow('Erro no banco de dados ao listar');
+      const mockReq = { params: {}, query: {} };
+      await expect(eventoRepository.listar(mockReq)).rejects.toThrow('Erro no banco de dados ao listar');
     });
   });
 
@@ -299,12 +328,10 @@ describe('EventoRepository', () => {
     });
 
 
-    it('deve retornar null ao tentar deletar evento inexistente', async () => {
+    it('deve lançar erro ao tentar deletar evento inexistente', async () => {
       MockEventoModel.findByIdAndDelete.mockResolvedValue(null);
 
-      const resultado = await eventoRepository.deletar(mockEventoData._id);
-
-      expect(resultado).toBeNull();
+      await expect(eventoRepository.deletar(mockEventoData._id)).rejects.toThrow('Evento não encontrado');
     });
 
 

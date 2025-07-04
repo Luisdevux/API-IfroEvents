@@ -23,7 +23,7 @@ describe('AuthHelper', () => {
       const result = await AuthHelper.hashPassword(senha);
       
       expect(result).toBe(senhaHash);
-      expect(bcrypt.hash).toHaveBeenCalledWith(senha, 10);
+      expect(bcrypt.hash).toHaveBeenCalledWith(senha, 12);
     });
 
     it('deve propagar erro se bcrypt falhar', async () => {

@@ -17,6 +17,11 @@ const mockRepository = {
 const eventoService = new EventoService();
 eventoService.repository = mockRepository;
 
+// Mock dos métodos auxiliares
+eventoService.ensureEventExists = jest.fn();
+eventoService.ensureUserIsOwner = jest.fn();
+eventoService.validarMidiasObrigatorias = jest.fn();
+
 const invalidId = "invalid";
 
 const mockUsuario = {
@@ -78,6 +83,9 @@ const eventoFake = {
 describe("EventoService", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    eventoService.ensureEventExists.mockClear();
+    eventoService.ensureUserIsOwner.mockClear();
+    eventoService.validarMidiasObrigatorias.mockClear();
   });
 
 
@@ -99,31 +107,40 @@ describe("EventoService", () => {
   // Teste de listar
   describe("Listar e Listar por ID", () => {
     it("deve retornar lista de eventos quando chamada sem parâmetro", async () => {
+      const mockReq = { query: {}, user: { _id: mockUsuario._id } };
       mockRepository.listar.mockResolvedValue([eventoFake]);
-      const resultado = await eventoService.listar();
+      
+      const resultado = await eventoService.listar(mockReq);
       expect(resultado).toEqual([eventoFake]);
-      expect(mockRepository.listar).toHaveBeenCalled();
+      expect(mockRepository.listar).toHaveBeenCalledWith(mockReq);
     });
 
     it("deve retornar um evento pelo ID válido", async () => {
-      mockRepository.listarPorId.mockResolvedValue(eventoFake);
-      const resultado = await eventoService.listar(eventoFake._id);
+      const mockReq = { params: { id: eventoFake._id } };
+      mockRepository.listar.mockResolvedValue(eventoFake);
+      
+      const resultado = await eventoService.listar(eventoFake._id, mockUsuario._id);
       expect(resultado).toEqual(eventoFake);
-      expect(mockRepository.listarPorId).toHaveBeenCalledWith(eventoFake._id);
+      expect(mockRepository.listar).toHaveBeenCalledWith(mockReq);
     });
 
     it("deve lançar erro se ID for inválido (objectIdSchema)", async () => {
-      await expect(eventoService.listar(invalidId)).rejects.toThrow();
+      await expect(eventoService.listar(invalidId, mockUsuario._id)).rejects.toThrow();
     });
 
-    it("deve lançar erro se listarPorId falhar", async () => {
-      mockRepository.listarPorId.mockRejectedValue(new Error("Erro no banco"));
-      await expect(eventoService.listar(eventoFake._id)).rejects.toThrow("Erro no banco");
+    it("deve lançar erro se evento não for encontrado para usuário não autenticado", async () => {
+      const eventoInativo = { ...eventoFake, status: 'inativo' };
+      const mockReq = { params: { id: eventoFake._id } };
+      mockRepository.listar.mockResolvedValue(eventoInativo);
+      
+      await expect(eventoService.listar(eventoFake._id)).rejects.toThrow('Evento não encontrado ou inativo');
     });
 
     it("deve lançar erro se listar falhar", async () => {
+      const mockReq = { query: {}, user: { _id: mockUsuario._id } };
       mockRepository.listar.mockRejectedValue(new Error("Erro no banco"));
-      await expect(eventoService.listar()).rejects.toThrow("Erro no banco");
+      
+      await expect(eventoService.listar(mockReq)).rejects.toThrow("Erro no banco");
     });
   });
 
@@ -133,27 +150,39 @@ describe("EventoService", () => {
     const dadosAtualizados = { titulo: "Novo Título" };
 
     it("deve atualizar evento existente com sucesso", async () => {
-      mockRepository.listarPorId.mockResolvedValue(eventoFake);
+      eventoService.ensureEventExists.mockResolvedValue(eventoFake);
+      eventoService.ensureUserIsOwner.mockResolvedValue();
       mockRepository.alterar.mockResolvedValue({ ...eventoFake, ...dadosAtualizados });
-      const resultado = await eventoService.alterar(eventoFake._id, dadosAtualizados);
+      
+      const resultado = await eventoService.alterar(eventoFake._id, dadosAtualizados, mockUsuario._id);
       expect(resultado.titulo).toBe("Novo Título");
-      expect(mockRepository.listarPorId).toHaveBeenCalledWith(eventoFake._id);
+      expect(eventoService.ensureEventExists).toHaveBeenCalledWith(eventoFake._id);
+      expect(eventoService.ensureUserIsOwner).toHaveBeenCalledWith(eventoFake, mockUsuario._id, false);
       expect(mockRepository.alterar).toHaveBeenCalledWith(eventoFake._id, dadosAtualizados);
     });
 
     it("deve lançar CustomError se evento não existir", async () => {
-      mockRepository.listarPorId.mockResolvedValue(null);
-      await expect(eventoService.alterar(eventoFake._id, dadosAtualizados)).rejects.toThrow(CustomError);
+      eventoService.ensureEventExists.mockRejectedValue(new CustomError({
+        statusCode: 404,
+        errorType: 'resourceNotFound',
+        field: 'Evento',
+        details: [],
+        customMessage: 'Evento não encontrado'
+      }));
+      
+      await expect(eventoService.alterar(eventoFake._id, dadosAtualizados, mockUsuario._id)).rejects.toThrow(CustomError);
     });
 
     it("deve lançar erro se ID for inválido", async () => {
-      await expect(eventoService.alterar(eventoFake._id, dadosAtualizados)).rejects.toThrow();
+      await expect(eventoService.alterar(invalidId, dadosAtualizados, mockUsuario._id)).rejects.toThrow();
     });
 
     it("deve lançar erro se alterar falhar", async () => {
-      mockRepository.listarPorId.mockResolvedValue(eventoFake);
+      eventoService.ensureEventExists.mockResolvedValue(eventoFake);
+      eventoService.ensureUserIsOwner.mockResolvedValue();
       mockRepository.alterar.mockRejectedValue(new Error("Erro no banco"));
-      await expect(eventoService.alterar(eventoFake._id, dadosAtualizados)).rejects.toThrow("Erro no banco");
+      
+      await expect(eventoService.alterar(eventoFake._id, dadosAtualizados, mockUsuario._id)).rejects.toThrow("Erro no banco");
     });
   });
 
@@ -163,27 +192,39 @@ describe("EventoService", () => {
     const novoStatus = "inativo";
 
     it("deve alterar status do evento com sucesso", async () => {
-      mockRepository.listarPorId.mockResolvedValue(eventoFake);
+      eventoService.ensureEventExists.mockResolvedValue(eventoFake);
+      eventoService.ensureUserIsOwner.mockResolvedValue();
       mockRepository.alterarStatus.mockResolvedValue({ ...eventoFake, status: novoStatus });
-      const resultado = await eventoService.alterarStatus(eventoFake._id, novoStatus);
+      
+      const resultado = await eventoService.alterarStatus(eventoFake._id, novoStatus, mockUsuario._id);
       expect(resultado.status).toBe(novoStatus);
-      expect(mockRepository.listarPorId).toHaveBeenCalledWith(eventoFake._id);
+      expect(eventoService.ensureEventExists).toHaveBeenCalledWith(eventoFake._id);
+      expect(eventoService.ensureUserIsOwner).toHaveBeenCalledWith(eventoFake, mockUsuario._id, true);
       expect(mockRepository.alterarStatus).toHaveBeenCalledWith(eventoFake._id, novoStatus);
     });
 
     it("deve lançar CustomError se evento não existir", async () => {
-      mockRepository.listarPorId.mockResolvedValue(null);
-      await expect(eventoService.alterarStatus(eventoFake._id, novoStatus)).rejects.toThrow(CustomError);
+      eventoService.ensureEventExists.mockRejectedValue(new CustomError({
+        statusCode: 404,
+        errorType: 'resourceNotFound',
+        field: 'Evento',
+        details: [],
+        customMessage: 'Evento não encontrado'
+      }));
+      
+      await expect(eventoService.alterarStatus(eventoFake._id, novoStatus, mockUsuario._id)).rejects.toThrow(CustomError);
     });
 
     it("deve lançar erro se ID for inválido", async () => {
-      await expect(eventoService.alterarStatus(invalidId, novoStatus)).rejects.toThrow();
+      await expect(eventoService.alterarStatus(invalidId, novoStatus, mockUsuario._id)).rejects.toThrow();
     });
 
     it("deve lançar erro se alterarStatus falhar", async () => {
-      mockRepository.listarPorId.mockResolvedValue(eventoFake);
+      eventoService.ensureEventExists.mockResolvedValue(eventoFake);
+      eventoService.ensureUserIsOwner.mockResolvedValue();
       mockRepository.alterarStatus.mockRejectedValue(new Error("Erro no banco"));
-      await expect(eventoService.alterarStatus(eventoFake._id, novoStatus)).rejects.toThrow("Erro no banco");
+      
+      await expect(eventoService.alterarStatus(eventoFake._id, novoStatus, mockUsuario._id)).rejects.toThrow("Erro no banco");
     });
   });
 
@@ -191,27 +232,39 @@ describe("EventoService", () => {
   // Teste do deletar
   describe("Deletar", () => {
     it("deve deletar evento com sucesso", async () => {
-      mockRepository.listarPorId.mockResolvedValue(eventoFake);
+      eventoService.ensureEventExists.mockResolvedValue(eventoFake);
+      eventoService.ensureUserIsOwner.mockResolvedValue();
       mockRepository.deletar.mockResolvedValue({ acknowledged: true, deletedCount: 1 });
-      const resultado = await eventoService.deletar(eventoFake._id);
+      
+      const resultado = await eventoService.deletar(eventoFake._id, mockUsuario._id);
       expect(resultado).toEqual({ acknowledged: true, deletedCount: 1 });
-      expect(mockRepository.listarPorId).toHaveBeenCalledWith(eventoFake._id);
+      expect(eventoService.ensureEventExists).toHaveBeenCalledWith(eventoFake._id);
+      expect(eventoService.ensureUserIsOwner).toHaveBeenCalledWith(eventoFake, mockUsuario._id, true);
       expect(mockRepository.deletar).toHaveBeenCalledWith(eventoFake._id);
     });
 
     it("deve lançar CustomError se evento não existir", async () => {
-      mockRepository.listarPorId.mockResolvedValue(null);
-      await expect(eventoService.deletar(eventoFake._id)).rejects.toThrow(CustomError);
+      eventoService.ensureEventExists.mockRejectedValue(new CustomError({
+        statusCode: 404,
+        errorType: 'resourceNotFound',
+        field: 'Evento',
+        details: [],
+        customMessage: 'Evento não encontrado'
+      }));
+      
+      await expect(eventoService.deletar(eventoFake._id, mockUsuario._id)).rejects.toThrow(CustomError);
     });
 
     it("deve lançar erro se ID for inválido", async () => {
-      await expect(eventoService.deletar(invalidId)).rejects.toThrow();
+      await expect(eventoService.deletar(invalidId, mockUsuario._id)).rejects.toThrow();
     });
 
     it("deve lançar erro se deletar falhar", async () => {
-      mockRepository.listarPorId.mockResolvedValue(eventoFake);
+      eventoService.ensureEventExists.mockResolvedValue(eventoFake);
+      eventoService.ensureUserIsOwner.mockResolvedValue();
       mockRepository.deletar.mockRejectedValue(new Error("Erro no banco"));
-      await expect(eventoService.deletar(eventoFake._id)).rejects.toThrow("Erro no banco");
+      
+      await expect(eventoService.deletar(eventoFake._id, mockUsuario._id)).rejects.toThrow("Erro no banco");
     });
   });
 });

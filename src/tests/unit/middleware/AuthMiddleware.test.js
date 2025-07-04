@@ -53,6 +53,13 @@ jest.mock('../../../services/AuthService.js', () => {
           return mocks.carregatokens(...args);
         }
         return Promise.resolve({ data: { refreshtoken: null } });
+      },
+      repository: {
+        listarPorId: jest.fn().mockResolvedValue({
+          _id: 'user-123',
+          nome: 'Test User',
+          email: 'test@example.com'
+        })
       }
     };
   });
@@ -108,6 +115,10 @@ describe('AuthMiddleware', () => {
       req.headers.authorization = 'Bearer valid-token';
       
       jwt.verify.mockReturnValue({ id: 'user-123' });
+      
+      mocks.carregatokens.mockResolvedValue({
+        data: { accesstoken: 'valid-access-token' }
+      });
 
       await authMiddleware(req, res, next);
 
@@ -141,16 +152,24 @@ describe('AuthMiddleware', () => {
       await authMiddleware(req, res, next);
 
       expect(next).toHaveBeenCalledWith(expect.any(AuthenticationError));
-      expect(next.mock.calls[0][0].message).toBe("O token de autenticação não existe!");
+      expect(next.mock.calls[0][0].message).toBe("Token não informado!");
     });
 
     it('deve rejeitar tokens com formato inválido', async () => {
       req.headers.authorization = 'Invalid token';
+      
+      const jwtError = new Error('Token inválido');
+      jwtError.name = 'JsonWebTokenError';
+      jwt.verify.mockImplementation(() => {
+        throw jwtError;
+      });
 
       await authMiddleware(req, res, next);
 
-      expect(next).toHaveBeenCalledWith(expect.any(AuthenticationError));
-      expect(next.mock.calls[0][0].message).toBe("Formato do token de autenticação inválido!");
+      expect(next).toHaveBeenCalledWith(expect.objectContaining({
+        name: 'AuthenticationError',
+        message: "Token JWT inválido!"
+      }));
     });
 
     it('deve processar um token válido corretamente', async () => {
@@ -195,11 +214,19 @@ describe('AuthMiddleware', () => {
 
     it('deve rejeitar quando scheme é Bearer mas token está vazio', async () => {
       req.headers.authorization = 'Bearer ';
+      
+      const jwtError = new Error('Token vazio');
+      jwtError.name = 'JsonWebTokenError';
+      jwt.verify.mockImplementation(() => {
+        throw jwtError;
+      });
 
       await authMiddleware(req, res, next);
 
-      expect(next).toHaveBeenCalledWith(expect.any(AuthenticationError));
-      expect(next.mock.calls[0][0].message).toBe("Formato do token de autenticação inválido!");
+      expect(next).toHaveBeenCalledWith(expect.objectContaining({
+        name: 'AuthenticationError',
+        message: "Token JWT inválido!"
+      }));
   });
 });
 
@@ -233,7 +260,7 @@ describe('AuthMiddleware', () => {
       await authMiddleware(req, res, next);
 
       expect(next).toHaveBeenCalledWith(expect.any(TokenExpiredError));
-      expect(next.mock.calls[0][0].message).toBe("Teste novamente, o token JWT está expirado! ");
+      expect(next.mock.calls[0][0].message).toBe("Token JWT expirado, faça login novamente.");
     });
 
     it('deve passar outros erros para o próximo middleware', async () => {
@@ -257,7 +284,7 @@ describe('AuthMiddleware', () => {
       await authMiddleware(req, res, next);
 
       expect(next).toHaveBeenCalledWith(expect.any(TokenExpiredError));
-      expect(next.mock.calls[0][0].message).toBe("Teste novamente, o token JWT está expirado! ");
+      expect(next.mock.calls[0][0].message).toBe("Token JWT expirado, faça login novamente.");
     });
   });
 });

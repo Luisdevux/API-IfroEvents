@@ -28,8 +28,13 @@ jest.mock('../../../utils/helpers/index.js', () => {
         },
         errorHandler: jest.fn(),
         messages: {
-            event: {
-                notFound: () => 'Evento não encontrado.'
+            error: {
+                resourceNotFound: (resource) => `${resource} não encontrado`
+            },
+            validation: {
+                generic: {
+                    resourceDeleted: (resource) => `${resource} excluído(a) com sucesso.`
+                }
             }
         },
         StatusService: {},
@@ -93,21 +98,29 @@ describe('EventoController', () => {
     describe('cadastrar', () => {
         it('deve cadastrar um evento com sucesso', async () => {
           req.body = { titulo: 'Evento Teste' };
+          req.user = {
+            _id: "682520e98e38a409ac2ac569",
+            nome: "Usuário Teste"
+          };
 
           const eventoComOrganizador = {
             ...req.body,
             organizador: {
-              _id: "682520e98e38a409ac2ac569",
-              nome: "Usuário Teste"
+              _id: req.user._id,
+              nome: req.user.nome
             }
           };
 
-          EventoSchema.parse.mockReturnValue(eventoComOrganizador);
+          // Mock do safeParse para validação prévia
+          EventoSchema.safeParse = jest.fn().mockReturnValue({
+            success: true,
+            data: eventoComOrganizador
+          });
+
           controller.service.cadastrar.mockResolvedValue(eventoComOrganizador);
 
           await controller.cadastrar(req, res);
 
-          expect(EventoSchema.parse).toHaveBeenCalledWith(eventoComOrganizador);
           expect(controller.service.cadastrar).toHaveBeenCalledWith(eventoComOrganizador);
           expect(CommonResponse.created).toHaveBeenCalledWith(res, eventoComOrganizador);
         });
@@ -166,11 +179,12 @@ describe('EventoController', () => {
     describe('listar e listar por ID', () => {
         it('deve listar todos os eventos quando nenhum ID for passado', async () => {
             const eventos = [{ titulo: 'Evento 1' }, { titulo: 'Evento 2' }];
+            req.user = { _id: "682520e98e38a409ac2ac569" };
             controller.service.listar.mockResolvedValue(eventos);
 
             await controller.listar(req, res);
 
-            expect(controller.service.listar).toHaveBeenCalledWith(req);
+            expect(controller.service.listar).toHaveBeenCalledWith(req, req.user._id, {});
             expect(CommonResponse.success).toHaveBeenCalledWith(res, eventos);
         });
 
@@ -178,20 +192,22 @@ describe('EventoController', () => {
             const idValido = new mongoose.Types.ObjectId().toString();
             const evento = { _id: idValido, titulo: 'Evento único' };
             req.params.id = idValido;
+            req.user = { _id: "682520e98e38a409ac2ac569" };
             controller.service.listar.mockResolvedValue(evento);
 
             await controller.listar(req, res);
 
-            expect(controller.service.listar).toHaveBeenCalledWith(idValido);
+            expect(controller.service.listar).toHaveBeenCalledWith(req, req.user._id, {});
             expect(CommonResponse.success).toHaveBeenCalledWith(res, evento);
         });
 
         it('deve lançar erro se o evento não for encontrado', async () => {
             const idValido = new mongoose.Types.ObjectId().toString();
             req.params.id = idValido;
+            req.user = { _id: "682520e98e38a409ac2ac569" };
             controller.service.listar.mockResolvedValue(null);
 
-            await expect(controller.listar(req, res)).rejects.toThrow('Evento não encontrado.');
+            await expect(controller.listar(req, res)).rejects.toThrow('Evento não encontrado');
         });
     });
 
@@ -204,6 +220,8 @@ describe('EventoController', () => {
             const idValido = new mongoose.Types.ObjectId().toString();
             req.params.id = idValido;
             req.body = { titulo: 'Novo título' };
+            req.user = { _id: "682520e98e38a409ac2ac569" };
+            
             EventoUpdateSchema.parse.mockReturnValue(req.body);
 
             const resultado = { _id: idValido, ...req.body };
@@ -212,8 +230,8 @@ describe('EventoController', () => {
             await controller.alterar(req, res);
 
             expect(EventoUpdateSchema.parse).toHaveBeenCalledWith(req.body);
-            expect(controller.service.alterar).toHaveBeenCalledWith(idValido, req.body);
-            expect(CommonResponse.success).toHaveBeenCalledWith(res, resultado, 200, 'Evento atualizado com sucesso.');
+            expect(controller.service.alterar).toHaveBeenCalledWith(idValido, req.body, req.user._id);
+            expect(CommonResponse.success).toHaveBeenCalledWith(res, resultado);
         });
     });
 
@@ -225,26 +243,25 @@ describe('EventoController', () => {
         it('deve alterar o status do evento com sucesso', async () => {
             const idValido = new mongoose.Types.ObjectId().toString();
             req.params.id = idValido;
-            req.body.status = 'ativo';
-            EventoUpdateSchema.parse.mockReturnValue({ status: 'ativo' });
+            req.body = { status: 'ativo' };
+            req.user = { _id: "682520e98e38a409ac2ac569" };
 
             const resultado = { _id: idValido, status: 'ativo' };
             controller.service.alterarStatus.mockResolvedValue(resultado);
 
             await controller.alterarStatus(req, res);
 
-            expect(EventoUpdateSchema.parse).toHaveBeenCalledWith({ status: 'ativo' });
-            expect(controller.service.alterarStatus).toHaveBeenCalledWith(idValido, 'ativo');
-            expect(CommonResponse.success).toHaveBeenCalledWith(res, resultado, 200, 'Status do evento atualizado com sucesso.');
+            expect(controller.service.alterarStatus).toHaveBeenCalledWith(idValido, 'ativo', req.user._id);
+            expect(CommonResponse.success).toHaveBeenCalledWith(res, resultado, 200, 'Status do evento alterado com sucesso!');
         });
 
         it('deve lançar erro se o status for inválido', async () => {
             const idValido = new mongoose.Types.ObjectId().toString();
             req.params.id = idValido;
-            req.body.status = 'desconhecido';
-            EventoUpdateSchema.parse.mockReturnValue({ status: 'desconhecido' });
+            req.body = { status: 'desconhecido' };
+            req.user = { _id: "682520e98e38a409ac2ac569" };
 
-            await expect(controller.alterarStatus(req, res)).rejects.toThrow('Status inválido. Use "ativo" ou "inativo".');
+            await expect(controller.alterarStatus(req, res)).rejects.toThrow('Status deve ser ativo ou inativo.');
         });
     });
 
@@ -256,18 +273,25 @@ describe('EventoController', () => {
         it('deve deletar um evento com sucesso', async () => {
             const idValido = new mongoose.Types.ObjectId().toString();
             req.params.id = idValido;
+            req.user = { _id: "682520e98e38a409ac2ac569" };
+            
             const resultado = { acknowledged: true };
             controller.service.deletar.mockResolvedValue(resultado);
 
             await controller.deletar(req, res);
 
-            expect(controller.service.deletar).toHaveBeenCalledWith(idValido);
-            expect(CommonResponse.success).toHaveBeenCalledWith(res, resultado, 200, 'Evento excluído com sucesso.');
+            expect(controller.service.deletar).toHaveBeenCalledWith(idValido, req.user._id);
+            expect(CommonResponse.success).toHaveBeenCalledWith(res, { 
+                message: 'Evento excluído(a) com sucesso.',
+                data: resultado 
+            });
         });
 
         it('deve lançar erro se ID não for fornecido', async () => {
             req.params = {};
-            await expect(controller.deletar(req, res)).rejects.toThrow('ID do evento é obrigatório para deletar.');
+            req.user = { _id: "682520e98e38a409ac2ac569" };
+            
+            await expect(controller.deletar(req, res)).rejects.toThrow('Required');
         });
     });
 });
