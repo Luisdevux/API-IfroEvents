@@ -2,6 +2,7 @@
 
 import mongoose from 'mongoose';
 import EventoRepository from '../../../repositories/EventoRepository.js';
+import EventoFilterBuilder from '../../../repositories/filters/EventoFilterBuilder.js';
 
 // mock dos helpers
 jest.mock('../../../utils/helpers/index.js', () => ({
@@ -343,6 +344,220 @@ describe('EventoRepository', () => {
       await expect(eventoRepository.deletar(mockEventoData._id)).rejects.toThrow(
         'Erro no banco de dados ao deletar'
       );
+    });
+  });
+
+  describe('Listar com filtros avançados', () => {
+    it('deve listar eventos com filtros de usuário autenticado', async () => {
+      const mockRequest = {
+        params: {},
+        query: {
+          titulo: 'Workshop',
+          page: 1,
+          limite: 10
+        },
+        user: {
+          _id: 'user123'
+        }
+      };
+
+      MockEventoModel.paginate.mockResolvedValue({
+        docs: [mockEventoData],
+        totalDocs: 1,
+        page: 1,
+        limit: 10
+      });
+
+      const resultado = await eventoRepository.listar(mockRequest);
+
+      expect(MockEventoModel.paginate).toHaveBeenCalled();
+      expect(resultado.docs).toEqual([mockEventoData]);
+    });
+
+    it('deve aplicar filtro status ativo para usuário não autenticado', async () => {
+      const mockRequest = {
+        params: {},
+        query: {
+          page: 1,
+          limite: 10
+        }
+      };
+
+      MockEventoModel.paginate.mockResolvedValue({
+        docs: [mockEventoData],
+        totalDocs: 1,
+        page: 1,
+        limit: 10
+      });
+
+      const resultado = await eventoRepository.listar(mockRequest);
+
+      expect(MockEventoModel.paginate).toHaveBeenCalled();
+      expect(resultado.docs).toEqual([mockEventoData]);
+    });
+
+    it('deve ignorar filtro automático quando ignorarFiltroStatusPadrao for true', async () => {
+      const mockRequest = {
+        params: {},
+        query: {
+          ignorarFiltroStatusPadrao: 'true',
+          page: 1,
+          limite: 10
+        }
+      };
+
+      MockEventoModel.paginate.mockResolvedValue({
+        docs: [mockEventoData],
+        totalDocs: 1,
+        page: 1,
+        limit: 10
+      });
+
+      const resultado = await eventoRepository.listar(mockRequest);
+
+      expect(MockEventoModel.paginate).toHaveBeenCalled();
+      expect(resultado.docs).toEqual([mockEventoData]);
+    });
+
+    it('deve usar status fornecido como array', async () => {
+      const mockRequest = {
+        params: {},
+        query: {
+          status: ['ativo', 'inativo'],
+          page: 1,
+          limite: 10
+        }
+      };
+
+      MockEventoModel.paginate.mockResolvedValue({
+        docs: [mockEventoData],
+        totalDocs: 1,
+        page: 1,
+        limit: 10
+      });
+
+      const resultado = await eventoRepository.listar(mockRequest);
+
+      expect(MockEventoModel.paginate).toHaveBeenCalled();
+      expect(resultado.docs).toEqual([mockEventoData]);
+    });
+
+    it('deve aplicar filtro de tipo quando fornecido', async () => {
+      const mockRequest = {
+        params: {},
+        query: {
+          tipo: 'futuro',
+          page: 1,
+          limite: 10
+        }
+      };
+
+      MockEventoModel.paginate.mockResolvedValue({
+        docs: [mockEventoData],
+        totalDocs: 1,
+        page: 1,
+        limit: 10
+      });
+
+      const resultado = await eventoRepository.listar(mockRequest);
+
+      expect(MockEventoModel.paginate).toHaveBeenCalled();
+      expect(resultado.docs).toEqual([mockEventoData]);
+    });
+
+    it('deve aplicar filtro de intervalo de data quando tipo não fornecido', async () => {
+      const mockRequest = {
+        params: {},
+        query: {
+          dataInicio: '2024-01-01',
+          dataFim: '2024-12-31',
+          page: 1,
+          limite: 10
+        }
+      };
+
+      MockEventoModel.paginate.mockResolvedValue({
+        docs: [mockEventoData],
+        totalDocs: 1,
+        page: 1,
+        limit: 10
+      });
+
+      const resultado = await eventoRepository.listar(mockRequest);
+
+      expect(MockEventoModel.paginate).toHaveBeenCalled();
+      expect(resultado.docs).toEqual([mockEventoData]);
+    });
+
+    it('deve usar organizadorId quando não há usuário autenticado', async () => {
+      const mockRequest = {
+        params: {},
+        query: {
+          organizadorId: 'organizador123',
+          page: 1,
+          limite: 10
+        }
+      };
+
+      MockEventoModel.paginate.mockResolvedValue({
+        docs: [mockEventoData],
+        totalDocs: 1,
+        page: 1,
+        limit: 10
+      });
+
+      const resultado = await eventoRepository.listar(mockRequest);
+
+      expect(MockEventoModel.paginate).toHaveBeenCalled();
+      expect(resultado.docs).toEqual([mockEventoData]);
+    });
+
+    it('deve limitar o número de itens por página a 100', async () => {
+      const mockRequest = {
+        params: {},
+        query: {
+          limite: '500', // Muito alto
+          page: 1
+        }
+      };
+
+      MockEventoModel.paginate.mockResolvedValue({
+        docs: [mockEventoData],
+        totalDocs: 1,
+        page: 1,
+        limit: 100
+      });
+
+      const resultado = await eventoRepository.listar(mockRequest);
+
+      expect(MockEventoModel.paginate).toHaveBeenCalledWith(
+        expect.any(Object),
+        expect.objectContaining({
+          limit: 100  // Deve ser limitado a 100
+        })
+      );
+    });
+  });
+
+  describe('aplicarFiltroStatusAtivo', () => {
+    it('deve retornar false se usuário estiver autenticado', () => {
+      const resultado = eventoRepository.aplicarFiltroStatusAtivo(false, null, 'user123');
+      expect(resultado).toBe(false);
+    });
+
+    it('deve retornar false se status foi fornecido', () => {
+      const resultado = eventoRepository.aplicarFiltroStatusAtivo(false, 'ativo', null);
+      expect(resultado).toBe(false);
+    });
+
+    it('deve retornar false se ignorarFiltroStatusPadrao for true', () => {
+      const resultado = eventoRepository.aplicarFiltroStatusAtivo(true, null, null);
+      expect(resultado).toBe(false);
+    });
+
+    it('deve retornar true para usuário não autenticado sem filtros', () => {
+      const resultado = eventoRepository.aplicarFiltroStatusAtivo(false, null, null);
+      expect(resultado).toBe(true);
     });
   });
 });
