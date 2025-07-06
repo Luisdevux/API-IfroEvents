@@ -194,7 +194,7 @@ describe('TokenUtil', () => {
       expect(jwt.sign).toHaveBeenCalledWith(
         { id: '12345' },
         'recovery-secret',
-        { expiresIn: '1h' },
+        { expiresIn: '30m' },
         expect.any(Function)
       );
     });

@@ -25,6 +25,7 @@ const fakeMappings = {
         faker.person.lastName(),
         email: () => faker.internet.email(),
         senha: () => faker.internet.password(),
+        status: () => faker.helpers.arrayElement(['ativo', 'inativo']),
         tokenUnico: () => TokenUtil.generateAccessToken(new mongoose.Types.ObjectId().toString()),
         exp_tokenUnico_recuperacao: () => faker.date.future({ minutes: 60 }),
         refreshtoken: () => TokenUtil.generateRefreshToken(new mongoose.Types.ObjectId().toString()),

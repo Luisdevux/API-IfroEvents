@@ -277,36 +277,38 @@ describe('UsuarioController', () => {
         });
     });
 
+
     // ================================
-    // Testes para o método deletar
+    // Testes para o método alterarStatus
     // ================================
-    describe('deletar', () => {
+    describe('alterarStatus', () => {
         const idValido = new mongoose.Types.ObjectId().toString();
-        const resultadoDelecao = { acknowledged: true, deletedCount: 1 };
+        const statusValido = 'ativo';
+        const usuarioAtualizado = {
+            _id: idValido,
+            nome: 'Usuário Teste',
+            email: 'teste@example.com',
+            status: statusValido
+        };
 
         beforeEach(() => {
             req.params.id = idValido;
+            req.body = { status: statusValido };
             objectIdSchema.parse.mockReturnValue(true);
-            controller.service.deletar.mockResolvedValue(resultadoDelecao);
+            controller.service.alterarStatus = jest.fn().mockResolvedValue(usuarioAtualizado);
         });
 
-        it('deve deletar um usuário com sucesso', async () => {
-            await controller.deletar(req, res);
+        it('deve atualizar o status de um usuário com sucesso', async () => {
+            await controller.alterarStatus(req, res);
 
             expect(objectIdSchema.parse).toHaveBeenCalledWith(idValido);
-            expect(controller.service.deletar).toHaveBeenCalledWith(idValido);
+            expect(controller.service.alterarStatus).toHaveBeenCalledWith(idValido, statusValido);
             expect(CommonResponse.success).toHaveBeenCalledWith(
                 res,
-                resultadoDelecao,
+                usuarioAtualizado,
                 200,
-                'Usuário excluído com sucesso.'
+                `Status do usuário atualizado para ${statusValido}.`
             );
-        });
-
-        it('deve chamar o serviço com o ID correto quando fornecido', async () => {
-            req.params.id = idValido;
-            await controller.deletar(req, res);
-            expect(controller.service.deletar).toHaveBeenCalledWith(idValido);
         });
 
         it('deve lançar erro se ID for inválido', async () => {
@@ -315,14 +317,24 @@ describe('UsuarioController', () => {
                 throw erroValidacao;
             });
 
-            await expect(controller.deletar(req, res)).rejects.toThrow(erroValidacao);
+            await expect(controller.alterarStatus(req, res)).rejects.toThrow(erroValidacao);
+        });
+
+        it('deve lançar erro se status for inválido', async () => {
+            req.body.status = 'status-invalido';
+            const erroValidacao = new Error('Status inválido');
+            controller.service.alterarStatus.mockImplementation(() => {
+                throw erroValidacao;
+            });
+
+            await expect(controller.alterarStatus(req, res)).rejects.toThrow(erroValidacao);
         });
 
         it('deve lançar erro se serviço falhar', async () => {
             const erroServico = new Error('Erro no serviço');
-            controller.service.deletar.mockRejectedValue(erroServico);
+            controller.service.alterarStatus.mockRejectedValue(erroServico);
 
-            await expect(controller.deletar(req, res)).rejects.toThrow(erroServico);
+            await expect(controller.alterarStatus(req, res)).rejects.toThrow(erroServico);
         });
     });
 

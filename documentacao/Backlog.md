@@ -48,3 +48,17 @@ A tabela a seguir contém a relação com os Requisitos Não Funcionais identifi
 - Implementação prática da API com Postman
 - Fluxos de Branchs e commits (GitLab)
 - Métricas Scrum
+
+# Milestone 3
+
+- Finalização da autenticação com recuperação de senha e proteção de rotas
+- Implementação da partilha de permissões para edição de eventos
+- Implementação da geração de QR Code dinâmico com link de inscrição
+- Criação da documentação interativa com Swagger
+- Testes unitários atualizados com as novas funcionalidades e métodos
+- Cobertura de testes de endpoints com Supertest
+- Atualização da documentação final do projeto
+- Preparação para execução com Docker (api + banco)
+- Finalização do plano de testes e documentação das Sprints
+- Fluxos de Branchs e commits (GitLab)
+- Métricas Scrum

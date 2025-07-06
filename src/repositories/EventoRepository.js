@@ -4,6 +4,7 @@ import UsuarioModel from '../models/Usuario.js';
 import EventoModel from '../models/Evento.js';
 import EventoFilterBuilder from './filters/EventoFilterBuilder.js';
 import { CommonResponse, CustomError, HttpStatusCodes, errorHandler, messages, StatusService, asyncWrapper } from '../utils/helpers/index.js';
+import mongoose from 'mongoose';
 
 class EventoRepository {
     constructor({
@@ -50,7 +51,8 @@ class EventoRepository {
             dataFim, 
             page = 1,
             limite = 10,
-            organizadorId
+            organizadorId,
+            ignorarFiltroStatusPadrao = false
         } = req.query;
         
         // Tratamento para o status que pode ser string ou array de string
@@ -66,13 +68,14 @@ class EventoRepository {
             .comStatus(status)
             .comTags(tags);
             
-        const usuarioId = req.user?.id || organizadorId;
+        const usuarioId = req.user?._id || organizadorId;
+        
+        // Aplicar filtros de permissão se usuário estiver autenticado
         if (usuarioId) {
             filterBuilder.comPermissao(usuarioId);
-        } else {
-            if (!status) {
-                filterBuilder.comStatus('ativo');
-            }
+        } else if (this.aplicarFiltroStatusAtivo(ignorarFiltroStatusPadrao, status, usuarioId)) {
+            // Para usuários não autenticados só mostra eventos ativos
+            filterBuilder.comStatus('ativo');
         }
             
         if (tipo) {
@@ -167,6 +170,21 @@ class EventoRepository {
             });
         }
         return data;
+    }
+
+    // Determina se deve aplicar filtro de status automático baseado no contexto do usuário
+    aplicarFiltroStatusAtivo(ignorarFiltroStatusPadrao, status, usuarioId) {
+        // Se usuário autenticado, não aplica filtro automático
+        if (usuarioId) return false;
+        
+        // Se status foi passado como filtro, aplica o filtro
+        if (status) return false;
+        
+        // Se pediu para ignorar, não aplica
+        if (ignorarFiltroStatusPadrao) return false;
+        
+        // Para requisições não autenticadas e sem filtragem específica retorna tudo
+        return true;
     }
 }
 

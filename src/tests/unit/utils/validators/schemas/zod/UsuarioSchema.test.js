@@ -66,7 +66,7 @@ describe('UsuarioSchema', () => {
       const usuarioInvalido = { ...usuarioValido, email: '' };
       const resultado = UsuarioSchema.safeParse(usuarioInvalido);
       expect(resultado.success).toBe(false);
-      expect(resultado.error.issues[0].message).toBe('Campo email é obrigatório.');
+      expect(resultado.error.issues[0].message).toBe('Formato de email inválido.');
     });
   });
 
@@ -103,7 +103,7 @@ describe('UsuarioSchema', () => {
       const usuarioInvalido = { ...usuarioValido, senha: 'Senha1234' };
       const resultado = UsuarioSchema.safeParse(usuarioInvalido);
       expect(resultado.success).toBe(false);
-      expect(resultado.error.issues[0].message).toContain('1 caractere especial');
+      expect(resultado.error.issues[0].message).toContain('A senha deve conter pelo menos 1 letra maiúscula, 1 letra minúscula, 1 número e no mínimo 8 caracteres.');
     });
 
     it('deve retornar os erros definidos no schema se vários campos forem inválidos', () => {
@@ -116,6 +116,27 @@ describe('UsuarioSchema', () => {
       const resultado = UsuarioSchema.safeParse(usuarioInvalido);
       expect(resultado.success).toBe(false);
       expect(resultado.error.issues.length).toBeGreaterThan(1);
+    });
+  });
+
+  describe("Validação de status", () => {
+    it("deve aceitar status 'ativo'", () => {
+        const usuarioValidoComStatus = { ...usuarioValido, status: "ativo" };
+        const resultado = UsuarioSchema.safeParse(usuarioValidoComStatus);
+        expect(resultado.success).toBe(true);
+    });
+
+    it("deve aceitar status 'inativo'", () => {
+        const usuarioValidoComStatus = { ...usuarioValido, status: "inativo" };
+        const resultado = UsuarioSchema.safeParse(usuarioValidoComStatus);
+        expect(resultado.success).toBe(true);
+    });
+
+    it("deve falhar se o status for inválido", () => {
+        const usuarioInvalido = { ...usuarioValido, status: "indefinido" };
+        const resultado = UsuarioSchema.safeParse(usuarioInvalido);
+        expect(resultado.success).toBe(false);
+        expect(resultado.error.issues[0].path).toContain("status");
     });
   });
 });

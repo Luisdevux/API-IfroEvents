@@ -67,7 +67,7 @@ class UsuarioRepository {
         return documento;
     }
 
-    //PATH /usuarios
+    // PATCH /usuarios/:id
     async alterar(id, parsedData) {
         const usuario = await this.model.findByIdAndUpdate(id, parsedData, { new: true })
 
@@ -109,12 +109,6 @@ class UsuarioRepository {
             });
         }
 
-        return usuario;
-    }
-
-    //DELETE /usuarios/:id
-    async deletar(id) {
-        const usuario = await this.model.findByIdAndDelete(id);
         return usuario;
     }
 

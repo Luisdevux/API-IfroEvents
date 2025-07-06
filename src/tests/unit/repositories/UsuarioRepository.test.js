@@ -201,6 +201,17 @@ describe('UsuarioRepository', () => {
       expect(usuarioAtualizado.nome).toBe('Alterado');
     });
 
+    it('deve alterar o status do usuário com sucesso', async () => {
+      MockUsuarioModel.findByIdAndUpdate.mockResolvedValue({ ...mockUsuarioData, status: 'inativo' });
+      const usuarioAtualizado = await usuarioRepository.alterar(mockUsuarioData._id, { status: 'inativo' });
+      expect(MockUsuarioModel.findByIdAndUpdate).toHaveBeenCalledWith(
+        mockUsuarioData._id,
+        { status: 'inativo' },
+        { new: true }
+      );
+      expect(usuarioAtualizado.status).toBe('inativo');
+    });
+
     it('deve lançar erro ao tentar alterar usuário inexistente', async () => {
       MockUsuarioModel.findByIdAndUpdate.mockResolvedValue(null);
       await expect(usuarioRepository.alterar(mockUsuarioData._id, { nome: 'Alterado' })).rejects.toThrow(
@@ -242,20 +253,98 @@ describe('UsuarioRepository', () => {
       await expect(usuarioRepository.atualizarSenha(mockUsuarioData._id, 'novaSenha123'))
         .rejects.toThrow('Usuário não encontrado');
     });
+
+    it('deve lançar erro ao atualizar senha quando findByIdAndUpdate falha', async () => {
+      MockUsuarioModel.findByIdAndUpdate.mockReturnValue({
+        exec: jest.fn().mockImplementation(() => {
+          throw new Error('Erro no banco de dados ao atualizar senha');
+        }),
+      });
+      await expect(usuarioRepository.atualizarSenha(mockUsuarioData._id, 'novaSenha123'))
+        .rejects.toThrow('Erro no banco de dados ao atualizar senha');
+    });
   });
 
-  describe('deletar', () => {
-    it('deve deletar o usuário com sucesso', async () => {
-      MockUsuarioModel.findByIdAndDelete.mockResolvedValue(mockUsuarioData);
-      const usuario = await usuarioRepository.deletar(mockUsuarioData._id);
-      expect(MockUsuarioModel.findByIdAndDelete).toHaveBeenCalledWith(mockUsuarioData._id);
+  describe('armazenarTokens', () => {
+    it('deve armazenar accesstoken e refreshtoken com sucesso', async () => {
+      const mockSelect = jest.fn().mockReturnValue({
+        exec: jest.fn().mockResolvedValue(mockUsuarioData)
+      });
+      MockUsuarioModel.findByIdAndUpdate.mockReturnValue({
+        select: mockSelect
+      });
+
+      const usuario = await usuarioRepository.armazenarTokens(
+        mockUsuarioData._id, 
+        'accesstoken123', 
+        'refreshtoken123'
+      );
+
+      expect(MockUsuarioModel.findByIdAndUpdate).toHaveBeenCalledWith(
+        mockUsuarioData._id,
+        {
+          $set: { accesstoken: 'accesstoken123', refreshtoken: 'refreshtoken123' }
+        },
+        { new: true }
+      );
+      expect(mockSelect).toHaveBeenCalledWith('+accesstoken +refreshtoken');
       expect(usuario).toEqual(mockUsuarioData);
     });
 
-    it('deve retornar null se o usuário não existir ao deletar', async () => {
-      MockUsuarioModel.findByIdAndDelete.mockResolvedValue(null);
-      const usuario = await usuarioRepository.deletar('id-inexistente');
-      expect(usuario).toBeNull();
+    it('deve lançar erro ao armazenar tokens quando findByIdAndUpdate falha', async () => {
+      MockUsuarioModel.findByIdAndUpdate.mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          exec: jest.fn().mockImplementation(() => {
+            throw new Error('Erro no banco de dados ao armazenar tokens');
+          })
+        })
+      });
+
+      await expect(usuarioRepository.armazenarTokens(
+        mockUsuarioData._id, 
+        'accesstoken123', 
+        'refreshtoken123'
+      )).rejects.toThrow('Erro no banco de dados ao armazenar tokens');
+    });
+  });
+
+  describe('removeToken', () => {
+    it('deve remover tokens do usuário com sucesso', async () => {
+      MockUsuarioModel.findByIdAndUpdate.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(mockUsuarioData)
+      });
+
+      const usuario = await usuarioRepository.removeToken(mockUsuarioData._id);
+
+      expect(MockUsuarioModel.findByIdAndUpdate).toHaveBeenCalledWith(
+        mockUsuarioData._id,
+        {
+          accesstoken: null,
+          refreshtoken: null
+        },
+        { new: true }
+      );
+      expect(usuario).toEqual(mockUsuarioData);
+    });
+
+    it('deve lançar erro se o usuário não for encontrado ao remover tokens', async () => {
+      MockUsuarioModel.findByIdAndUpdate.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(null)
+      });
+
+      await expect(usuarioRepository.removeToken(mockUsuarioData._id))
+        .rejects.toThrow('Usuário não encontrado');
+    });
+
+    it('deve lançar erro ao remover tokens quando findByIdAndUpdate falha', async () => {
+      MockUsuarioModel.findByIdAndUpdate.mockReturnValue({
+        exec: jest.fn().mockImplementation(() => {
+          throw new Error('Erro no banco de dados ao remover tokens');
+        })
+      });
+
+      await expect(usuarioRepository.removeToken(mockUsuarioData._id))
+        .rejects.toThrow('Erro no banco de dados ao remover tokens');
     });
   });
 });

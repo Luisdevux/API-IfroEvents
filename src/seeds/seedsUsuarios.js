@@ -42,13 +42,15 @@ async function seedUsuarios() {
             matricula: "2024103070022",
             nome: "Usuario Teste",
             email: "devTeste@gmail.com",
-            senha: gerarSenhaHash()
+            senha: gerarSenhaHash(),
+            status: "ativo"
         },
         {
             matricula: "2024103070030",
             nome: "Luis Felipe Lopes",
             email: "devMaster@gmail.com",
-            senha: gerarSenhaHash()
+            senha: gerarSenhaHash(),
+            status: "ativo" 
         }
     ];
 
@@ -66,7 +68,8 @@ async function seedUsuarios() {
             matricula: mapping.matricula(),
             nome: mapping.nome(),
             email: mapping.email(),
-            senha: gerarSenhaHash()
+            senha: gerarSenhaHash(),
+            status: mapping.status()
         });
     }
 

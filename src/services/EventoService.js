@@ -1,6 +1,7 @@
 // src/services/EventoService.js
 
 import EventoRepository from "../repositories/EventoRepository.js";
+import UsuarioRepository from "../repositories/UsuarioRepository.js";
 import objectIdSchema from "../utils/validators/schemas/zod/ObjectIdSchema.js";
 import { EventoQuerySchema } from "../utils/validators/schemas/zod/querys/EventoQuerySchema.js";
 import { CommonResponse, CustomError, HttpStatusCodes, errorHandler, messages, StatusService, asyncWrapper } from "../utils/helpers/index.js";
@@ -8,6 +9,7 @@ import { CommonResponse, CustomError, HttpStatusCodes, errorHandler, messages, S
 class EventoService {
     constructor() {
         this.repository = new EventoRepository();
+        this.usuarioRepository = new UsuarioRepository();
     }
 
     // POST /eventos
@@ -17,13 +19,14 @@ class EventoService {
     }
     
     // GET /eventos && GET /eventos/:id
-    async listar(req, usuarioId) {
+    async listar(req, usuarioId, opcoes = {}) {
         if(typeof req === 'string') {
             objectIdSchema.parse(req);
             
             const eventoReq = { params: { id: req } };
             const evento = await this.repository.listar(eventoReq);
             
+            // Para usuários não autenticados, só mostrar eventos ativos
             if (!usuarioId && evento.status !== 'ativo') {
                 throw new CustomError({
                     statusCode: HttpStatusCodes.NOT_FOUND.code,
@@ -37,25 +40,23 @@ class EventoService {
             return evento;
         }
         
-        if (usuarioId) {
-            req.user = { id: usuarioId };
-        }
+        if (!req.query) req.query = {};
+        if (!req.user && usuarioId) req.user = { _id: usuarioId };
         
-        if (req.query) {
+        // Validar query parameters se existirem
+        if (Object.keys(req.query).length > 0) {
             EventoQuerySchema.parse(req.query);
         }
         
+        if (opcoes.apenasVisiveis && usuarioId) {
+            // Aqui em "Apenas visíveis" retorna eventos do usuário e eventos com permissão compartilhada
+            // Permite visualizar eventos de qualquer status (ativo, inativo)
+            // Ignora o filtro padrão que limita requisições não autenticadas a ver apenas eventos ativos (totem)
+            req.user = { _id: usuarioId };
+            req.query.ignorarFiltroStatusPadrao = true;
+        }
+
         return await this.repository.listar(req);
-    }
-    
-    // Listar somente eventos visíveis para o usuário, ou seja, eventos criados por ele ou eventos compartilhados com ele
-    async listarEventosVisiveis(usuarioId) {
-        const req = { 
-            query: {},
-            user: { id: usuarioId }
-        };
-        
-        return await this.listar(req, usuarioId);
     }
     
     // PATCH /eventos/:id
@@ -82,51 +83,64 @@ class EventoService {
         return statusAtualizado;
     }
     
-    // PATCH /eventos/:id/permissoes
-    async adicionarPermissao(eventoId, permissaoData, usuarioId) {
+    // PATCH /eventos/:id/compartilhar
+    async compartilharPermissao(eventoId, email, permissao, expiraEm, usuarioId) {
         const evento = await this.ensureEventExists(eventoId);
         
         await this.ensureUserIsOwner(evento, usuarioId, true);
-
-        const permissoes = [];
-        const buscaEvento = await this.repository.listarPorId(eventoId);
-
-        permissaoData.forEach(perm => {
-            const existe = buscaEvento.permissoes.find(p => p.usuario.toString() === perm.usuarioId);
-            if(existe) {
-                permissoes.push({
-                    updateOne: {
-                        filter: { _id: eventoId, "permissoes.usuario": perm.usuarioId },
-                        update: {
-                            $set: {
-                                "permissoes.$.expiraEm": perm.expiraEm,
-                                "permissoes.$.permissao": perm.permissao,
-                            }
-                        }
-                    }
-                });
-            } else {
-                permissoes.push({
-                    updateOne: {
-                        filter: { _id: eventoId },
-                        update: {
-                            $push: {
-                                permissoes: {
-                                    usuario: perm.usuarioId,
-                                    expiraEm: perm.expiraEm,
-                                    permissao: perm.permissao
-                                }
-                            }
-                        }
-                    }
-                });
-            }
-        });
-
-        if(permissoes.length > 0) {
-            await this.repository.model.bulkWrite(permissoes);
+        
+        const usuarioDestino = await this.usuarioRepository.buscarPorEmail(email);
+        
+        if (!usuarioDestino) {
+            throw new CustomError({
+                statusCode: HttpStatusCodes.NOT_FOUND.code,
+                errorType: 'resourceNotFound',
+                field: 'Usuario',
+                details: [],
+                customMessage: `Usuário com email ${email} não encontrado.`
+            });
         }
 
+        if (usuarioDestino._id.toString() === usuarioId) {
+            throw new CustomError({
+                statusCode: HttpStatusCodes.BAD_REQUEST.code,
+                errorType: 'validationError',
+                field: 'email',
+                details: [],
+                customMessage: 'Você não pode compartilhar o evento consigo mesmo.'
+            });
+        }
+
+        // Verificar se já tem permissão ativa
+        const permissaoExistente = evento.permissoes?.find(p => 
+            p.usuario.toString() === usuarioDestino._id.toString() &&
+            new Date(p.expiraEm) > new Date()
+        );
+
+        if (permissaoExistente) {
+            throw new CustomError({
+                statusCode: HttpStatusCodes.CONFLICT.code,
+                errorType: 'duplicateResource',
+                field: 'permissao',
+                details: [],
+                customMessage: `Usuário ${email} já possui permissão ativa para este evento.`
+            });
+        }
+
+        // Adicionar ou atualizar permissão
+        const filtro = { _id: eventoId };
+        const update = {
+            $push: {
+                permissoes: {
+                    usuario: usuarioDestino._id,
+                    permissao,
+                    expiraEm
+                }
+            }
+        };
+
+        await this.repository.model.updateOne(filtro, update);
+        
         return await this.repository.listarPorId(eventoId);
     }
 
