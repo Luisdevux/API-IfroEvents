@@ -1,5 +1,5 @@
-# Usando a imagem base do Node.js 22-alpine
-FROM node:22-alpine
+# Usando a imagem base do Node.js 22 (Precisa ser a 22, pois a 22-alpine não suporta a execução mongodb-memory-server)
+FROM node:22
 
 # Expõe a porta 5011 para a plataforma de divulgação de eventos
 EXPOSE 5011
