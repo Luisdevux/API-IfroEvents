@@ -40,3 +40,6 @@ temp/
 
 # teste
 coverage/
+
+# Diretório de upload de arquivos
+uploads/
