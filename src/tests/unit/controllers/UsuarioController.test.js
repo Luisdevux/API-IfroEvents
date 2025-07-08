@@ -146,6 +146,101 @@ describe('UsuarioController', () => {
         });
     });
 
+    // ==========================================
+    // Testes para o método cadastrarComSenha (usado pela rota signup de auth)
+    // ==========================================
+    describe('cadastrarComSenha', () => {
+        const usuarioValido = {
+            nome: 'Usuário Teste',
+            email: 'teste@example.com',
+            senha: 'Senha123@',
+            matricula: '1234567890123'
+        };
+
+        const usuarioCadastrado = {
+            ...usuarioValido,
+            _id: new mongoose.Types.ObjectId(),
+            toObject: jest.fn(() => ({
+                ...usuarioValido,
+                _id: new mongoose.Types.ObjectId()
+            }))
+        };
+
+        beforeEach(() => {
+            req.body = usuarioValido;
+            UsuarioSchema.parse.mockReturnValue(usuarioValido);
+            controller.service.cadastrar.mockResolvedValue(usuarioCadastrado);
+        });
+
+        it('deve cadastrar um usuário com sucesso através da rota signup MANTENDO a senha na resposta', async () => {
+            await controller.cadastrarComSenha(req, res);
+
+            expect(UsuarioSchema.parse).toHaveBeenCalledWith(usuarioValido);
+            expect(controller.service.cadastrar).toHaveBeenCalledWith(usuarioValido);
+            expect(usuarioCadastrado.toObject).toHaveBeenCalled();
+            expect(CommonResponse.created).toHaveBeenCalledWith(
+                res,
+                expect.objectContaining({
+                    nome: usuarioValido.nome,
+                    email: usuarioValido.email,
+                    matricula: usuarioValido.matricula,
+                    senha: usuarioValido.senha // A diferença é que mantém a senha
+                })
+            );
+        });
+
+        it('deve lançar erro se validação do schema falhar no cadastrarComSenha', async () => {
+            const erroValidacao = new Error('Dados inválidos para signup');
+            UsuarioSchema.parse.mockImplementation(() => {
+                throw erroValidacao;
+            });
+
+            await expect(controller.cadastrarComSenha(req, res)).rejects.toThrow(erroValidacao);
+        });
+
+        it('deve lançar erro se serviço falhar no cadastrarComSenha', async () => {
+            const erroServico = new Error('Erro no serviço durante signup');
+            controller.service.cadastrar.mockRejectedValue(erroServico);
+
+            await expect(controller.cadastrarComSenha(req, res)).rejects.toThrow(erroServico);
+        });
+
+        it('deve lidar com objeto de usuário sem método toObject no cadastrarComSenha', async () => {
+            const usuarioSemToObject = { 
+                _id: '123', 
+                nome: 'Teste',
+                email: 'teste@test.com',
+                senha: 'senha123'
+            };
+            UsuarioSchema.parse.mockReturnValue(usuarioSemToObject);
+            controller.service.cadastrar.mockResolvedValue(usuarioSemToObject);
+
+            await controller.cadastrarComSenha(req, res);
+
+            expect(CommonResponse.created).toHaveBeenCalledWith(
+                res,
+                usuarioSemToObject
+            );
+        });
+
+        it('deve usar UsuarioSchema para validação no cadastrarComSenha', async () => {
+            const dadosCompletos = {
+                nome: 'João Silva',
+                email: 'joao@exemplo.com',
+                senha: 'MinhaSenh@123',
+                matricula: '9876543210123'
+            };
+
+            req.body = dadosCompletos;
+            UsuarioSchema.parse.mockReturnValue(dadosCompletos);
+
+            await controller.cadastrarComSenha(req, res);
+
+            expect(UsuarioSchema.parse).toHaveBeenCalledWith(dadosCompletos);
+            expect(controller.service.cadastrar).toHaveBeenCalledWith(dadosCompletos);
+        });
+    });
+
     // ==============================================
     // Testes para o método listar
     // ==============================================

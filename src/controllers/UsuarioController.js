@@ -31,6 +31,16 @@ class UsuarioController {
       return CommonResponse.created(res, usuarioLimpo);
     };
 
+    // POST /usuarios para rota signup
+    async cadastrarComSenha(req, res) {
+      const parsedData = UsuarioSchema.parse(req.body);
+      let data = await this.service.cadastrar(parsedData);
+
+      let usuarioLimpo = data.toObject ? data.toObject() : { ...data };
+
+      return CommonResponse.created(res, usuarioLimpo);
+    };
+
     // GET /usuarios && GET /usuarios/:id
     async listar(req, res) {
         const { id } = req.params;
