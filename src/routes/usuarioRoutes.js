@@ -11,7 +11,7 @@ const router = express.Router();
 const usuarioController = new UsuarioController();  // Instância da classe
 
 router
-  .post("/usuarios/", asyncWrapper(usuarioController.cadastrar.bind(usuarioController)))
+  .post("/usuarios/", AuthMiddleware, asyncWrapper(usuarioController.cadastrar.bind(usuarioController)))
   .get("/usuarios/", AuthMiddleware, asyncWrapper(usuarioController.listar.bind(usuarioController)))
   .get("/usuarios/:id", AuthMiddleware, asyncWrapper(usuarioController.listar.bind(usuarioController)))
   .patch("/usuarios/:id", AuthMiddleware, asyncWrapper(usuarioController.alterar.bind(usuarioController)))

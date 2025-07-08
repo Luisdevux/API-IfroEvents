@@ -12,7 +12,6 @@ jest.mock('../../../config/i18nConfig.js', () => {
         'validation.invalidName': '{campoNome} deve conter apenas letras, espaços e acentos.',
         'validation.invalidSpecialChars': '{campoNome} contém caracteres especiais não permitidos.',
         'validation.alphanumeric': '{campoNome} deve conter apenas letras e números.',
-        'validation.invalidMatricula': '{campoNome} deve conter 13 dígitos numéricos.',
         'validation.dateMustFuture': '{campoNome} deve ser uma data futura.',
         'validation.invalidURL': '{campoNome} deve ser uma URL válida.',
         'validation.maxFileSize': '{campoNome} não deve exceder {max}MB.',
@@ -107,24 +106,6 @@ describe('Validator', () => {
     });
   });
 
-  describe('validarMatricula', () => {
-    it('deve retornar true para matrícula válida', () => {
-      const resultado = validator.validarMatricula('2024103070030', 'Matrícula');
-      expect(resultado._erro).toBeNull();
-    });
-
-    it('deve retornar false para matrícula curta', () => {
-      const resultado = validator.validarMatricula('123456', 'Matrícula');
-      expect(resultado._erro).not.toBeNull();
-      expect(resultado._erro).toContain('Matrícula deve conter 13 dígitos numéricos');
-    });
-
-    it('deve retornar false para matrícula com letras', () => {
-      const resultado = validator.validarMatricula('202312345A', 'Matrícula');
-      expect(resultado._erro).not.toBeNull();
-    });
-  });
-
   describe('validarDataFutura', () => {
     it('deve retornar true para data futura', () => {
       const dataFutura = new Date();
@@ -180,14 +161,6 @@ describe('Validator', () => {
       validator.validarCampoObrigatorio('', 'Campo');
       expect(validator.erro).not.toBeNull();
       expect(validator.erro).toContain('Campo é obrigatório');
-    });
-  });
-
-  describe('validarMatricula com parâmetros padrão', () => {
-    it('deve usar o nome de campo padrão quando não fornecido', () => {
-      const resultado = validator.validarMatricula('12345');
-      expect(resultado._erro).not.toBeNull();
-      expect(resultado._erro).toContain('Matrícula deve conter');
     });
   });
 

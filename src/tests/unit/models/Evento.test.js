@@ -37,7 +37,6 @@ let eventDataTest;
 // Cria um usuário de teste e define os dados base do evento antes de cada teste
 beforeEach(async () => {
     let usuarioTeste = await Usuario.create({
-        matricula: "2024103070030",
         nome: "Usuário Teste",
         email: "testeUnit@gmail.com",
         senha: "SenhaTeste1@"

@@ -16,7 +16,6 @@ describe('Eventos API', () => {
         const loginResponse = await request(BASE_URL)
             .post('/login')
             .send({
-                matricula: '2024103070031',
                 email: 'devTeste@gmail.com',
                 senha: 'ABab@123456'
             });

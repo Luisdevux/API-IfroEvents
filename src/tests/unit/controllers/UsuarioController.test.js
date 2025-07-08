@@ -98,7 +98,6 @@ describe('UsuarioController', () => {
             nome: 'Usuário Teste',
             email: 'teste@example.com',
             senha: 'Senha123@',
-            matricula: '1234567890123'
         };
 
         const usuarioCadastrado = {
@@ -154,7 +153,6 @@ describe('UsuarioController', () => {
             nome: 'Usuário Teste',
             email: 'teste@example.com',
             senha: 'Senha123@',
-            matricula: '1234567890123'
         };
 
         const usuarioCadastrado = {
@@ -183,7 +181,6 @@ describe('UsuarioController', () => {
                 expect.objectContaining({
                     nome: usuarioValido.nome,
                     email: usuarioValido.email,
-                    matricula: usuarioValido.matricula,
                     senha: usuarioValido.senha // A diferença é que mantém a senha
                 })
             );
@@ -228,7 +225,6 @@ describe('UsuarioController', () => {
                 nome: 'João Silva',
                 email: 'joao@exemplo.com',
                 senha: 'MinhaSenh@123',
-                matricula: '9876543210123'
             };
 
             req.body = dadosCompletos;

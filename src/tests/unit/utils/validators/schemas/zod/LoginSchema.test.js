@@ -4,7 +4,6 @@ import { LoginSchema } from '../../../../../../utils/validators/schemas/zod/Logi
 
 describe('LoginSchema', () => {
     const loginValido = {
-        matricula: '2023123456789',
         email: 'usuario@example.com',
         senha: 'Senha123@'
     };
@@ -13,55 +12,6 @@ describe('LoginSchema', () => {
         const resultado = LoginSchema.safeParse(loginValido);
         expect(resultado.success).toBe(true);
         expect(resultado.data).toEqual(loginValido);
-    });
-
-    describe('Validação de matrícula', () => {
-        it('deve aceitar matrícula numérica de até 13 dígitos', () => {
-            const variantes = [
-                '1234567890123',
-                '123456789012',
-                '1234567890'
-            ];
-
-            variantes.forEach(matricula => {
-                const resultado = LoginSchema.safeParse({
-                    ...loginValido,
-                    matricula
-                });
-                expect(resultado.success).toBe(true);
-            });
-        });
-
-        it('deve rejeitar matrícula com caracteres não numéricos', () => {
-            const matriculasInvalidas = [
-                'ABC12345678',
-                '123-456-789',
-                '123 456 789',
-                '123A456789'
-            ];
-
-            matriculasInvalidas.forEach(matricula => {
-                const resultado = LoginSchema.safeParse({
-                    ...loginValido,
-                    matricula
-                });
-                expect(resultado.success).toBe(false);
-                expect(resultado.error.issues[0].path).toContain('matricula');
-                expect(resultado.error.issues[0].message).toBe('Matrícula inválida!');
-            });
-        });
-
-        it('deve rejeitar matrícula com mais de 13 dígitos', () => {
-            const matricula = '12345678901234';
-            
-            const resultado = LoginSchema.safeParse({
-                ...loginValido,
-                matricula
-            });
-            
-            expect(resultado.success).toBe(false);
-            expect(resultado.error.issues[0].path).toContain('matricula');
-        });
     });
 
     describe('Validação de email', () => {
@@ -187,7 +137,7 @@ describe('LoginSchema', () => {
     });
 
     it('deve rejeitar objeto com campos ausentes', () => {
-        const camposObrigatorios = ['matricula', 'email', 'senha'];
+        const camposObrigatorios = ['email', 'senha'];
         
         camposObrigatorios.forEach(campo => {
             const dadosLogin = { ...loginValido };
@@ -201,17 +151,15 @@ describe('LoginSchema', () => {
 
     it('deve indicar múltiplos erros quando vários campos são inválidos', () => {
         const loginInvalido = {
-            matricula: 'ABC123',
             email: 'email-invalido',
             senha: '123'
         };
         
         const resultado = LoginSchema.safeParse(loginInvalido);
         expect(resultado.success).toBe(false);
-        expect(resultado.error.issues.length).toBe(4);
+        expect(resultado.error.issues.length).toBe(3);
         
         const erros = resultado.error.issues.map(issue => issue.path[0]);
-        expect(erros).toContain('matricula');
         expect(erros).toContain('email');
         expect(erros).toContain('senha');
     });

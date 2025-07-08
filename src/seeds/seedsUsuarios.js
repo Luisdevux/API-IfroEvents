@@ -39,14 +39,12 @@ async function seedUsuarios() {
 
     const usuariosFixos = [
         {
-            matricula: "2024103070022",
             nome: "Usuario Teste",
             email: "devTeste@gmail.com",
             senha: gerarSenhaHash(),
             status: "ativo"
         },
         {
-            matricula: "2024103070030",
             nome: "Luis Felipe Lopes",
             email: "devMaster@gmail.com",
             senha: gerarSenhaHash(),
@@ -65,7 +63,6 @@ async function seedUsuarios() {
 
     for (let i = 0; i < 20; i++) {
         usuariosAleatorios.push({
-            matricula: mapping.matricula(),
             nome: mapping.nome(),
             email: mapping.email(),
             senha: gerarSenhaHash(),
