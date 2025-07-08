@@ -1,6 +1,6 @@
 // src/docs/paths/eventos.js
 
-export const eventosPath = {
+const eventosPath = {
   "/eventos": {
     "post": {
       "tags": ["Eventos"],
