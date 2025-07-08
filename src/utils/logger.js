@@ -16,11 +16,12 @@ class Logger {
         // Refatoração da Linha 15
         if (process.env.LOG_MAX_SIZE_GB !== undefined) {
             this.logMaxSizeGB = parseFloat(process.env.LOG_MAX_SIZE_GB);
-            if (isNaN(this.logMaxSizeGB) || this.logMaxSizeGB <= 0) { // Linha 20
-                throw new Error('LOG_MAX_SIZE_GB deve ser um número positivo');
-            }
         } else {
             this.logMaxSizeGB = 50;
+        }
+
+        if (isNaN(this.logMaxSizeGB) || this.logMaxSizeGB <= 0) { // Linha 20
+            this.logMaxSizeGB = 50; // Valor padrão seguro
         }
 
         this.maxLogSize = this.logMaxSizeGB * 1024 * 1024 * 1024;
