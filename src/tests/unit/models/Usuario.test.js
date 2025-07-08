@@ -35,7 +35,6 @@ let userDataTest;
 // Define os dados base do usuário antes de cada teste
 beforeEach(() => {
     userDataTest = {
-        matricula: "2024103070030",
         nome: "Usuário Teste",
         email: "testeUnit@gmail.com",
         senha: "SenhaTeste1@"
@@ -49,7 +48,6 @@ describe('Modelo de Usuário', () => {
 
         const savedUser = await Usuario.findById(user._id);
 
-        expect(savedUser.matricula).toBe(userDataTest.matricula);
         expect(savedUser.nome).toBe(userDataTest.nome);
         expect(savedUser.email).toBe(userDataTest.email);
         expect(savedUser.senha).toBe(userDataTest.senha);
@@ -62,12 +60,6 @@ describe('Modelo de Usuário', () => {
 
         expect(user.createdAt).toBeInstanceOf(Date);
         expect(user.updatedAt).toBeInstanceOf(Date);
-    });
-
-    it('Deve falhar ao criar usuário sem matrícula', async () => {
-        delete userDataTest.matricula;
-        const user = new Usuario(userDataTest);
-        await expect(user.save()).rejects.toThrow();
     });
 
     it('Deve falhar ao criar usuário sem nome', async () => {
@@ -93,7 +85,6 @@ describe('Modelo de Usuário', () => {
         for (let i = 0; i < 10; i++) {
             await Usuario.create({ 
                 ...userDataTest, 
-                matricula: `20241030700${i}`,
                 email: `testeUnitUser${i}@gmail.com`,
                 nome: `Usuário Teste ${i}`
             });

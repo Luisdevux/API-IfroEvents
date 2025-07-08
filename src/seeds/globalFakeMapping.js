@@ -16,7 +16,6 @@ const fakeMappings = {
     // Mapping específico para o model Usuario
 
     Usuario: {
-        matricula: () => `${new Date().getFullYear()}${1030700}${faker.number.int({ min: 1, max: 40 })}`,
         nome: () =>
         faker.person.firstName() +
         " " +

@@ -32,7 +32,6 @@ const invalidId = "invalid";
 
 const usuarioFake = {
   _id: new mongoose.Types.ObjectId().toString(),
-  matricula: "2024103070030",
   nome: "Usuário Teste",
   email: "testeUnit@gmail.com",
   senha: "SenhaTeste1@",
@@ -63,7 +62,6 @@ describe("UsuarioService", () => {
       const resultado = await usuarioService.cadastrar(usuarioFake);
       
       expect(resultado._id).toBe(usuarioFake._id);
-      expect(resultado.matricula).toBe(usuarioFake.matricula);
       expect(resultado.nome).toBe(usuarioFake.nome);
       expect(resultado.email).toBe(usuarioFake.email);
       expect(resultado.senha).toBe(senhaHash);
@@ -104,14 +102,13 @@ describe("UsuarioService", () => {
       expect(resultado).toEqual([usuarioFake]);
     });
 
-    it("deve retornar resultado vazio para ID inválido", async () => {
-      mockRepository.listar.mockResolvedValue([]);
-      const resultado = await usuarioService.listar(invalidId);
-      expect(resultado).toEqual([]);
+    it("deve lançar erro para ID inválido", async () => {
+      mockRepository.listarPorId.mockRejectedValue(new Error("ID inválido"));
+      await expect(usuarioService.listar(invalidId)).rejects.toThrow("ID inválido");
     });
 
     it("deve retornar resultado do repositório mesmo com erro em listarPorId", async () => {
-      mockRepository.listar.mockResolvedValue([usuarioFake]);
+      mockRepository.listarPorId.mockResolvedValue([usuarioFake]);
       const resultado = await usuarioService.listar(usuarioFake._id);
       expect(resultado).toEqual([usuarioFake]);
     });

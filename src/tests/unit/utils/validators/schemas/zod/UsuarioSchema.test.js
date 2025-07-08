@@ -4,7 +4,6 @@ import { UsuarioSchema, UsuarioUpdateSchema } from '../../../../../../utils/vali
 
 describe('UsuarioSchema', () => {
   const usuarioValido = {
-    matricula: '1234567890123',
     nome: 'Usuário de Teste',
     email: 'usuario@teste.com',
     senha: 'Senha123@'
@@ -16,7 +15,7 @@ describe('UsuarioSchema', () => {
   });
 
   describe('Validação de campos obrigatórios', () => {
-    const obrigatorios = ['matricula', 'nome', 'email', 'senha'];
+    const obrigatorios = ['nome', 'email', 'senha'];
 
     obrigatorios.forEach(campo => {
       it(`deve falhar se o campo ${campo} não estiver presente`, () => {
@@ -26,22 +25,6 @@ describe('UsuarioSchema', () => {
         expect(resultado.success).toBe(false);
         expect(resultado.error.issues[0].path).toContain(campo);
       });
-    });
-  });
-
-  describe('Validação de matrícula', () => {
-    it('deve falhar se a matrícula contiver caracteres não numéricos', () => {
-      const usuarioInvalido = { ...usuarioValido, matricula: '123a45678901' };
-      const resultado = UsuarioSchema.safeParse(usuarioInvalido);
-      expect(resultado.success).toBe(false);
-      expect(resultado.error.issues[0].message).toBe('Matrícula inválida!');
-    });
-
-    it('deve falhar se a matrícula tiver mais de 13 caracteres', () => {
-      const usuarioInvalido = { ...usuarioValido, matricula: '12345678901234' };
-      const resultado = UsuarioSchema.safeParse(usuarioInvalido);
-      expect(resultado.success).toBe(false);
-      expect(resultado.error.issues[0].message).toContain('Matrícula deve ter no máximo 13 caracteres');
     });
   });
 
@@ -108,7 +91,6 @@ describe('UsuarioSchema', () => {
 
     it('deve retornar os erros definidos no schema se vários campos forem inválidos', () => {
       const usuarioInvalido = {
-        matricula: '123a',
         nome: '',
         email: 'invalido',
         senha: 'fraca'
@@ -144,7 +126,6 @@ describe('UsuarioSchema', () => {
 describe('UsuarioUpdateSchema', () => {
   it('deve validar com sucesso todos os campos possíveis de update preenchidos corretamente', () => {
     const dadosUpdateValidos = {
-      matricula: '9876543210987',
       nome: 'Novo Nome de Usuário',
       email: 'novo@email.com',
       senha: 'NovaSenha123@'
@@ -183,11 +164,5 @@ describe('UsuarioUpdateSchema', () => {
   it('deve aceitar atualização apenas da senha', () => {
     const resultado = UsuarioUpdateSchema.safeParse({ senha: 'NovaSenha123@' });
     expect(resultado.success).toBe(true);
-  });
-
-  it('deve falhar ao atualizar com matrícula inválida', () => {
-    const resultado = UsuarioUpdateSchema.safeParse({ matricula: '123a' });
-    expect(resultado.success).toBe(false);
-    expect(resultado.error.issues[0].path).toContain('matricula');
   });
 });

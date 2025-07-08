@@ -6,9 +6,8 @@ class Usuario {
     constructor() {
         const usuarioSchema = new mongoose.Schema(
             {
-                matricula: { type: String, index: true, required: true},
                 nome: { type: String, index: true, required: true },
-                email: { type: String, unique: true, required: true },
+                email: { type: String, unique: true, index: true, required: true },
                 senha: { type: String, required: true },
                 status: { type: String, enum: ['ativo', 'inativo'], default: 'ativo' },
                 tokenUnico: { type: String, select: false }, // Token único para validação de email, recuperação de senha e autenticação

@@ -31,7 +31,14 @@ class UsuarioService {
 
     // GET /usuario && GET /usuario/:id
     async listar(req) {
-        const data = await this.repository.listar(req);
+        if (typeof req === 'string') {
+            // Se vier ID, busca usuário por ID
+            const data = await this.repository.listarPorId(req);
+            return data;
+        }
+        
+        // Caso contrário, é um objeto request e queremos listar todos
+        const data = await this.repository.listar();
         return data;
     }
     
@@ -194,7 +201,7 @@ class UsuarioService {
     }
 
     /**
-     * Atualiza o status de um usuário.
+     * Atualiza o status de um usuário e ao fazer "exclusão" apenas inativa, para dependência de eventos.
      */
     async alterarStatus(id, status) {
         await this.ensureUserExists(id);
