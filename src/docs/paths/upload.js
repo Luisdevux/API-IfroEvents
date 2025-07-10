@@ -5,19 +5,19 @@ const uploadPath = {
     "post": {
       "tags": ["Upload de Mídias"],
       "summary": "Adicionar mídia ao evento",
-      "description": `Adiciona uma ou múltiplas mídias ao evento conforme o tipo especificado. Suporta diferentes tipos de mídias com validações específicas.
+      "description": `Adiciona uma ou múltiplas mídias ao evento conforme o tipo especificado.
       
       **Regras de Negócio:**
       - Usuário deve estar autenticado
       - Apenas organizador ou colaborador com permissão pode adicionar mídias
-      - Tipo 'capa': aceita apenas um arquivo de imagem
-      - Tipo 'video': aceita apenas um arquivo de vídeo
-      - Tipo 'carrossel': aceita múltiplos arquivos de imagem
-      - Validação de formato: imagens (jpg, jpeg, png, gif, webp) e vídeos (mp4, webm, ogg)
-      - Limite de tamanho: 10MB por arquivo de imagem, 50MB por vídeo
-      - Múltiplas mídias no carrossel processadas individualmente
-      - Falha em uma mídia não impede o processamento das outras
-      - Arquivos são salvos com nome único para evitar conflitos`,
+      - Tipo 'capa': aceita apenas um arquivo de imagem (1280x720px)
+      - Tipo 'video': aceita apenas um arquivo de vídeo (dimensões fixas 1280x720px)
+      - Tipo 'carrossel': aceita múltiplos arquivos de imagem (1280x720px cada)
+      - Validação de formato: imagens (jpg, jpeg, png) e vídeos (mp4)
+      - Validação rigorosa de dimensões: exatamente 1280x720px para todos os tipos
+      - Falha em uma mídia do carrossel cancela todo o upload
+      - Arquivos são salvos com nome único para evitar conflitos
+      - Limpeza automática de arquivos em caso de erro`,
       "security": [
         {
           "bearerAuth": []
@@ -28,7 +28,7 @@ const uploadPath = {
           "name": "id",
           "in": "path",
           "required": true,
-          "description": "ID do evento",
+          "description": "ID do evento (ObjectId válido)",
           "schema": {
             "type": "string",
             "pattern": "^[0-9a-fA-F]{24}$"
@@ -38,7 +38,7 @@ const uploadPath = {
           "name": "tipo",
           "in": "path",
           "required": true,
-          "description": "Tipo de mídia",
+          "description": "Tipo de mídia a ser adicionada",
           "schema": {
             "type": "string",
             "enum": ["capa", "video", "carrossel"]
@@ -54,7 +54,7 @@ const uploadPath = {
                 "file": {
                   "type": "string",
                   "format": "binary",
-                  "description": "Arquivo único para capa ou video. Usado quando tipo é 'capa' ou 'video'."
+                  "description": "Arquivo único para capa ou vídeo. Obrigatório quando tipo é 'capa' ou 'video'."
                 },
                 "files": {
                   "type": "array",
@@ -62,19 +62,9 @@ const uploadPath = {
                     "type": "string",
                     "format": "binary"
                   },
-                  "description": "Múltiplos arquivos para carrossel. Usado quando tipo é 'carrossel'."
+                  "description": "Múltiplos arquivos para carrossel. Obrigatório quando tipo é 'carrossel'."
                 }
-              },
-              "oneOf": [
-                {
-                  "required": ["file"],
-                  "description": "Para tipos 'capa' e 'video'"
-                },
-                {
-                  "required": ["files"],
-                  "description": "Para tipo 'carrossel'"
-                }
-              ]
+              }
             }
           }
         }
@@ -88,50 +78,72 @@ const uploadPath = {
                 "$ref": "#/components/schemas/UploadResponse"
               },
               "examples": {
-                "midia_unica": {
+                "midia_capa": {
+                  "summary": "Upload de capa bem-sucedido",
                   "value": {
                     "statusCode": 201,
                     "message": "Mídia (capa) salva com sucesso.",
                     "data": {
-                      "evento": "60b5f8c8d8f8f8f8f8f8f8",
-                      "tipo": "capa",
-                      "midia": {
-                        "_id": "60b5f8c8d8f8f8f8f8f8f8fa",
-                        "filename": "capa_evento.jpg",
-                        "originalName": "imagem_capa.jpg",
-                        "mimetype": "image/jpeg",
-                        "size": 1024000,
-                        "url": "/uploads/eventos/60b5f8c8d8f8f8f8f8f8f8/capa_evento.jpg",
-                        "createdAt": "2024-01-01T12:00:00.000Z"
-                      }
+                      "_id": "60b5f8c8d8f8f8f8f8f8f8",
+                      "midiaCapa": [
+                        {
+                          "_id": "60b5f8c8d8f8f8f8f8f8f8fa",
+                          "url": "/uploads/capa/1673432100000-capa.jpg",
+                          "tamanhoMb": 2.45,
+                          "altura": 720,
+                          "largura": 1280
+                        }
+                      ]
                     }
                   }
                 },
-                "multiplas_midias": {
+                "midia_video": {
+                  "summary": "Upload de vídeo bem-sucedido",
+                  "value": {
+                    "statusCode": 201,
+                    "message": "Mídia (video) salva com sucesso.",
+                    "data": {
+                      "_id": "60b5f8c8d8f8f8f8f8f8f8",
+                      "midiaVideo": [
+                        {
+                          "_id": "60b5f8c8d8f8f8f8f8f8f8fa",
+                          "url": "/uploads/video/1673432100000-video.mp4",
+                          "tamanhoMb": 25.8,
+                          "altura": 720,
+                          "largura": 1280
+                        }
+                      ]
+                    }
+                  }
+                },
+                "multiplas_midias_carrossel": {
+                  "summary": "Upload de múltiplas imagens do carrossel",
                   "value": {
                     "statusCode": 201,
                     "message": "3 arquivo(s) de carrossel salvos com sucesso.",
                     "data": {
-                      "evento": "60b5f8c8d8f8f8f8f8f8f8",
-                      "tipo": "carrossel",
-                      "midias": [
+                      "_id": "60b5f8c8d8f8f8f8f8f8f8",
+                      "midiaCarrossel": [
                         {
                           "_id": "60b5f8c8d8f8f8f8f8f8f8fa",
-                          "filename": "carrossel_1.jpg",
-                          "originalName": "imagem_1.jpg",
-                          "mimetype": "image/jpeg",
-                          "size": 1024000,
-                          "url": "/uploads/eventos/60b5f8c8d8f8f8f8f8f8f8f8/carrossel_1.jpg",
-                          "createdAt": "2024-01-01T12:00:00.000Z"
+                          "url": "/uploads/carrossel/1673432100000-img1.jpg",
+                          "tamanhoMb": 1.85,
+                          "altura": 720,
+                          "largura": 1280
                         },
                         {
                           "_id": "60b5f8c8d8f8f8f8f8f8f8fb",
-                          "filename": "carrossel_2.jpg",
-                          "originalName": "imagem_2.jpg",
-                          "mimetype": "image/jpeg",
-                          "size": 1024000,
-                          "url": "/uploads/eventos/60b5f8c8d8f8f8f8f8f8f8f8/carrossel_2.jpg",
-                          "createdAt": "2024-01-01T12:00:00.000Z"
+                          "url": "/uploads/carrossel/1673432100000-img2.jpg",
+                          "tamanhoMb": 2.12,
+                          "altura": 720,
+                          "largura": 1280
+                        },
+                        {
+                          "_id": "60b5f8c8d8f8f8f8f8f8f8fc",
+                          "url": "/uploads/carrossel/1673432100000-img3.jpg",
+                          "tamanhoMb": 1.95,
+                          "altura": 720,
+                          "largura": 1280
                         }
                       ]
                     }
@@ -149,7 +161,8 @@ const uploadPath = {
                 "$ref": "#/components/schemas/ErrorResponse"
               },
               "examples": {
-                "arquivo_ausente": {
+                "arquivo_ausente_capa": {
+                  "summary": "Arquivo não enviado para capa",
                   "value": {
                     "statusCode": 400,
                     "error": "Erro de validação",
@@ -157,11 +170,48 @@ const uploadPath = {
                     "details": []
                   }
                 },
-                "tipo_invalido": {
+                "arquivo_ausente_carrossel": {
+                  "summary": "Arquivos não enviados para carrossel",
                   "value": {
                     "statusCode": 400,
                     "error": "Erro de validação",
-                    "message": "Tipo de mídia deve ser: capa, video ou carrossel",
+                    "message": "Arquivo(s) de mídia não enviado(s). Use o campo 'files' para o tipo 'carrossel'.",
+                    "details": []
+                  }
+                },
+                "dimensoes_invalidas": {
+                  "summary": "Dimensões inválidas da imagem",
+                  "value": {
+                    "statusCode": 400,
+                    "error": "Erro de validação",
+                    "message": "Dimensões inválidas. Esperado: 1280x720px, recebido: 1920x1080px.",
+                    "details": []
+                  }
+                },
+                "dimensoes_invalidas_carrossel": {
+                  "summary": "Dimensões inválidas em arquivo do carrossel",
+                  "value": {
+                    "statusCode": 400,
+                    "error": "Erro de validação",
+                    "message": "Dimensões inválidas no arquivo \"imagem.jpg\". Esperado: 1280x720px, recebido: 1920x1080px.",
+                    "details": []
+                  }
+                },
+                "arquivo_corrompido": {
+                  "summary": "Arquivo corrompido ou inválido",
+                  "value": {
+                    "statusCode": 400,
+                    "error": "Erro de validação",
+                    "message": "Arquivo \"imagem.jpg\" está corrompido ou não é uma imagem válida.",
+                    "details": []
+                  }
+                },
+                "evento_id_invalido": {
+                  "summary": "ID do evento inválido",
+                  "value": {
+                    "statusCode": 400,
+                    "error": "Erro de validação",
+                    "message": "ID do evento inválido. Deve ser um ObjectId válido.",
                     "details": []
                   }
                 }
@@ -173,10 +223,46 @@ const uploadPath = {
           "$ref": "#/components/responses/UnauthorizedError"
         },
         "403": {
-          "$ref": "#/components/responses/ForbiddenError"
+          "description": "Acesso negado",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorResponse"
+              },
+              "examples": {
+                "sem_permissao": {
+                  "summary": "Usuário sem permissão para adicionar mídia",
+                  "value": {
+                    "statusCode": 403,
+                    "error": "Acesso negado",
+                    "message": "Usuário não tem permissão para adicionar mídia a este evento.",
+                    "details": []
+                  }
+                }
+              }
+            }
+          }
         },
         "404": {
-          "$ref": "#/components/responses/NotFoundError"
+          "description": "Evento não encontrado",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorResponse"
+              },
+              "examples": {
+                "evento_nao_encontrado": {
+                  "summary": "Evento não existe",
+                  "value": {
+                    "statusCode": 404,
+                    "error": "Recurso não encontrado",
+                    "message": "Evento não encontrado.",
+                    "details": []
+                  }
+                }
+              }
+            }
+          }
         },
         "413": {
           "description": "Arquivo muito grande",
@@ -187,10 +273,11 @@ const uploadPath = {
               },
               "examples": {
                 "arquivo_grande": {
+                  "summary": "Arquivo excede limite de tamanho",
                   "value": {
                     "statusCode": 413,
                     "error": "Arquivo muito grande",
-                    "message": "O arquivo excede o tamanho máximo permitido",
+                    "message": "O arquivo excede o tamanho máximo permitido (10MB para imagens, 50MB para vídeos).",
                     "details": []
                   }
                 }
@@ -212,11 +299,11 @@ const uploadPath = {
       
       **Regras de Negócio:**
       - Usuário deve estar autenticado
-      - Apenas organizador ou colaborador com permissão pode listar mídias
       - Retorna arrays separados por tipo de mídia
-      - Cada mídia inclui informações completas (filename, originalName, mimetype, size, url)
+      - Cada mídia inclui informações completas (url, tamanhoMb, altura, largura)
       - URLs são relativas ao servidor da aplicação
-      - Ordem das mídias no carrossel é preservada`,
+      - Ordem das mídias no carrossel é preservada
+      - Retorna arrays vazios se não houver mídias`,
       "security": [
         {
           "bearerAuth": []
@@ -227,7 +314,7 @@ const uploadPath = {
           "name": "id",
           "in": "path",
           "required": true,
-          "description": "ID do evento",
+          "description": "ID do evento (ObjectId válido)",
           "schema": {
             "type": "string",
             "pattern": "^[0-9a-fA-F]{24}$"
@@ -243,55 +330,80 @@ const uploadPath = {
                 "$ref": "#/components/schemas/MidiasEventoResponse"
               },
               "examples": {
-                "sucesso": {
+                "com_todas_midias": {
+                  "summary": "Evento com todas as mídias",
                   "value": {
                     "statusCode": 200,
                     "message": "Mídias do evento retornadas com sucesso.",
                     "data": {
-                      "evento": "60b5f8c8d8f8f8f8f8f8f8f8",
-                      "midiaCapa": [
+                      "capa": [
                         {
                           "_id": "60b5f8c8d8f8f8f8f8f8f8fa",
-                          "filename": "capa_evento.jpg",
-                          "originalName": "imagem_capa.jpg",
-                          "mimetype": "image/jpeg",
-                          "size": 1024000,
-                          "url": "/uploads/eventos/60b5f8c8d8f8f8f8f8f8f8f8/capa_evento.jpg",
-                          "createdAt": "2024-01-01T12:00:00.000Z"
+                          "url": "/uploads/capa/1673432100000-capa.jpg",
+                          "tamanhoMb": 2.45,
+                          "altura": 720,
+                          "largura": 1280
                         }
                       ],
-                      "midiaVideo": [
+                      "carrossel": [
                         {
                           "_id": "60b5f8c8d8f8f8f8f8f8f8fb",
-                          "filename": "video_evento.mp4",
-                          "originalName": "video_promocional.mp4",
-                          "mimetype": "video/mp4",
-                          "size": 10240000,
-                          "url": "/uploads/eventos/60b5f8c8d8f8f8f8f8f8f8f8/video_evento.mp4",
-                          "createdAt": "2024-01-01T12:00:00.000Z"
-                        }
-                      ],
-                      "midiaCarrossel": [
-                        {
-                          "_id": "60b5f8c8d8f8f8f8f8f8f8fc",
-                          "filename": "carrossel_1.jpg",
-                          "originalName": "imagem_1.jpg",
-                          "mimetype": "image/jpeg",
-                          "size": 1024000,
-                          "url": "/uploads/eventos/60b5f8c8d8f8f8f8f8f8f8f8/carrossel_1.jpg",
-                          "createdAt": "2024-01-01T12:00:00.000Z"
+                          "url": "/uploads/carrossel/1673432100000-img1.jpg",
+                          "tamanhoMb": 1.85,
+                          "altura": 720,
+                          "largura": 1280
                         },
                         {
+                          "_id": "60b5f8c8d8f8f8f8f8f8f8fc",
+                          "url": "/uploads/carrossel/1673432100000-img2.jpg",
+                          "tamanhoMb": 2.12,
+                          "altura": 720,
+                          "largura": 1280
+                        }
+                      ],
+                      "video": [
+                        {
                           "_id": "60b5f8c8d8f8f8f8f8f8f8fd",
-                          "filename": "carrossel_2.jpg",
-                          "originalName": "imagem_2.jpg",
-                          "mimetype": "image/jpeg",
-                          "size": 1024000,
-                          "url": "/uploads/eventos/60b5f8c8d8f8f8f8f8f8f8f8/carrossel_2.jpg",
-                          "createdAt": "2024-01-01T12:00:00.000Z"
+                          "url": "/uploads/video/1673432100000-video.mp4",
+                          "tamanhoMb": 25.8,
+                          "altura": 720,
+                          "largura": 1280
                         }
                       ]
                     }
+                  }
+                },
+                "sem_midias": {
+                  "summary": "Evento sem mídias",
+                  "value": {
+                    "statusCode": 200,
+                    "message": "Mídias do evento retornadas com sucesso.",
+                    "data": {
+                      "capa": [],
+                      "carrossel": [],
+                      "video": []
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "400": {
+          "description": "ID do evento inválido",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorResponse"
+              },
+              "examples": {
+                "evento_id_invalido": {
+                  "summary": "ID do evento inválido",
+                  "value": {
+                    "statusCode": 400,
+                    "error": "Erro de validação",
+                    "message": "ID do evento inválido. Deve ser um ObjectId válido.",
+                    "details": []
                   }
                 }
               }
@@ -302,7 +414,25 @@ const uploadPath = {
           "$ref": "#/components/responses/UnauthorizedError"
         },
         "404": {
-          "$ref": "#/components/responses/NotFoundError"
+          "description": "Evento não encontrado",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorResponse"
+              },
+              "examples": {
+                "evento_nao_encontrado": {
+                  "summary": "Evento não existe",
+                  "value": {
+                    "statusCode": 404,
+                    "error": "Recurso não encontrado",
+                    "message": "Evento não encontrado.",
+                    "details": []
+                  }
+                }
+              }
+            }
+          }
         },
         "500": {
           "$ref": "#/components/responses/InternalServerError"
@@ -313,15 +443,15 @@ const uploadPath = {
   "/eventos/{id}/midia/capa": {
     "get": {
       "tags": ["Upload de Mídias"],
-      "summary": "Listar mídia de capa do evento",
-      "description": `Retorna especificamente a mídia de capa do evento. Capa é a imagem principal do evento.
+      "summary": "Obter imagem de capa do evento",
+      "description": `Retorna o arquivo binário da imagem de capa do evento.
       
       **Regras de Negócio:**
       - Usuário deve estar autenticado
-      - Apenas organizador ou colaborador com permissão pode acessar
-      - Retorna array com mídia de capa (máximo 1 item)
-      - Capa é obrigatória para ativar evento (com validação)
-      - Usado para exibição em listagens e detalhes do evento`,
+      - Retorna o arquivo binário diretamente (não JSON)
+      - Content-Type é definido automaticamente baseado na extensão do arquivo
+      - Suporta formatos: jpg, png, jpeg
+      - Erro 404 se não houver capa ou arquivo não existir fisicamente`,
       "security": [
         {
           "bearerAuth": []
@@ -332,7 +462,7 @@ const uploadPath = {
           "name": "id",
           "in": "path",
           "required": true,
-          "description": "ID do evento",
+          "description": "ID do evento (ObjectId válido)",
           "schema": {
             "type": "string",
             "pattern": "^[0-9a-fA-F]{24}$"
@@ -341,31 +471,43 @@ const uploadPath = {
       ],
       "responses": {
         "200": {
-          "description": "Capa do evento retornada com sucesso",
+          "description": "Imagem de capa retornada com sucesso",
+          "content": {
+            "image/jpeg": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            },
+            "image/png": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            },
+            "image/jpg": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            },
+          }
+        },
+        "400": {
+          "description": "ID do evento inválido",
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/MidiaCapaResponse"
+                "$ref": "#/components/schemas/ErrorResponse"
               },
               "examples": {
-                "sucesso": {
+                "evento_id_invalido": {
+                  "summary": "ID do evento inválido",
                   "value": {
-                    "statusCode": 200,
-                    "message": "Capa do evento retornada com sucesso.",
-                    "data": {
-                      "evento": "60b5f8c8d8f8f8f8f8f8f8f8",
-                      "midiaCapa": [
-                        {
-                          "_id": "60b5f8c8d8f8f8f8f8f8f8fa",
-                          "filename": "capa_evento.jpg",
-                          "originalName": "imagem_capa.jpg",
-                          "mimetype": "image/jpeg",
-                          "size": 1024000,
-                          "url": "/uploads/eventos/60b5f8c8d8f8f8f8f8f8f8f8/capa_evento.jpg",
-                          "createdAt": "2024-01-01T12:00:00.000Z"
-                        }
-                      ]
-                    }
+                    "statusCode": 400,
+                    "error": "Erro de validação",
+                    "message": "ID do evento inválido. Deve ser um ObjectId válido.",
+                    "details": []
                   }
                 }
               }
@@ -376,7 +518,43 @@ const uploadPath = {
           "$ref": "#/components/responses/UnauthorizedError"
         },
         "404": {
-          "$ref": "#/components/responses/NotFoundError"
+          "description": "Capa não encontrada",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorResponse"
+              },
+              "examples": {
+                "capa_nao_encontrada": {
+                  "summary": "Evento não possui capa",
+                  "value": {
+                    "statusCode": 404,
+                    "error": "Recurso não encontrado",
+                    "message": "Capa do evento não encontrada.",
+                    "details": []
+                  }
+                },
+                "arquivo_nao_encontrado": {
+                  "summary": "Arquivo físico não existe",
+                  "value": {
+                    "statusCode": 404,
+                    "error": "Recurso não encontrado",
+                    "message": "Arquivo de capa não encontrado no servidor.",
+                    "details": []
+                  }
+                },
+                "evento_nao_encontrado": {
+                  "summary": "Evento não existe",
+                  "value": {
+                    "statusCode": 404,
+                    "error": "Recurso não encontrado",
+                    "message": "Evento não encontrado.",
+                    "details": []
+                  }
+                }
+              }
+            }
+          }
         },
         "500": {
           "$ref": "#/components/responses/InternalServerError"
@@ -387,16 +565,15 @@ const uploadPath = {
   "/eventos/{id}/midia/video": {
     "get": {
       "tags": ["Upload de Mídias"],
-      "summary": "Listar mídia de vídeo do evento",
-      "description": `Retorna especificamente a mídia de vídeo do evento. Vídeo é opcional e usado para apresentação promocional.
+      "summary": "Obter vídeo do evento",
+      "description": `Retorna o arquivo binário do vídeo do evento.
       
       **Regras de Negócio:**
       - Usuário deve estar autenticado
-      - Apenas organizador ou colaborador com permissão pode acessar
-      - Retorna array com mídia de vídeo (máximo 1 item)
-      - Vídeo é opcional para ativação do evento
-      - Suporta formatos: MP4, WebM, OGG
-      - Limite de tamanho: 50MB por arquivo`,
+      - Retorna o arquivo binário diretamente (não JSON)
+      - Content-Type é definido automaticamente baseado na extensão do arquivo
+      - Suporta formatos: mp4
+      - Erro 404 se não houver vídeo ou arquivo não existir fisicamente`,
       "security": [
         {
           "bearerAuth": []
@@ -407,7 +584,7 @@ const uploadPath = {
           "name": "id",
           "in": "path",
           "required": true,
-          "description": "ID do evento",
+          "description": "ID do evento (ObjectId válido)",
           "schema": {
             "type": "string",
             "pattern": "^[0-9a-fA-F]{24}$"
@@ -416,31 +593,31 @@ const uploadPath = {
       ],
       "responses": {
         "200": {
-          "description": "Vídeo do evento retornada com sucesso",
+          "description": "Vídeo retornado com sucesso",
+          "content": {
+            "video/mp4": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            },
+          }
+        },
+        "400": {
+          "description": "ID do evento inválido",
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/MidiaVideoResponse"
+                "$ref": "#/components/schemas/ErrorResponse"
               },
               "examples": {
-                "sucesso": {
+                "evento_id_invalido": {
+                  "summary": "ID do evento inválido",
                   "value": {
-                    "statusCode": 200,
-                    "message": "Video do evento retornada com sucesso.",
-                    "data": {
-                      "evento": "60b5f8c8d8f8f8f8f8f8f8f8",
-                      "midiaVideo": [
-                        {
-                          "_id": "60b5f8c8d8f8f8f8f8f8f8fb",
-                          "filename": "video_evento.mp4",
-                          "originalName": "video_promocional.mp4",
-                          "mimetype": "video/mp4",
-                          "size": 10240000,
-                          "url": "/uploads/eventos/60b5f8c8d8f8f8f8f8f8f8f8/video_evento.mp4",
-                          "createdAt": "2024-01-01T12:00:00.000Z"
-                        }
-                      ]
-                    }
+                    "statusCode": 400,
+                    "error": "Erro de validação",
+                    "message": "ID do evento inválido. Deve ser um ObjectId válido.",
+                    "details": []
                   }
                 }
               }
@@ -451,7 +628,43 @@ const uploadPath = {
           "$ref": "#/components/responses/UnauthorizedError"
         },
         "404": {
-          "$ref": "#/components/responses/NotFoundError"
+          "description": "Vídeo não encontrado",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorResponse"
+              },
+              "examples": {
+                "video_nao_encontrado": {
+                  "summary": "Evento não possui vídeo",
+                  "value": {
+                    "statusCode": 404,
+                    "error": "Recurso não encontrado",
+                    "message": "Vídeo do evento não encontrado.",
+                    "details": []
+                  }
+                },
+                "arquivo_nao_encontrado": {
+                  "summary": "Arquivo físico não existe",
+                  "value": {
+                    "statusCode": 404,
+                    "error": "Recurso não encontrado",
+                    "message": "Arquivo de vídeo não encontrado no servidor.",
+                    "details": []
+                  }
+                },
+                "evento_nao_encontrado": {
+                  "summary": "Evento não existe",
+                  "value": {
+                    "statusCode": 404,
+                    "error": "Recurso não encontrado",
+                    "message": "Evento não encontrado.",
+                    "details": []
+                  }
+                }
+              }
+            }
+          }
         },
         "500": {
           "$ref": "#/components/responses/InternalServerError"
@@ -459,19 +672,19 @@ const uploadPath = {
       }
     }
   },
-  "/eventos/{id}/midia/carrossel": {
+  "/eventos/{id}/midia/carrossel/{index}": {
     "get": {
       "tags": ["Upload de Mídias"],
-      "summary": "Listar mídia de carrossel do evento",
-      "description": `Retorna as mídias de carrossel do evento. Carrossel é uma coleção de imagens adicionais do evento.
+      "summary": "Obter imagem específica do carrossel",
+      "description": `Retorna o arquivo binário de uma imagem específica do carrossel baseada no índice.
       
       **Regras de Negócio:**
       - Usuário deve estar autenticado
-      - Apenas organizador ou colaborador com permissão pode acessar
-      - Retorna array com múltiplas mídias de carrossel
-      - Carrossel é opcional para ativação do evento
-      - Usado para galeria de imagens do evento
-      - Ordem das imagens é preservada conforme upload`,
+      - Retorna o arquivo binário diretamente (não JSON)
+      - Content-Type é definido automaticamente baseado na extensão do arquivo
+      - Suporta formatos: jpg, jpeg, png
+      - Índice baseado em 0 (primeira imagem = índice 0)
+      - Erro 404 se não houver carrossel, índice inválido ou arquivo não existir fisicamente`,
       "security": [
         {
           "bearerAuth": []
@@ -482,49 +695,62 @@ const uploadPath = {
           "name": "id",
           "in": "path",
           "required": true,
-          "description": "ID do evento",
+          "description": "ID do evento (ObjectId válido)",
           "schema": {
             "type": "string",
             "pattern": "^[0-9a-fA-F]{24}$"
+          }
+        },
+        {
+          "name": "index",
+          "in": "path",
+          "required": true,
+          "description": "Índice da imagem no carrossel (baseado em 0)",
+          "schema": {
+            "type": "integer",
+            "minimum": 0
           }
         }
       ],
       "responses": {
         "200": {
-          "description": "Carrossel do evento retornada com sucesso",
+          "description": "Imagem do carrossel retornada com sucesso",
+          "content": {
+            "image/jpeg": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            },
+            "image/png": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            },
+            "image/jpg": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            }
+          }
+        },
+        "400": {
+          "description": "ID do evento inválido",
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/MidiaCarrosselResponse"
+                "$ref": "#/components/schemas/ErrorResponse"
               },
               "examples": {
-                "sucesso": {
+                "evento_id_invalido": {
+                  "summary": "ID do evento inválido",
                   "value": {
-                    "statusCode": 200,
-                    "message": "Carrossel do evento retornada com sucesso.",
-                    "data": {
-                      "evento": "60b5f8c8d8f8f8f8f8f8f8f8",
-                      "midiaCarrossel": [
-                        {
-                          "_id": "60b5f8c8d8f8f8f8f8f8f8fc",
-                          "filename": "carrossel_1.jpg",
-                          "originalName": "imagem_1.jpg",
-                          "mimetype": "image/jpeg",
-                          "size": 1024000,
-                          "url": "/uploads/eventos/60b5f8c8d8f8f8f8f8f8f8f8/carrossel_1.jpg",
-                          "createdAt": "2024-01-01T12:00:00.000Z"
-                        },
-                        {
-                          "_id": "60b5f8c8d8f8f8f8f8f8f8fd",
-                          "filename": "carrossel_2.jpg",
-                          "originalName": "imagem_2.jpg",
-                          "mimetype": "image/jpeg",
-                          "size": 1024000,
-                          "url": "/uploads/eventos/60b5f8c8d8f8f8f8f8f8f8f8/carrossel_2.jpg",
-                          "createdAt": "2024-01-01T12:00:00.000Z"
-                        }
-                      ]
-                    }
+                    "statusCode": 400,
+                    "error": "Erro de validação",
+                    "message": "ID do evento inválido. Deve ser um ObjectId válido.",
+                    "details": []
                   }
                 }
               }
@@ -535,7 +761,52 @@ const uploadPath = {
           "$ref": "#/components/responses/UnauthorizedError"
         },
         "404": {
-          "$ref": "#/components/responses/NotFoundError"
+          "description": "Carrossel ou imagem não encontrada",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorResponse"
+              },
+              "examples": {
+                "carrossel_nao_encontrado": {
+                  "summary": "Evento não possui carrossel",
+                  "value": {
+                    "statusCode": 404,
+                    "error": "Recurso não encontrado",
+                    "message": "Carrossel do evento não encontrado.",
+                    "details": []
+                  }
+                },
+                "indice_invalido": {
+                  "summary": "Índice fora do range",
+                  "value": {
+                    "statusCode": 404,
+                    "error": "Recurso não encontrado",
+                    "message": "Índice 5 não encontrado. O carrossel possui 3 imagem(ns).",
+                    "details": []
+                  }
+                },
+                "arquivo_nao_encontrado": {
+                  "summary": "Arquivo físico não existe",
+                  "value": {
+                    "statusCode": 404,
+                    "error": "Recurso não encontrado",
+                    "message": "Arquivo de carrossel não encontrado no servidor.",
+                    "details": []
+                  }
+                },
+                "evento_nao_encontrado": {
+                  "summary": "Evento não existe",
+                  "value": {
+                    "statusCode": 404,
+                    "error": "Recurso não encontrado",
+                    "message": "Evento não encontrado.",
+                    "details": []
+                  }
+                }
+              }
+            }
+          }
         },
         "500": {
           "$ref": "#/components/responses/InternalServerError"
@@ -546,17 +817,16 @@ const uploadPath = {
   "/eventos/{eventoId}/midia/{tipo}/{midiaId}": {
     "delete": {
       "tags": ["Upload de Mídias"],
-      "summary": "Deletar mídia do evento",
-      "description": `Remove uma mídia específica do evento. Operação irreversível que remove o arquivo do servidor.
+      "summary": "Deletar mídia específica do evento",
+      "description": `Remove uma mídia específica do evento e exclui o arquivo físico do servidor.
       
       **Regras de Negócio:**
       - Usuário deve estar autenticado
-      - Apenas organizador ou colaborador com permissão pode deletar
-      - Arquivo físico é removido do servidor
-      - Mídia é removida do banco de dados
-      - Operação é irreversível
-      - Não é possível deletar mídia inexistente (erro 404)
-      - Evento deve existir para deletar suas mídias`,
+      - Apenas organizador ou colaborador com permissão pode deletar mídias
+      - Remove o registro do banco de dados
+      - Exclui o arquivo físico do servidor
+      - Retorna os dados da mídia deletada
+      - Operação irreversível`,
       "security": [
         {
           "bearerAuth": []
@@ -567,7 +837,7 @@ const uploadPath = {
           "name": "eventoId",
           "in": "path",
           "required": true,
-          "description": "ID do evento",
+          "description": "ID do evento (ObjectId válido)",
           "schema": {
             "type": "string",
             "pattern": "^[0-9a-fA-F]{24}$"
@@ -577,7 +847,7 @@ const uploadPath = {
           "name": "tipo",
           "in": "path",
           "required": true,
-          "description": "Tipo de mídia",
+          "description": "Tipo da mídia a ser deletada",
           "schema": {
             "type": "string",
             "enum": ["capa", "video", "carrossel"]
@@ -587,7 +857,7 @@ const uploadPath = {
           "name": "midiaId",
           "in": "path",
           "required": true,
-          "description": "ID da mídia",
+          "description": "ID da mídia a ser deletada (ObjectId válido)",
           "schema": {
             "type": "string",
             "pattern": "^[0-9a-fA-F]{24}$"
@@ -600,20 +870,48 @@ const uploadPath = {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SuccessResponse"
+                "$ref": "#/components/schemas/DeleteMidiaResponse"
               },
               "examples": {
-                "sucesso": {
+                "capa_deletada": {
+                  "summary": "Capa deletada com sucesso",
                   "value": {
                     "statusCode": 200,
                     "message": "Midia 'capa' do evento deletada com sucesso.",
                     "data": {
-                      "evento": "60b5f8c8d8f8f8f8f8f8f8f8",
-                      "midiaRemovida": {
-                        "_id": "60b5f8c8d8f8f8f8f8f8f8fa",
-                        "filename": "capa_evento.jpg",
-                        "tipo": "capa"
-                      }
+                      "_id": "60b5f8c8d8f8f8f8f8f8f8fa",
+                      "url": "/uploads/capa/1673432100000-capa.jpg",
+                      "tamanhoMb": 2.45,
+                      "altura": 720,
+                      "largura": 1280
+                    }
+                  }
+                },
+                "video_deletado": {
+                  "summary": "Vídeo deletado com sucesso",
+                  "value": {
+                    "statusCode": 200,
+                    "message": "Midia 'video' do evento deletada com sucesso.",
+                    "data": {
+                      "_id": "60b5f8c8d8f8f8f8f8f8f8fa",
+                      "url": "/uploads/video/1673432100000-video.mp4",
+                      "tamanhoMb": 25.8,
+                      "altura": 720,
+                      "largura": 1280
+                    }
+                  }
+                },
+                "carrossel_deletado": {
+                  "summary": "Imagem do carrossel deletada com sucesso",
+                  "value": {
+                    "statusCode": 200,
+                    "message": "Midia 'carrossel' do evento deletada com sucesso.",
+                    "data": {
+                      "_id": "60b5f8c8d8f8f8f8f8f8f8fa",
+                      "url": "/uploads/carrossel/1673432100000-img1.jpg",
+                      "tamanhoMb": 1.85,
+                      "altura": 720,
+                      "largura": 1280
                     }
                   }
                 }
@@ -622,16 +920,88 @@ const uploadPath = {
           }
         },
         "400": {
-          "$ref": "#/components/responses/BadRequestError"
+          "description": "Parâmetros inválidos",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorResponse"
+              },
+              "examples": {
+                "evento_id_invalido": {
+                  "summary": "ID do evento inválido",
+                  "value": {
+                    "statusCode": 400,
+                    "error": "Erro de validação",
+                    "message": "ID do evento inválido. Deve ser um ObjectId válido.",
+                    "details": []
+                  }
+                },
+                "midia_id_invalido": {
+                  "summary": "ID da mídia inválido",
+                  "value": {
+                    "statusCode": 400,
+                    "error": "Erro de validação",
+                    "message": "ID da mídia inválido. Deve ser um ObjectId válido.",
+                    "details": []
+                  }
+                }
+              }
+            }
+          }
         },
         "401": {
           "$ref": "#/components/responses/UnauthorizedError"
         },
         "403": {
-          "$ref": "#/components/responses/ForbiddenError"
+          "description": "Acesso negado",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorResponse"
+              },
+              "examples": {
+                "sem_permissao": {
+                  "summary": "Usuário sem permissão para deletar mídia",
+                  "value": {
+                    "statusCode": 403,
+                    "error": "Acesso negado",
+                    "message": "Usuário não tem permissão para deletar mídia deste evento.",
+                    "details": []
+                  }
+                }
+              }
+            }
+          }
         },
         "404": {
-          "$ref": "#/components/responses/NotFoundError"
+          "description": "Recurso não encontrado",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorResponse"
+              },
+              "examples": {
+                "evento_nao_encontrado": {
+                  "summary": "Evento não existe",
+                  "value": {
+                    "statusCode": 404,
+                    "error": "Recurso não encontrado",
+                    "message": "Evento não encontrado.",
+                    "details": []
+                  }
+                },
+                "midia_nao_encontrada": {
+                  "summary": "Mídia não encontrada",
+                  "value": {
+                    "statusCode": 404,
+                    "error": "Recurso não encontrado",
+                    "message": "Mídia não encontrada no evento.",
+                    "details": []
+                  }
+                }
+              }
+            }
+          }
         },
         "500": {
           "$ref": "#/components/responses/InternalServerError"
