@@ -444,19 +444,7 @@ const uploadPath = {
     "get": {
       "tags": ["Upload de Mídias"],
       "summary": "Obter imagem de capa do evento",
-      "description": `Retorna o arquivo binário da imagem de capa do evento.
-      
-      **Regras de Negócio:**
-      - Usuário deve estar autenticado
-      - Retorna o arquivo binário diretamente (não JSON)
-      - Content-Type é definido automaticamente baseado na extensão do arquivo
-      - Suporta formatos: jpg, png, jpeg
-      - Erro 404 se não houver capa ou arquivo não existir fisicamente`,
-      "security": [
-        {
-          "bearerAuth": []
-        }
-      ],
+      "description": "Retorna o arquivo binário da imagem de capa do evento. O Content-Type é definido automaticamente baseado na extensão do arquivo (jpg, jpeg, png).",
       "parameters": [
         {
           "name": "id",
@@ -490,32 +478,14 @@ const uploadPath = {
                 "type": "string",
                 "format": "binary"
               }
-            },
-          }
-        },
-        "400": {
-          "description": "ID do evento inválido",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ErrorResponse"
-              },
-              "examples": {
-                "evento_id_invalido": {
-                  "summary": "ID do evento inválido",
-                  "value": {
-                    "statusCode": 400,
-                    "error": "Erro de validação",
-                    "message": "ID do evento inválido. Deve ser um ObjectId válido.",
-                    "details": []
-                  }
-                }
-              }
+            }
+          },
+          "examples": {
+            "url_exemplo": {
+              "summary": "Exemplo de URL para acessar a imagem",
+              "value": "https://seuservidor.com/uploads/capa/1673432100000-capa.jpg"
             }
           }
-        },
-        "401": {
-          "$ref": "#/components/responses/UnauthorizedError"
         },
         "404": {
           "description": "Capa não encontrada",
@@ -533,31 +503,10 @@ const uploadPath = {
                     "message": "Capa do evento não encontrada.",
                     "details": []
                   }
-                },
-                "arquivo_nao_encontrado": {
-                  "summary": "Arquivo físico não existe",
-                  "value": {
-                    "statusCode": 404,
-                    "error": "Recurso não encontrado",
-                    "message": "Arquivo de capa não encontrado no servidor.",
-                    "details": []
-                  }
-                },
-                "evento_nao_encontrado": {
-                  "summary": "Evento não existe",
-                  "value": {
-                    "statusCode": 404,
-                    "error": "Recurso não encontrado",
-                    "message": "Evento não encontrado.",
-                    "details": []
-                  }
                 }
               }
             }
           }
-        },
-        "500": {
-          "$ref": "#/components/responses/InternalServerError"
         }
       }
     }
