@@ -1,5 +1,5 @@
 import authSchemas from "../schemas/authSchema.js";
-import commonResponses from "../schemas/swaggerCommonResponses.js";
+import swaggerCommonResponses from "../schemas/swaggerCommonResponses.js";
 import usuariosSchemas from "../schemas/usuariosSchema.js";
 
 const authRoutes = {
@@ -36,12 +36,12 @@ const authRoutes = {
                 }
             },
             responses: {
-                200: commonResponses[200]("#/components/schemas/UsuarioRespostaLogin"),
-                400: commonResponses[400](),    // Requisição malformada
-                401: commonResponses[401](),    // Credenciais inválidas
-                422: commonResponses[422](),    // Erro de validação de dados
-                498: commonResponses[498](),    // Token expirado
-                500: commonResponses[500]()     // Erro interno
+                200: swaggerCommonResponses[200]("#/components/schemas/UsuarioRespostaLogin"),
+                400: swaggerCommonResponses[400](),    // Requisição malformada
+                401: swaggerCommonResponses[401](),    // Credenciais inválidas
+                422: swaggerCommonResponses[422](),    // Erro de validação de dados
+                498: swaggerCommonResponses[498](),    // Token expirado
+                500: swaggerCommonResponses[500]()     // Erro interno
             }
         }
     },
@@ -77,10 +77,10 @@ const authRoutes = {
                 }
             },
             responses: {
-                200: commonResponses[200]("#/components/schemas/RespostaRecuperaSenha"),
-                400: commonResponses[400](),
-                422: commonResponses[422](),    // Erro de validação
-                500: commonResponses[500]()
+                200: swaggerCommonResponses[200]("#/components/schemas/RespostaRecuperaSenha"),
+                400: swaggerCommonResponses[400](),
+                422: swaggerCommonResponses[422](),    // Erro de validação
+                500: swaggerCommonResponses[500]()
             }
         }
     },
@@ -115,11 +115,11 @@ const authRoutes = {
                 }
             },
             responses: {
-                201: commonResponses[201]("#/components/schemas/signupPostDetalhes"),
-                400: commonResponses[400](),
-                422: commonResponses[422](),    // Erro de validação
-                409: commonResponses[409](),    // Conflito (email já existe)
-                500: commonResponses[500]()
+                201: swaggerCommonResponses[201]("#/components/schemas/signupPostDetalhes"),
+                400: swaggerCommonResponses[400](),
+                422: swaggerCommonResponses[422](),    // Erro de validação
+                409: swaggerCommonResponses[409](),    // Conflito (email já existe)
+                500: swaggerCommonResponses[500]()
             }
         }
     },
@@ -164,11 +164,11 @@ const authRoutes = {
                 }
             },
             responses: {
-                200: commonResponses[200](),
-                400: commonResponses[400](),
-                401: commonResponses[401](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
+                200: swaggerCommonResponses[200](),
+                400: swaggerCommonResponses[400](),
+                401: swaggerCommonResponses[401](),
+                498: swaggerCommonResponses[498](),
+                500: swaggerCommonResponses[500]()
             }
         }
     },
@@ -214,11 +214,11 @@ const authRoutes = {
                 }
             },
             responses: {
-                200: commonResponses[200]("#/components/schemas/RespostaRefresh"),
-                400: commonResponses[400](),
-                401: commonResponses[401](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
+                200: swaggerCommonResponses[200]("#/components/schemas/RespostaRefresh"),
+                400: swaggerCommonResponses[400](),
+                401: swaggerCommonResponses[401](),
+                498: swaggerCommonResponses[498](),
+                500: swaggerCommonResponses[500]()
             }
         }
     },
@@ -276,11 +276,30 @@ const authRoutes = {
                 }
             },
             responses: {
-                200: commonResponses[200](),
-                400: commonResponses[400](),
-                401: commonResponses[401](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
+                200: {
+                    description: "Senha atualizada com sucesso",
+                    content: {
+                        "application/json": {
+                            schema: {
+                                type: "object",
+                                properties: {
+                                    error: { type: "boolean", example: false },
+                                    code: { type: "integer", example: 200 },
+                                    message: { 
+                                        type: "string", 
+                                        example: "Senha atualizada com sucesso." 
+                                    },
+                                    data: { type: "object", nullable: true, example: null },
+                                    errors: { type: "array", example: [] }
+                                }
+                            }
+                        }
+                    }
+                },
+                400: swaggerCommonResponses[400](),
+                401: swaggerCommonResponses[401](),
+                498: swaggerCommonResponses[498](),
+                500: swaggerCommonResponses[500]()
             }
         }
     }

@@ -1,5 +1,7 @@
 // src/docs/paths/upload.js
 
+import swaggerCommonResponses from "../schemas/swaggerCommonResponses.js";
+
 const uploadPath = {
   "/eventos/{id}/midia/{tipo}": {
     "post": {
@@ -219,9 +221,7 @@ const uploadPath = {
             }
           }
         },
-        "401": {
-          "$ref": "#/components/responses/UnauthorizedError"
-        },
+        "401": swaggerCommonResponses[401](),
         "403": {
           "description": "Acesso negado",
           "content": {
@@ -285,9 +285,7 @@ const uploadPath = {
             }
           }
         },
-        "500": {
-          "$ref": "#/components/responses/InternalServerError"
-        }
+        "500": swaggerCommonResponses[500]()
       }
     }
   },
@@ -410,9 +408,7 @@ const uploadPath = {
             }
           }
         },
-        "401": {
-          "$ref": "#/components/responses/UnauthorizedError"
-        },
+        "401": swaggerCommonResponses[401](),
         "404": {
           "description": "Evento não encontrado",
           "content": {
@@ -434,9 +430,7 @@ const uploadPath = {
             }
           }
         },
-        "500": {
-          "$ref": "#/components/responses/InternalServerError"
-        }
+        "500": swaggerCommonResponses[500]()
       }
     }
   },
@@ -501,6 +495,15 @@ const uploadPath = {
                     "statusCode": 404,
                     "error": "Recurso não encontrado",
                     "message": "Capa do evento não encontrada.",
+                    "details": []
+                  }
+                },
+                "arquivo_capa_nao_encontrado": {
+                  "summary": "Arquivo de capa não encontrado no servidor",
+                  "value": {
+                    "statusCode": 404,
+                    "error": "Recurso não encontrado",
+                    "message": "Arquivo de capa não encontrado no servidor.",
                     "details": []
                   }
                 }
@@ -573,9 +576,7 @@ const uploadPath = {
             }
           }
         },
-        "401": {
-          "$ref": "#/components/responses/UnauthorizedError"
-        },
+        "401": swaggerCommonResponses[401](),
         "404": {
           "description": "Vídeo não encontrado",
           "content": {
@@ -615,9 +616,7 @@ const uploadPath = {
             }
           }
         },
-        "500": {
-          "$ref": "#/components/responses/InternalServerError"
-        }
+        "500": swaggerCommonResponses[500]()
       }
     }
   },
@@ -706,9 +705,7 @@ const uploadPath = {
             }
           }
         },
-        "401": {
-          "$ref": "#/components/responses/UnauthorizedError"
-        },
+        "401": swaggerCommonResponses[401](),
         "404": {
           "description": "Carrossel ou imagem não encontrada",
           "content": {
@@ -757,9 +754,7 @@ const uploadPath = {
             }
           }
         },
-        "500": {
-          "$ref": "#/components/responses/InternalServerError"
-        }
+        "500": swaggerCommonResponses[500]()
       }
     }
   },
@@ -898,9 +893,7 @@ const uploadPath = {
             }
           }
         },
-        "401": {
-          "$ref": "#/components/responses/UnauthorizedError"
-        },
+        "401": swaggerCommonResponses[401](),
         "403": {
           "description": "Acesso negado",
           "content": {
@@ -952,9 +945,7 @@ const uploadPath = {
             }
           }
         },
-        "500": {
-          "$ref": "#/components/responses/InternalServerError"
-        }
+        "500": swaggerCommonResponses[500]()
       }
     }
   }

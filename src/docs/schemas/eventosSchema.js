@@ -380,11 +380,9 @@ const eventosSchemas = {
         description: "Categoria do evento"
       },
       tags: {
-        type: "array",
-        items: {
-          type: "string"
-        },
-        description: "Tags do evento"
+        type: "string",
+        description: "Tags do evento. Para multipart/form-data: envie como JSON string '[\"tag1\", \"tag2\"]' ou separado por vírgula 'tag1,tag2,tag3'",
+        example: '["tecnologia", "inovação"]'
       },
       capa: {
         type: "string",

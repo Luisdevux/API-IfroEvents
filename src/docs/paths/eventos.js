@@ -1,5 +1,7 @@
 // src/docs/paths/eventos.js
 
+import swaggerCommonResponses from "../schemas/swaggerCommonResponses.js";
+
 const eventosPath = {
   "/eventos": {
     "post": {
@@ -15,7 +17,12 @@ const eventosPath = {
       - Validação prévia antes de processar uploads
       - Em caso de erro após uploads, arquivos são automaticamente removidos
       - Tags devem ser array de strings
-      - dataEvento deve ser no formato ISO 8601`,
+      - dataEvento deve ser no formato ISO 8601
+      
+      **Como enviar o campo 'tags' no Swagger UI:**
+      - Para multipart/form-data: Digite exatamente assim: ["tecnologia", "inovação", "palestras"]
+      - Ou separado por vírgula: tecnologia,inovação,palestras
+      - Para application/json: envie como array normal`,
       "security": [
         {
           "bearerAuth": []
@@ -49,7 +56,7 @@ const eventosPath = {
                     "statusCode": 201,
                     "message": "Evento criado com sucesso",
                     "data": {
-                      "_id": "60b5f8c8d8f8f8f8f8f8f8f8",
+                      "_id": "60b5f8c8d8f8f8f8f8f8f8",
                       "titulo": "Workshop de Node.js",
                       "descricao": "Aprenda Node.js do zero ao avançado",
                       "dataInicio": "2024-01-15T10:00:00.000Z",
@@ -100,10 +107,44 @@ const eventosPath = {
           }
         },
         "401": {
-          "$ref": "#/components/responses/UnauthorizedError"
+          "description": "Usuário não autorizado",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorResponse"
+              },
+              "examples": {
+                "nao_autorizado": {
+                  "value": {
+                    "statusCode": 401,
+                    "error": "Não autorizado",
+                    "message": "Usuário não possui permissão para acessar este recurso",
+                    "details": []
+                  }
+                }
+              }
+            }
+          }
         },
         "500": {
-          "$ref": "#/components/responses/InternalServerError"
+          "description": "Erro interno do servidor",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorResponse"
+              },
+              "examples": {
+                "erro_interno": {
+                  "value": {
+                    "statusCode": 500,
+                    "error": "Erro interno",
+                    "message": "Ocorreu um erro inesperado no servidor",
+                    "details": []
+                  }
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -304,10 +345,44 @@ const eventosPath = {
           }
         },
         "401": {
-          "$ref": "#/components/responses/UnauthorizedError"
+          "description": "Usuário não autorizado",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorResponse"
+              },
+              "examples": {
+                "nao_autorizado": {
+                  "value": {
+                    "statusCode": 401,
+                    "error": "Não autorizado",
+                    "message": "Usuário não possui permissão para acessar este recurso",
+                    "details": []
+                  }
+                }
+              }
+            }
+          }
         },
         "500": {
-          "$ref": "#/components/responses/InternalServerError"
+          "description": "Erro interno do servidor",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorResponse"
+              },
+              "examples": {
+                "erro_interno": {
+                  "value": {
+                    "statusCode": 500,
+                    "error": "Erro interno",
+                    "message": "Ocorreu um erro inesperado no servidor",
+                    "details": []
+                  }
+                }
+              }
+            }
+          }
         }
       }
     }
@@ -404,7 +479,24 @@ const eventosPath = {
           }
         },
         "401": {
-          "$ref": "#/components/responses/UnauthorizedError"
+          "description": "Usuário não autorizado",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorResponse"
+              },
+              "examples": {
+                "nao_autorizado": {
+                  "value": {
+                    "statusCode": 401,
+                    "error": "Não autorizado",
+                    "message": "Usuário não possui permissão para acessar este recurso",
+                    "details": []
+                  }
+                }
+              }
+            }
+          }
         },
         "404": {
           "description": "Evento não encontrado",
@@ -418,7 +510,7 @@ const eventosPath = {
                   "value": {
                     "statusCode": 404,
                     "error": "Recurso não encontrado",
-                    "message": "Evento não encontrado",
+                    "message": "Recurso não encontrado em Evento.",
                     "details": []
                   }
                 }
@@ -427,7 +519,24 @@ const eventosPath = {
           }
         },
         "500": {
-          "$ref": "#/components/responses/InternalServerError"
+          "description": "Erro interno do servidor",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorResponse"
+              },
+              "examples": {
+                "erro_interno": {
+                  "value": {
+                    "statusCode": 500,
+                    "error": "Erro interno",
+                    "message": "Ocorreu um erro inesperado no servidor",
+                    "details": []
+                  }
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -509,19 +618,109 @@ const eventosPath = {
           }
         },
         "400": {
-          "$ref": "#/components/responses/BadRequestError"
+          "description": "Erro de validação",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorResponse"
+              },
+              "examples": {
+                "validacao": {
+                  "value": {
+                    "statusCode": 400,
+                    "error": "Erro de validação",
+                    "message": "Dados inválidos fornecidos",
+                    "details": [
+                      {
+                        "field": "titulo",
+                        "message": "Título é obrigatório"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
         },
         "401": {
-          "$ref": "#/components/responses/UnauthorizedError"
+          "description": "Usuário não autorizado",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorResponse"
+              },
+              "examples": {
+                "nao_autorizado": {
+                  "value": {
+                    "statusCode": 401,
+                    "error": "Não autorizado",
+                    "message": "Usuário não possui permissão para acessar este recurso",
+                    "details": []
+                  }
+                }
+              }
+            }
+          }
         },
         "403": {
-          "$ref": "#/components/responses/ForbiddenError"
+          "description": "Acesso negado",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorResponse"
+              },
+              "examples": {
+                "acesso_negado": {
+                  "value": {
+                    "statusCode": 403,
+                    "error": "Acesso negado",
+                    "message": "Você não tem permissão para realizar esta ação",
+                    "details": []
+                  }
+                }
+              }
+            }
+          }
         },
         "404": {
-          "$ref": "#/components/responses/NotFoundError"
+          "description": "Evento não encontrado",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorResponse"
+              },
+              "examples": {
+                "nao_encontrado": {
+                  "value": {
+                    "statusCode": 404,
+                    "error": "Recurso não encontrado",
+                    "message": "Recurso não encontrado em Evento.",
+                    "details": []
+                  }
+                }
+              }
+            }
+          }
         },
         "500": {
-          "$ref": "#/components/responses/InternalServerError"
+          "description": "Erro interno do servidor",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorResponse"
+              },
+              "examples": {
+                "erro_interno": {
+                  "value": {
+                    "statusCode": 500,
+                    "error": "Erro interno",
+                    "message": "Ocorreu um erro inesperado no servidor",
+                    "details": []
+                  }
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -573,19 +772,109 @@ const eventosPath = {
           }
         },
         "400": {
-          "$ref": "#/components/responses/BadRequestError"
+          "description": "ID inválido",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorResponse"
+              },
+              "examples": {
+                "id_invalido": {
+                  "value": {
+                    "statusCode": 400,
+                    "error": "Erro de validação",
+                    "message": "ID fornecido não é válido",
+                    "details": [
+                      {
+                        "field": "id",
+                        "message": "ID deve ser um ObjectId válido"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
         },
         "401": {
-          "$ref": "#/components/responses/UnauthorizedError"
+          "description": "Usuário não autorizado",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorResponse"
+              },
+              "examples": {
+                "nao_autorizado": {
+                  "value": {
+                    "statusCode": 401,
+                    "error": "Não autorizado",
+                    "message": "Usuário não possui permissão para acessar este recurso",
+                    "details": []
+                  }
+                }
+              }
+            }
+          }
         },
         "403": {
-          "$ref": "#/components/responses/ForbiddenError"
+          "description": "Acesso negado",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorResponse"
+              },
+              "examples": {
+                "acesso_negado": {
+                  "value": {
+                    "statusCode": 403,
+                    "error": "Acesso negado",
+                    "message": "Você não tem permissão para realizar esta ação",
+                    "details": []
+                  }
+                }
+              }
+            }
+          }
         },
         "404": {
-          "$ref": "#/components/responses/NotFoundError"
+          "description": "Evento não encontrado",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorResponse"
+              },
+              "examples": {
+                "nao_encontrado": {
+                  "value": {
+                    "statusCode": 404,
+                    "error": "Recurso não encontrado",
+                    "message": "Recurso não encontrado em Evento.",
+                    "details": []
+                  }
+                }
+              }
+            }
+          }
         },
         "500": {
-          "$ref": "#/components/responses/InternalServerError"
+          "description": "Erro interno do servidor",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorResponse"
+              },
+              "examples": {
+                "erro_interno": {
+                  "value": {
+                    "statusCode": 500,
+                    "error": "Erro interno",
+                    "message": "Ocorreu um erro inesperado no servidor",
+                    "details": []
+                  }
+                }
+              }
+            }
+          }
         }
       }
     }
@@ -665,7 +954,24 @@ const eventosPath = {
           }
         },
         "401": {
-          "$ref": "#/components/responses/UnauthorizedError"
+          "description": "Usuário não autorizado",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorResponse"
+              },
+              "examples": {
+                "nao_autorizado": {
+                  "value": {
+                    "statusCode": 401,
+                    "error": "Não autorizado",
+                    "message": "Usuário não possui permissão para acessar este recurso",
+                    "details": []
+                  }
+                }
+              }
+            }
+          }
         },
         "404": {
           "description": "Evento não encontrado",
@@ -679,7 +985,7 @@ const eventosPath = {
                   "value": {
                     "statusCode": 404,
                     "error": "Recurso não encontrado",
-                    "message": "Evento não encontrado",
+                    "message": "Recurso não encontrado em Evento.",
                     "details": []
                   }
                 }
@@ -688,7 +994,24 @@ const eventosPath = {
           }
         },
         "500": {
-          "$ref": "#/components/responses/InternalServerError"
+          "description": "Erro interno do servidor",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorResponse"
+              },
+              "examples": {
+                "erro_interno": {
+                  "value": {
+                    "statusCode": 500,
+                    "error": "Erro interno",
+                    "message": "Ocorreu um erro inesperado no servidor",
+                    "details": []
+                  }
+                }
+              }
+            }
+          }
         }
       }
     }
@@ -807,22 +1130,98 @@ const eventosPath = {
                     "message": "Status deve ser ativo ou inativo.",
                     "details": []
                   }
+                },
+                "midias_obrigatorias": {
+                  "value": {
+                    "statusCode": 400,
+                    "error": "Erro de validação",
+                    "message": "Não é possível ativar o evento. Não possui mídias obrigatórias: Vídeo é obrigatório, Capa é obrigatória, Carrossel é obrigatório",
+                    "details": ["Vídeo é obrigatório", "Capa é obrigatória", "Carrossel é obrigatório"]
+                  }
                 }
               }
             }
           }
         },
         "401": {
-          "$ref": "#/components/responses/UnauthorizedError"
+          "description": "Usuário não autorizado",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorResponse"
+              },
+              "examples": {
+                "nao_autorizado": {
+                  "value": {
+                    "statusCode": 401,
+                    "error": "Não autorizado",
+                    "message": "Usuário não possui permissão para acessar este recurso",
+                    "details": []
+                  }
+                }
+              }
+            }
+          }
         },
         "403": {
-          "$ref": "#/components/responses/ForbiddenError"
+          "description": "Acesso negado",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorResponse"
+              },
+              "examples": {
+                "acesso_negado": {
+                  "value": {
+                    "statusCode": 403,
+                    "error": "Acesso negado",
+                    "message": "Você não tem permissão para realizar esta ação",
+                    "details": []
+                  }
+                }
+              }
+            }
+          }
         },
         "404": {
-          "$ref": "#/components/responses/NotFoundError"
+          "description": "Evento não encontrado",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorResponse"
+              },
+              "examples": {
+                "nao_encontrado": {
+                  "value": {
+                    "statusCode": 404,
+                    "error": "Recurso não encontrado",
+                    "message": "Recurso não encontrado em Evento.",
+                    "details": []
+                  }
+                }
+              }
+            }
+          }
         },
         "500": {
-          "$ref": "#/components/responses/InternalServerError"
+          "description": "Erro interno do servidor",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorResponse"
+              },
+              "examples": {
+                "erro_interno": {
+                  "value": {
+                    "statusCode": 500,
+                    "error": "Erro interno",
+                    "message": "Ocorreu um erro inesperado no servidor",
+                    "details": []
+                  }
+                }
+              }
+            }
+          }
         }
       }
     }
@@ -916,22 +1315,114 @@ const eventosPath = {
                     "message": "Data de expiração deve ser futura.",
                     "details": []
                   }
+                },
+                "compartilhar_consigo_mesmo": {
+                  "value": {
+                    "statusCode": 400,
+                    "error": "Erro de validação",
+                    "message": "Você não pode compartilhar o evento consigo mesmo.",
+                    "details": []
+                  }
+                },
+                "usuario_nao_encontrado": {
+                  "value": {
+                    "statusCode": 404,
+                    "error": "Recurso não encontrado",
+                    "message": "Usuário com email usuario@exemplo.com não encontrado.",
+                    "details": []
+                  }
+                },
+                "permissao_existente": {
+                  "value": {
+                    "statusCode": 409,
+                    "error": "Conflito de recurso",
+                    "message": "Usuário usuario@exemplo.com já possui permissão ativa para este evento.",
+                    "details": []
+                  }
                 }
               }
             }
           }
         },
         "401": {
-          "$ref": "#/components/responses/UnauthorizedError"
+          "description": "Usuário não autorizado",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorResponse"
+              },
+              "examples": {
+                "nao_autorizado": {
+                  "value": {
+                    "statusCode": 401,
+                    "error": "Não autorizado",
+                    "message": "Usuário não possui permissão para acessar este recurso",
+                    "details": []
+                  }
+                }
+              }
+            }
+          }
         },
         "403": {
-          "$ref": "#/components/responses/ForbiddenError"
+          "description": "Acesso negado",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorResponse"
+              },
+              "examples": {
+                "acesso_negado": {
+                  "value": {
+                    "statusCode": 403,
+                    "error": "Acesso negado",
+                    "message": "Você não tem permissão para realizar esta ação",
+                    "details": []
+                  }
+                }
+              }
+            }
+          }
         },
         "404": {
-          "$ref": "#/components/responses/NotFoundError"
+          "description": "Evento não encontrado",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorResponse"
+              },
+              "examples": {
+                "evento_nao_encontrado": {
+                  "value": {
+                    "statusCode": 404,
+                    "error": "Recurso não encontrado",
+                    "message": "Recurso não encontrado em Evento.",
+                    "details": []
+                  }
+                }
+              }
+            }
+          }
         },
         "500": {
-          "$ref": "#/components/responses/InternalServerError"
+          "description": "Erro interno do servidor",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorResponse"
+              },
+              "examples": {
+                "erro_interno": {
+                  "value": {
+                    "statusCode": 500,
+                    "error": "Erro interno",
+                    "message": "Ocorreu um erro inesperado no servidor",
+                    "details": []
+                  }
+                }
+              }
+            }
+          }
         }
       }
     }
@@ -990,16 +1481,84 @@ const eventosPath = {
           }
         },
         "401": {
-          "$ref": "#/components/responses/UnauthorizedError"
+          "description": "Usuário não autorizado",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorResponse"
+              },
+              "examples": {
+                "nao_autorizado": {
+                  "value": {
+                    "statusCode": 401,
+                    "error": "Não autorizado",
+                    "message": "Usuário não possui permissão para acessar este recurso",
+                    "details": []
+                  }
+                }
+              }
+            }
+          }
         },
         "403": {
-          "$ref": "#/components/responses/ForbiddenError"
+          "description": "Acesso negado",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorResponse"
+              },
+              "examples": {
+                "acesso_negado": {
+                  "value": {
+                    "statusCode": 403,
+                    "error": "Acesso negado",
+                    "message": "Você não tem permissão para realizar esta ação",
+                    "details": []
+                  }
+                }
+              }
+            }
+          }
         },
         "404": {
-          "$ref": "#/components/responses/NotFoundError"
+          "description": "Evento não encontrado",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorResponse"
+              },
+              "examples": {
+                "evento_nao_encontrado": {
+                  "value": {
+                    "statusCode": 404,
+                    "error": "Recurso não encontrado",
+                    "message": "Recurso não encontrado em Evento.",
+                    "details": []
+                  }
+                }
+              }
+            }
+          }
         },
         "500": {
-          "$ref": "#/components/responses/InternalServerError"
+          "description": "Erro interno do servidor",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorResponse"
+              },
+              "examples": {
+                "erro_interno": {
+                  "value": {
+                    "statusCode": 500,
+                    "error": "Erro interno",
+                    "message": "Ocorreu um erro inesperado no servidor",
+                    "details": []
+                  }
+                }
+              }
+            }
+          }
         }
       }
     }

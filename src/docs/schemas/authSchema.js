@@ -8,7 +8,7 @@ const authSchemas = {
       message: {
         type: "string",
         description: "Mensagem indicando o status da recuperação de senha",
-        example: "E-mail enviado com link de redefinição de senha"
+        example: "Solicitação de recuperação de senha recebida. Um e-mail foi enviado com instruções."
       }
     },
   },
@@ -153,15 +153,53 @@ const authSchemas = {
   RespostaRefresh: {
     type: "object",
     properties: {
-      accesstoken: {
-        type: "string",
-        description: "Novo token de acesso JWT",
-        example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-      },
-      refreshtoken: {
-        type: "string",
-        description: "Token de atualização JWT (mantido)",
-        example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+      user: {
+        type: "object",
+        properties: {
+          accesstoken: {
+            type: "string",
+            description: "Novo token de acesso JWT",
+            example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          },
+          refreshtoken: {
+            type: "string",
+            description: "Token de atualização JWT",
+            example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          },
+          _id: {
+            type: "string",
+            description: "ID único do usuário",
+            example: "678ef123456789abcdef1234"
+          },
+          nome: {
+            type: "string",
+            description: "Nome completo do usuário",
+            example: "João Silva"
+          },
+          email: {
+            type: "string",
+            format: "email",
+            description: "Email do usuário",
+            example: "joao@exemplo.com"
+          },
+          status: {
+            type: "string",
+            description: "Status do usuário",
+            example: "ativo"
+          },
+          createdAt: {
+            type: "string",
+            format: "date-time",
+            description: "Data de criação",
+            example: "2025-07-08T21:32:36.184Z"
+          },
+          updatedAt: {
+            type: "string",
+            format: "date-time",
+            description: "Data de última atualização",
+            example: "2025-07-08T21:53:34.709Z"
+          }
+        }
       }
     }
   }

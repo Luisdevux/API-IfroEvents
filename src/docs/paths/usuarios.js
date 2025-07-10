@@ -1,5 +1,5 @@
 import usuariosSchemas from "../schemas/usuariosSchema.js";
-import commonResponses from "../schemas/swaggerCommonResponses.js";
+import swaggerCommonResponses from "../schemas/swaggerCommonResponses.js";
 
 const usuariosRoutes = {
     "/usuarios": {
@@ -23,10 +23,10 @@ const usuariosRoutes = {
         `,
             security: [{ bearerAuth: [] }],
             responses: {
-                200: commonResponses[200]("#/components/schemas/UsuarioDetalhes"),
-                401: commonResponses[401](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
+                200: swaggerCommonResponses[200]("#/components/schemas/UsuarioDetalhes"),
+                401: swaggerCommonResponses[401](),
+                498: swaggerCommonResponses[498](),
+                500: swaggerCommonResponses[500]()
             }
         },
         post: {
@@ -60,11 +60,42 @@ const usuariosRoutes = {
                 }
             },
             responses: {
-                201: commonResponses[201]("#/components/schemas/UsuarioDetalhes"),
-                400: commonResponses[400](),
-                401: commonResponses[401](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
+                201: swaggerCommonResponses[201]("#/components/schemas/UsuarioDetalhes"),
+                400: {
+                    description: "Erro de validação",
+                    content: {
+                        "application/json": {
+                            schema: {
+                                type: "object",
+                                properties: {
+                                    error: { type: "boolean", example: true },
+                                    code: { type: "integer", example: 400 },
+                                    message: { type: "string", example: "Requisição com sintaxe incorreta" },
+                                    data: { type: "object", nullable: true, example: null },
+                                    errors: {
+                                        type: "array",
+                                        example: [{ message: "Email já está em uso." }]
+                                    }
+                                }
+                            },
+                            examples: {
+                                email_ja_existe: {
+                                    summary: "Email já em uso",
+                                    value: {
+                                        error: true,
+                                        code: 400,
+                                        message: "Requisição com sintaxe incorreta",
+                                        data: null,
+                                        errors: [{ message: "Email já está em uso." }]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                401: swaggerCommonResponses[401](),
+                498: swaggerCommonResponses[498](),
+                500: swaggerCommonResponses[500]()
             }
         }
     },
@@ -100,12 +131,43 @@ const usuariosRoutes = {
                 }
             ],
             responses: {
-                200: commonResponses[200]("#/components/schemas/UsuarioDetalhes"),
-                400: commonResponses[400](),
-                401: commonResponses[401](),
-                404: commonResponses[404](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
+                200: swaggerCommonResponses[200]("#/components/schemas/UsuarioDetalhes"),
+                400: swaggerCommonResponses[400](),
+                401: swaggerCommonResponses[401](),
+                404: {
+                    description: "Usuário não encontrado",
+                    content: {
+                        "application/json": {
+                            schema: {
+                                type: "object",
+                                properties: {
+                                    error: { type: "boolean", example: true },
+                                    code: { type: "integer", example: 404 },
+                                    message: { type: "string", example: "Não encontrado" },
+                                    data: { type: "object", nullable: true, example: null },
+                                    errors: {
+                                        type: "array",
+                                        example: [{ message: "Usuário não encontrado." }]
+                                    }
+                                }
+                            },
+                            examples: {
+                                usuario_nao_encontrado: {
+                                    summary: "Usuário não encontrado",
+                                    value: {
+                                        error: true,
+                                        code: 404,
+                                        message: "Não encontrado",
+                                        data: null,
+                                        errors: [{ message: "Usuário não encontrado." }]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                498: swaggerCommonResponses[498](),
+                500: swaggerCommonResponses[500]()
             }
         },
         patch: {
@@ -149,12 +211,43 @@ const usuariosRoutes = {
                 }
             },
             responses: {
-                200: commonResponses[200]("#/components/schemas/UsuarioDetalhes"),
-                400: commonResponses[400](),
-                401: commonResponses[401](),
-                404: commonResponses[404](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
+                200: swaggerCommonResponses[200]("#/components/schemas/UsuarioDetalhes"),
+                400: swaggerCommonResponses[400](),
+                401: swaggerCommonResponses[401](),
+                404: {
+                    description: "Usuário não encontrado",
+                    content: {
+                        "application/json": {
+                            schema: {
+                                type: "object",
+                                properties: {
+                                    error: { type: "boolean", example: true },
+                                    code: { type: "integer", example: 404 },
+                                    message: { type: "string", example: "Não encontrado" },
+                                    data: { type: "object", nullable: true, example: null },
+                                    errors: {
+                                        type: "array",
+                                        example: [{ message: "Recurso não encontrado em Usuario." }]
+                                    }
+                                }
+                            },
+                            examples: {
+                                usuario_nao_encontrado: {
+                                    summary: "Usuário não encontrado para atualização",
+                                    value: {
+                                        error: true,
+                                        code: 404,
+                                        message: "Não encontrado",
+                                        data: null,
+                                        errors: [{ message: "Recurso não encontrado em Usuario." }]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                498: swaggerCommonResponses[498](),
+                500: swaggerCommonResponses[500]()
             }
         }
     },
@@ -198,12 +291,74 @@ const usuariosRoutes = {
                 }
             },
             responses: {
-                200: commonResponses[200]("#/components/schemas/UsuarioDetalhes"),
-                400: commonResponses[400](),
-                401: commonResponses[401](),
-                404: commonResponses[404](),
-                498: commonResponses[498](),
-                500: commonResponses[500]()
+                200: swaggerCommonResponses[200]("#/components/schemas/UsuarioDetalhes"),
+                400: {
+                    description: "Erro de validação",
+                    content: {
+                        "application/json": {
+                            schema: {
+                                type: "object",
+                                properties: {
+                                    error: { type: "boolean", example: true },
+                                    code: { type: "integer", example: 400 },
+                                    message: { type: "string", example: "Requisição com sintaxe incorreta" },
+                                    data: { type: "object", nullable: true, example: null },
+                                    errors: {
+                                        type: "array",
+                                        example: [{ message: "Status inválido. Use \"ativo\" ou \"inativo\"." }]
+                                    }
+                                }
+                            },
+                            examples: {
+                                status_invalido: {
+                                    summary: "Status inválido",
+                                    value: {
+                                        error: true,
+                                        code: 400,
+                                        message: "Requisição com sintaxe incorreta",
+                                        data: null,
+                                        errors: [{ message: "Status inválido. Use \"ativo\" ou \"inativo\"." }]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                401: swaggerCommonResponses[401](),
+                404: {
+                    description: "Usuário não encontrado",
+                    content: {
+                        "application/json": {
+                            schema: {
+                                type: "object",
+                                properties: {
+                                    error: { type: "boolean", example: true },
+                                    code: { type: "integer", example: 404 },
+                                    message: { type: "string", example: "Não encontrado" },
+                                    data: { type: "object", nullable: true, example: null },
+                                    errors: {
+                                        type: "array",
+                                        example: [{ message: "Recurso não encontrado em Usuario." }]
+                                    }
+                                }
+                            },
+                            examples: {
+                                usuario_nao_encontrado: {
+                                    summary: "Usuário não encontrado para alteração de status",
+                                    value: {
+                                        error: true,
+                                        code: 404,
+                                        message: "Não encontrado",
+                                        data: null,
+                                        errors: [{ message: "Recurso não encontrado em Usuario." }]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                498: swaggerCommonResponses[498](),
+                500: swaggerCommonResponses[500]()
             }
         }
     }

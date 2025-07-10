@@ -7,7 +7,7 @@ import authSchemas from "../schemas/authSchema.js";
 import usuariosSchemas from "../schemas/usuariosSchema.js";
 import eventosSchemas from "../schemas/eventosSchema.js";
 import uploadSchemas from "../schemas/uploadSchema.js";
-import commonResponses from "../schemas/commonResponses.js";
+import swaggerCommonResponses from "../schemas/swaggerCommonResponses.js";
 
 // Função para definir as URLs do servidor dependendo do ambiente
 const getServersInCorrectOrder = () => {
@@ -72,7 +72,7 @@ const getSwaggerOptions = () => {
                     ...uploadSchemas
                 },
                 responses: {
-                    ...commonResponses
+                    ...swaggerCommonResponses
                 }
             },
             security: [{
