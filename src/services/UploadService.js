@@ -49,12 +49,7 @@ class UploadService {
             const { altura: alturaEsperada, largura: larguraEsperada } = midiasDimensoes[tipo];
 
             if(metadata.height !== alturaEsperada || metadata.width !== larguraEsperada) {
-                try {
-                    this.removerArquivo(filePath);
-                } catch (error) {
-                    // Falha na remoção não deve impedir o erro de validação de ser lançado
-                    logger.warn('Falha ao remover arquivo com dimensões inválidas', { filePath, error: error.message });
-                }
+                this.removerArquivo(filePath);
                 
                 throw new CustomError({
                     statusCode: HttpStatusCodes.BAD_REQUEST.code,
@@ -94,14 +89,7 @@ class UploadService {
             if(metadata.height !== alturaEsperada || metadata.width !== larguraEsperada) {
                 // Limpa todos os arquivos já processados em caso de erro
                 files.forEach(f => {
-                    try {
-                        this.removerArquivo(path.resolve(`uploads/${tipo}/${f.filename}`));
-                    } catch (error) {
-                        logger.warn('Falha ao limpar arquivo durante validação de múltiplas mídias', { 
-                            file: f.filename, 
-                            error: error.message 
-                        });
-                    }
+                    this.removerArquivo(path.resolve(`uploads/${tipo}/${f.filename}`));
                 });
                 
                 throw new CustomError({
@@ -145,7 +133,7 @@ class UploadService {
 
         const evento = await this.repository.listarMidiaCapa(eventoId);
 
-        return { capa: evento.midiaCapa };
+        return { midiaCapa: evento.midiaCapa };
     }
 
     // GET /eventos/:id/midia/video
@@ -154,7 +142,7 @@ class UploadService {
 
         const evento = await this.repository.listarMidiaVideo(eventoId);
 
-        return { video: evento.midiaVideo };
+        return { midiaVideo: evento.midiaVideo };
     }
     
     // GET /eventos/:id/midia/carrossel
@@ -163,7 +151,7 @@ class UploadService {
 
         const evento = await this.repository.listarMidiaCarrossel(eventoId);
 
-        return { carrossel: evento.midiaCarrossel };
+        return { midiaCarrossel: evento.midiaCarrossel };
     }
 
     //DELETE /eventos/:id/midia/:tipo/:id
@@ -176,15 +164,7 @@ class UploadService {
 
         const midiaRemovida = await this.repository.deletarMidia(eventoId, tipo, midiaId);
         
-        try {
-            this.removerArquivo(midiaRemovida.url);
-        } catch (error) {
-            // Falha na remoção física não deve impedir a remoção lógica
-            logger.warn('Falha ao remover arquivo físico após remoção lógica', { 
-                url: midiaRemovida.url, 
-                error: error.message 
-            });
-        }
+        this.removerArquivo(midiaRemovida.url);
 
         return midiaRemovida;
     }
@@ -284,14 +264,7 @@ class UploadService {
     limparArquivosProcessados(files) {
         for (const [tipo, arquivos] of Object.entries(files)) {
             for (const arquivo of arquivos) {
-                try {
-                    this.removerArquivo(arquivo.path);
-                } catch (error) {
-                    logger.warn('Falha ao limpar arquivo processado', { 
-                        path: arquivo.path, 
-                        error: error.message 
-                    });
-                }
+                this.removerArquivo(arquivo.path);
             }
         }
     }
@@ -314,16 +287,8 @@ class UploadService {
                 }
 
                 totalArquivos++;
-                try {
-                    if (this.removerArquivo(midia.url)) {
-                        arquivosRemovidos++;
-                    }
-                } catch (error) {
-                    logger.warn('Falha ao limpar mídia do evento', { 
-                        url: midia.url, 
-                        eventoId: evento._id, 
-                        error: error.message 
-                    });
+                if (this.removerArquivo(midia.url)) {
+                    arquivosRemovidos++;
                 }
             });
         });
