@@ -346,6 +346,257 @@ const eventosSchemas = {
       }
     },
     required: ["email", "expiraEm"]
+  },
+  // Schemas adicionais necessários para resolver os erros do Swagger
+  EventoCadastro: {
+    "$ref": "#/components/schemas/EventoPost"
+  },
+  EventoCadastroFormData: {
+    type: "object",
+    properties: {
+      titulo: {
+        type: "string",
+        description: "Título do evento"
+      },
+      descricao: {
+        type: "string", 
+        description: "Descrição do evento"
+      },
+      local: {
+        type: "string",
+        description: "Local do evento"
+      },
+      dataEvento: {
+        type: "string",
+        format: "date-time",
+        description: "Data e hora do evento"
+      },
+      linkInscricao: {
+        type: "string",
+        description: "Link para inscrição"
+      },
+      categoria: {
+        type: "string",
+        description: "Categoria do evento"
+      },
+      tags: {
+        type: "array",
+        items: {
+          type: "string"
+        },
+        description: "Tags do evento"
+      },
+      capa: {
+        type: "string",
+        format: "binary",
+        description: "Imagem de capa do evento"
+      },
+      video: {
+        type: "string", 
+        format: "binary",
+        description: "Vídeo do evento"
+      },
+      carrossel: {
+        type: "array",
+        items: {
+          type: "string",
+          format: "binary"
+        },
+        description: "Imagens do carrossel"
+      }
+    },
+    required: ["titulo", "descricao", "local", "dataEvento", "linkInscricao", "categoria"]
+  },
+  EventoCadastroResponse: {
+    "$ref": "#/components/schemas/EventoDetalhes"
+  },
+  EventoDetalheResponse: {
+    type: "object",
+    properties: {
+      error: {
+        type: "boolean",
+        example: false
+      },
+      code: {
+        type: "integer",
+        example: 200
+      },
+      message: {
+        type: "string",
+        example: "Evento recuperado com sucesso"
+      },
+      data: {
+        "$ref": "#/components/schemas/EventoDetalhes"
+      },
+      errors: {
+        type: "array",
+        example: []
+      }
+    }
+  },
+  EventosListaResponse: {
+    type: "object",
+    properties: {
+      error: {
+        type: "boolean",
+        example: false
+      },
+      code: {
+        type: "integer", 
+        example: 200
+      },
+      message: {
+        type: "string",
+        example: "Eventos recuperados com sucesso"
+      },
+      data: {
+        type: "object",
+        properties: {
+          eventos: {
+            type: "array",
+            items: {
+              "$ref": "#/components/schemas/EventoDetalhes"
+            }
+          },
+          pagination: {
+            type: "object",
+            properties: {
+              currentPage: {
+                type: "integer",
+                example: 1
+              },
+              totalPages: {
+                type: "integer",
+                example: 5
+              },
+              totalItems: {
+                type: "integer",
+                example: 47
+              },
+              itemsPerPage: {
+                type: "integer",
+                example: 10
+              }
+            }
+          }
+        }
+      },
+      errors: {
+        type: "array",
+        example: []
+      }
+    }
+  },
+  QRCodeResponse: {
+    type: "object",
+    properties: {
+      error: {
+        type: "boolean",
+        example: false
+      },
+      code: {
+        type: "integer",
+        example: 200
+      },
+      message: {
+        type: "string", 
+        example: "QR Code gerado com sucesso"
+      },
+      data: {
+        type: "object",
+        properties: {
+          evento: {
+            type: "string",
+            example: "60b5f8c8d8f8f8f8f8f8f8"
+          },
+          linkInscricao: {
+            type: "string",
+            example: "https://exemplo.com/inscricao"
+          },
+          qrcode: {
+            type: "string",
+            description: "QR Code em formato base64",
+            example: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAADICAYAAACtWK6e..."
+          }
+        }
+      },
+      errors: {
+        type: "array",
+        example: []
+      }
+    }
+  },
+  EventoAtualizacao: {
+    "$ref": "#/components/schemas/EventoUpdate"
+  },
+  EventoStatusAtualizacao: {
+    "$ref": "#/components/schemas/EventoStatusUpdate"
+  },
+  SuccessResponse: {
+    type: "object",
+    properties: {
+      error: {
+        type: "boolean",
+        example: false
+      },
+      code: {
+        type: "integer",
+        example: 200
+      },
+      message: {
+        type: "string",
+        example: "Operação realizada com sucesso"
+      },
+      data: {
+        type: "object"
+      },
+      errors: {
+        type: "array",
+        example: []
+      }
+    }
+  },
+  ErrorResponse: {
+    type: "object",
+    properties: {
+      error: {
+        type: "boolean",
+        example: true
+      },
+      code: {
+        type: "integer",
+        example: 400
+      },
+      message: {
+        type: "string",
+        example: "Erro de validação"
+      },
+      data: {
+        type: "object",
+        nullable: true,
+        example: null
+      },
+      errors: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            field: {
+              type: "string"
+            },
+            message: {
+              type: "string"
+            }
+          }
+        },
+        example: [
+          {
+            "field": "titulo",
+            "message": "Título é obrigatório"
+          }
+        ]
+      }
+    }
   }
 };
 

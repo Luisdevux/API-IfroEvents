@@ -38,7 +38,9 @@ const authRoutes = {
             responses: {
                 200: commonResponses[200]("#/components/schemas/UsuarioRespostaLogin"),
                 400: commonResponses[400](),    // Requisição malformada
+                401: commonResponses[401](),    // Credenciais inválidas
                 422: commonResponses[422](),    // Erro de validação de dados
+                498: commonResponses[498](),    // Token expirado
                 500: commonResponses[500]()     // Erro interno
             }
         }
@@ -77,7 +79,7 @@ const authRoutes = {
             responses: {
                 200: commonResponses[200]("#/components/schemas/RespostaRecuperaSenha"),
                 400: commonResponses[400](),
-                404: commonResponses[404](),
+                422: commonResponses[422](),    // Erro de validação
                 500: commonResponses[500]()
             }
         }
@@ -115,8 +117,8 @@ const authRoutes = {
             responses: {
                 201: commonResponses[201]("#/components/schemas/signupPostDetalhes"),
                 400: commonResponses[400](),
-                401: commonResponses[401](),
-                498: commonResponses[498](),
+                422: commonResponses[422](),    // Erro de validação
+                409: commonResponses[409](),    // Conflito (email já existe)
                 500: commonResponses[500]()
             }
         }
@@ -132,8 +134,9 @@ const authRoutes = {
             + Função de Negócio:
                 - Permitir ao usuário encerrar a sessão corrente e impedir o uso futuro do mesmo token.
 
-            + Recebe pelo header Authorization:
-                - Bearer <token> o accessToken a ser revogado.
+            + Recebe o accessToken via:
+                - Header Authorization: Bearer <token> (preferencial)
+                - Body: { "accesstoken": "<token>" } (alternativo)
             
             + Fluxo:
                 - Valida accessToken e revoga ao excluir da base de dados, impedindo usos futuros.
@@ -152,7 +155,8 @@ const authRoutes = {
                             properties: {
                                 accesstoken: {
                                     type: "string",
-                                    description: "Token de acesso a ser revogado (opcional, pode vir do header Authorization)"
+                                    description: "Token de acesso a ser revogado (opcional, pode vir do header Authorization)",
+                                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
                                 }
                             }
                         }
@@ -178,7 +182,7 @@ const authRoutes = {
             
             + Função de Negócio:
                 - Permitir renovação automática de sessão sem necessidade de novo login.
-                + Recebe refresh token válido.
+                + Recebe refresh token válido no corpo da requisição.
                     - Valida o refresh token.
                     - Gera novo access token com nova expiração.
                     - Retorna novo access token mantendo o refresh token.
@@ -191,7 +195,24 @@ const authRoutes = {
             + Resultado Esperado:
                 - HTTP 200 OK com novo access token.
       `,
-            security: [{ bearerAuth: [] }],
+            requestBody: {
+                required: true,
+                content: {
+                    "application/json": {
+                        schema: {
+                            type: "object",
+                            properties: {
+                                refresh_token: {
+                                    type: "string",
+                                    description: "Token de refresh JWT válido",
+                                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                                }
+                            },
+                            required: ["refresh_token"]
+                        }
+                    }
+                }
+            },
             responses: {
                 200: commonResponses[200]("#/components/schemas/RespostaRefresh"),
                 400: commonResponses[400](),

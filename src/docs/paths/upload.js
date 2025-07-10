@@ -5,7 +5,19 @@ const uploadPath = {
     "post": {
       "tags": ["Upload de Mídias"],
       "summary": "Adicionar mídia ao evento",
-      "description": "Adiciona uma ou múltiplas mídias ao evento. Tipo 'carrossel' aceita múltiplos arquivos, outros tipos aceitam apenas um arquivo.",
+      "description": `Adiciona uma ou múltiplas mídias ao evento conforme o tipo especificado. Suporta diferentes tipos de mídias com validações específicas.
+      
+      **Regras de Negócio:**
+      - Usuário deve estar autenticado
+      - Apenas organizador ou colaborador com permissão pode adicionar mídias
+      - Tipo 'capa': aceita apenas um arquivo de imagem
+      - Tipo 'video': aceita apenas um arquivo de vídeo
+      - Tipo 'carrossel': aceita múltiplos arquivos de imagem
+      - Validação de formato: imagens (jpg, jpeg, png, gif, webp) e vídeos (mp4, webm, ogg)
+      - Limite de tamanho: 10MB por arquivo de imagem, 50MB por vídeo
+      - Múltiplas mídias no carrossel processadas individualmente
+      - Falha em uma mídia não impede o processamento das outras
+      - Arquivos são salvos com nome único para evitar conflitos`,
       "security": [
         {
           "bearerAuth": []
@@ -42,7 +54,7 @@ const uploadPath = {
                 "file": {
                   "type": "string",
                   "format": "binary",
-                  "description": "Arquivo único para capa ou video"
+                  "description": "Arquivo único para capa ou video. Usado quando tipo é 'capa' ou 'video'."
                 },
                 "files": {
                   "type": "array",
@@ -50,9 +62,19 @@ const uploadPath = {
                     "type": "string",
                     "format": "binary"
                   },
-                  "description": "Múltiplos arquivos para carrossel"
+                  "description": "Múltiplos arquivos para carrossel. Usado quando tipo é 'carrossel'."
                 }
-              }
+              },
+              "oneOf": [
+                {
+                  "required": ["file"],
+                  "description": "Para tipos 'capa' e 'video'"
+                },
+                {
+                  "required": ["files"],
+                  "description": "Para tipo 'carrossel'"
+                }
+              ]
             }
           }
         }
@@ -186,7 +208,15 @@ const uploadPath = {
     "get": {
       "tags": ["Upload de Mídias"],
       "summary": "Listar todas as mídias do evento",
-      "description": "Retorna todas as mídias associadas ao evento (capa, video e carrossel)",
+      "description": `Retorna todas as mídias associadas ao evento organizadas por tipo (capa, video e carrossel).
+      
+      **Regras de Negócio:**
+      - Usuário deve estar autenticado
+      - Apenas organizador ou colaborador com permissão pode listar mídias
+      - Retorna arrays separados por tipo de mídia
+      - Cada mídia inclui informações completas (filename, originalName, mimetype, size, url)
+      - URLs são relativas ao servidor da aplicação
+      - Ordem das mídias no carrossel é preservada`,
       "security": [
         {
           "bearerAuth": []
@@ -284,7 +314,14 @@ const uploadPath = {
     "get": {
       "tags": ["Upload de Mídias"],
       "summary": "Listar mídia de capa do evento",
-      "description": "Retorna a mídia de capa do evento",
+      "description": `Retorna especificamente a mídia de capa do evento. Capa é a imagem principal do evento.
+      
+      **Regras de Negócio:**
+      - Usuário deve estar autenticado
+      - Apenas organizador ou colaborador com permissão pode acessar
+      - Retorna array com mídia de capa (máximo 1 item)
+      - Capa é obrigatória para ativar evento (com validação)
+      - Usado para exibição em listagens e detalhes do evento`,
       "security": [
         {
           "bearerAuth": []
@@ -351,7 +388,15 @@ const uploadPath = {
     "get": {
       "tags": ["Upload de Mídias"],
       "summary": "Listar mídia de vídeo do evento",
-      "description": "Retorna a mídia de vídeo do evento",
+      "description": `Retorna especificamente a mídia de vídeo do evento. Vídeo é opcional e usado para apresentação promocional.
+      
+      **Regras de Negócio:**
+      - Usuário deve estar autenticado
+      - Apenas organizador ou colaborador com permissão pode acessar
+      - Retorna array com mídia de vídeo (máximo 1 item)
+      - Vídeo é opcional para ativação do evento
+      - Suporta formatos: MP4, WebM, OGG
+      - Limite de tamanho: 50MB por arquivo`,
       "security": [
         {
           "bearerAuth": []
@@ -418,7 +463,15 @@ const uploadPath = {
     "get": {
       "tags": ["Upload de Mídias"],
       "summary": "Listar mídia de carrossel do evento",
-      "description": "Retorna as mídias de carrossel do evento",
+      "description": `Retorna as mídias de carrossel do evento. Carrossel é uma coleção de imagens adicionais do evento.
+      
+      **Regras de Negócio:**
+      - Usuário deve estar autenticado
+      - Apenas organizador ou colaborador com permissão pode acessar
+      - Retorna array com múltiplas mídias de carrossel
+      - Carrossel é opcional para ativação do evento
+      - Usado para galeria de imagens do evento
+      - Ordem das imagens é preservada conforme upload`,
       "security": [
         {
           "bearerAuth": []
@@ -494,7 +547,16 @@ const uploadPath = {
     "delete": {
       "tags": ["Upload de Mídias"],
       "summary": "Deletar mídia do evento",
-      "description": "Remove uma mídia específica do evento",
+      "description": `Remove uma mídia específica do evento. Operação irreversível que remove o arquivo do servidor.
+      
+      **Regras de Negócio:**
+      - Usuário deve estar autenticado
+      - Apenas organizador ou colaborador com permissão pode deletar
+      - Arquivo físico é removido do servidor
+      - Mídia é removida do banco de dados
+      - Operação é irreversível
+      - Não é possível deletar mídia inexistente (erro 404)
+      - Evento deve existir para deletar suas mídias`,
       "security": [
         {
           "bearerAuth": []

@@ -82,11 +82,6 @@ const authSchemas = {
         description: "Email do usuário",
         example: "joao@exemplo.com"
       },
-      senha: { 
-        type: "string", 
-        description: "Senha do usuário (mantida na resposta do signup)",
-        example: "MinhaSenh@123"
-      },
       status: {
         type: "string",
         enum: ["ativo", "inativo"],

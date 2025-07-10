@@ -7,11 +7,12 @@ import authSchemas from "../schemas/authSchema.js";
 import usuariosSchemas from "../schemas/usuariosSchema.js";
 import eventosSchemas from "../schemas/eventosSchema.js";
 import uploadSchemas from "../schemas/uploadSchema.js";
+import commonResponses from "../schemas/commonResponses.js";
 
 // Função para definir as URLs do servidor dependendo do ambiente
 const getServersInCorrectOrder = () => {
     const devUrl = { url: process.env.SWAGGER_DEV_URL || "http://localhost:5011" };
-    const prodUrl = { url: process.env.SWAGGER_PROD_URL || "https://api.eventoplatform.com" };
+    const prodUrl = { url: process.env.SWAGGER_PROD_URL || "https://exemplo.ifroevents.com/IfroEvents" };
 
     if (process.env.NODE_ENV === "production") return [prodUrl, devUrl];
     else return [devUrl, prodUrl];
@@ -69,6 +70,9 @@ const getSwaggerOptions = () => {
                     ...usuariosSchemas,
                     ...eventosSchemas,
                     ...uploadSchemas
+                },
+                responses: {
+                    ...commonResponses
                 }
             },
             security: [{
