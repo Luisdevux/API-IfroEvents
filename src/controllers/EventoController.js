@@ -38,6 +38,17 @@ class EventoController {
             }
         };
 
+        // PREPROCESSAMENTO: Converte tags de string para array em multipart/form-data
+        if (dadosEvento.tags && typeof dadosEvento.tags === 'string') {
+            try {
+                // Tenta fazer parse como JSON primeiro (formato: ["tag1", "tag2"])
+                dadosEvento.tags = JSON.parse(dadosEvento.tags);
+            } catch (error) {
+                // Se falhar, trata como CSV (formato: "tag1,tag2,tag3")
+                dadosEvento.tags = dadosEvento.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+            }
+        }
+
         const dadosParaValidacaoPrevia = {
             ...dadosEvento,
             midiaVideo: [],

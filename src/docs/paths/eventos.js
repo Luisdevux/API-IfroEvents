@@ -16,13 +16,14 @@ const eventosPath = {
       - Para multipart/form-data: campos 'capa', 'video' e 'carrossel' para mídias
       - Validação prévia antes de processar uploads
       - Em caso de erro após uploads, arquivos são automaticamente removidos
-      - Tags devem ser array de strings
+      - Tags devem ser array de strings (mínimo 1 tag)
       - dataEvento deve ser no formato ISO 8601
       
-      **Como enviar o campo 'tags' no Swagger UI:**
-      - Para multipart/form-data: Digite exatamente assim: ["tecnologia", "inovação", "palestras"]
-      - Ou separado por vírgula: tecnologia,inovação,palestras
-      - Para application/json: envie como array normal`,
+      **IMPORTANTE - Como enviar o campo 'tags' no Swagger UI:**
+      - No Swagger UI (multipart/form-data): Digite como JSON array: ["tecnologia", "inovação", "palestras"]
+      - Ou como string separada por vírgula: tecnologia,inovação,palestras
+      - Para application/json: envie como array normal
+      - **ATENÇÃO:** Tags é campo OBRIGATÓRIO - mínimo 1 tag necessária`,
       "security": [
         {
           "bearerAuth": []
@@ -151,7 +152,7 @@ const eventosPath = {
     "get": {
       "tags": ["Eventos"],
       "summary": "Listar eventos",
-      "description": `Lista todos os eventos com paginação e filtros opcionais. Rota pública para acesso do totem, mas também aceita autenticação para recursos administrativos.
+      "description": `**ROTA PÚBLICA** - Lista todos os eventos com paginação e filtros opcionais. Rota pública para acesso do totem, mas também aceita autenticação para recursos administrativos.
       
       **Regras de Negócio:**
       - Rota pública (não requer autenticação para totem)
@@ -165,29 +166,6 @@ const eventosPath = {
       - Suporte a busca por título, categoria, tags, organizador
       - Filtros de data flexíveis (dataInicio, dataTermino)`,
       "parameters": [
-        {
-          "name": "page",
-          "in": "query",
-          "description": "Número da página (padrão: 1)",
-          "required": false,
-          "schema": {
-            "type": "integer",
-            "minimum": 1,
-            "default": 1
-          }
-        },
-        {
-          "name": "limit",
-          "in": "query",
-          "description": "Limite de itens por página (padrão: 10, máximo: 100)",
-          "required": false,
-          "schema": {
-            "type": "integer",
-            "minimum": 1,
-            "maximum": 100,
-            "default": 10
-          }
-        },
         {
           "name": "titulo",
           "in": "query",
@@ -228,6 +206,16 @@ const eventosPath = {
           "example": "historico"
         },
         {
+          "name": "tags",
+          "in": "query",
+          "description": "Filtrar por tags (separadas por vírgula)",
+          "required": false,
+          "schema": {
+            "type": "string"
+          },
+          "example": "tecnologia,inovação"
+        },
+        {
           "name": "dataInicio",
           "in": "query",
           "description": "Filtrar por data de início (formato ISO)",
@@ -238,9 +226,9 @@ const eventosPath = {
           }
         },
         {
-          "name": "dataTermino",
+          "name": "dataFim",
           "in": "query",
-          "description": "Filtrar por data de término (formato ISO)",
+          "description": "Filtrar por data de fim (formato ISO)",
           "required": false,
           "schema": {
             "type": "string",
@@ -256,6 +244,31 @@ const eventosPath = {
             "type": "boolean"
           },
           "example": true
+        },
+        {
+          "name": "page",
+          "in": "query",
+          "description": "Número da página para paginação (padrão: 1)",
+          "required": false,
+          "schema": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 1
+          },
+          "example": 1
+        },
+        {
+          "name": "limite",
+          "in": "query",
+          "description": "Limite de itens por página (padrão: 10, máximo: 100)",
+          "required": false,
+          "schema": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 10
+          },
+          "example": 10
         }
       ],
       "responses": {
@@ -391,7 +404,7 @@ const eventosPath = {
     "get": {
       "tags": ["Eventos"],
       "summary": "Obter evento por ID",
-      "description": `Recupera um evento específico pelo seu ID.
+      "description": `**ROTA PÚBLICA** - Recupera um evento específico pelo seu ID.
       
       **Regras de Negócio:**
       - Rota pública (não requer autenticação para totem)
@@ -883,20 +896,15 @@ const eventosPath = {
     "get": {
       "tags": ["Eventos"],
       "summary": "Gerar QR Code do evento",
-      "description": `Gera um QR Code contendo o link de inscrição do evento para facilitar o acesso dos participantes.
+      "description": `**ROTA PÚBLICA** - Gera um QR Code contendo o link de inscrição do evento para facilitar o acesso dos participantes.
       
       **Regras de Negócio:**
-      - Usuário deve estar autenticado
-      - Apenas o organizador do evento pode gerar QR Code
+      - Rota pública (não requer autenticação para permitir acesso amplo ao QR Code)
+      - QR Code pode ser gerado para qualquer evento público
       - Evento deve possuir link de inscrição válido
       - QR Code é gerado no formato PNG em base64
       - QR Code aponta para o link de inscrição do evento
       - ID do evento deve ser um ObjectId válido`,
-      "security": [
-        {
-          "bearerAuth": []
-        }
-      ],
       "parameters": [
         {
           "name": "id",

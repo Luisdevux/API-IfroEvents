@@ -41,8 +41,9 @@ const eventosSchemas = {
         items: {
           type: "string"
         },
-        description: "Tags do evento",
-        example: ["tecnologia", "inovação", "palestras"]
+        description: "Tags do evento (array de strings obrigatório - mínimo 1 tag). No multipart/form-data, pode ser enviado como JSON array ou string separada por vírgula",
+        example: ["tecnologia", "inovação", "palestras"],
+        minItems: 1
       },
       status: {
         type: "string",
@@ -381,8 +382,8 @@ const eventosSchemas = {
       },
       tags: {
         type: "string",
-        description: "Tags do evento. Para multipart/form-data: envie como JSON string '[\"tag1\", \"tag2\"]' ou separado por vírgula 'tag1,tag2,tag3'",
-        example: '["tecnologia", "inovação"]'
+        description: "Tags do evento (**OBRIGATÓRIO** - mínimo 1 tag). Para multipart/form-data: envie como JSON string '[\"tag1\", \"tag2\"]' ou como CSV 'tag1,tag2,tag3'. Para application/json: use array normal.",
+        example: '["tecnologia", "inovação", "palestras"]'
       },
       capa: {
         type: "string",
@@ -403,7 +404,7 @@ const eventosSchemas = {
         description: "Imagens do carrossel"
       }
     },
-    required: ["titulo", "descricao", "local", "dataEvento", "linkInscricao", "categoria"]
+    required: ["titulo", "descricao", "local", "dataEvento", "linkInscricao", "categoria", "tags"]
   },
   EventoCadastroResponse: {
     "$ref": "#/components/schemas/EventoDetalhes"

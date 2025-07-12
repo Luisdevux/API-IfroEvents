@@ -438,7 +438,7 @@ const uploadPath = {
     "get": {
       "tags": ["Upload de Mídias"],
       "summary": "Obter imagem de capa do evento",
-      "description": "Retorna o arquivo binário da imagem de capa do evento. O Content-Type é definido automaticamente baseado na extensão do arquivo (jpg, jpeg, png).",
+      "description": "**ROTA PÚBLICA** - Retorna o arquivo binário da imagem de capa do evento. O Content-Type é definido automaticamente baseado na extensão do arquivo (jpg, jpeg, png). Esta rota não requer autenticação para permitir acesso público às imagens.",
       "parameters": [
         {
           "name": "id",
@@ -453,7 +453,7 @@ const uploadPath = {
       ],
       "responses": {
         "200": {
-          "description": "Imagem de capa retornada com sucesso",
+          "description": "Imagem de capa retornada com sucesso (arquivo binário)",
           "content": {
             "image/jpeg": {
               "schema": {
@@ -472,12 +472,6 @@ const uploadPath = {
                 "type": "string",
                 "format": "binary"
               }
-            }
-          },
-          "examples": {
-            "url_exemplo": {
-              "summary": "Exemplo de URL para acessar a imagem",
-              "value": "https://seuservidor.com/uploads/capa/1673432100000-capa.jpg"
             }
           }
         },
@@ -518,19 +512,14 @@ const uploadPath = {
     "get": {
       "tags": ["Upload de Mídias"],
       "summary": "Obter vídeo do evento",
-      "description": `Retorna o arquivo binário do vídeo do evento.
+      "description": `**ROTA PÚBLICA** - Retorna o arquivo binário do vídeo do evento.
       
       **Regras de Negócio:**
-      - Usuário deve estar autenticado
+      - Rota pública (não requer autenticação) 
       - Retorna o arquivo binário diretamente (não JSON)
       - Content-Type é definido automaticamente baseado na extensão do arquivo
       - Suporta formatos: mp4
       - Erro 404 se não houver vídeo ou arquivo não existir fisicamente`,
-      "security": [
-        {
-          "bearerAuth": []
-        }
-      ],
       "parameters": [
         {
           "name": "id",
@@ -545,38 +534,16 @@ const uploadPath = {
       ],
       "responses": {
         "200": {
-          "description": "Vídeo retornado com sucesso",
+          "description": "Vídeo retornado com sucesso (arquivo binário)",
           "content": {
             "video/mp4": {
               "schema": {
                 "type": "string",
                 "format": "binary"
               }
-            },
-          }
-        },
-        "400": {
-          "description": "ID do evento inválido",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ErrorResponse"
-              },
-              "examples": {
-                "evento_id_invalido": {
-                  "summary": "ID do evento inválido",
-                  "value": {
-                    "statusCode": 400,
-                    "error": "Erro de validação",
-                    "message": "ID do evento inválido. Deve ser um ObjectId válido.",
-                    "details": []
-                  }
-                }
-              }
             }
           }
         },
-        "401": swaggerCommonResponses[401](),
         "404": {
           "description": "Vídeo não encontrado",
           "content": {
@@ -624,20 +591,15 @@ const uploadPath = {
     "get": {
       "tags": ["Upload de Mídias"],
       "summary": "Obter imagem específica do carrossel",
-      "description": `Retorna o arquivo binário de uma imagem específica do carrossel baseada no índice.
+      "description": `**ROTA PÚBLICA** - Retorna o arquivo binário de uma imagem específica do carrossel baseada no índice.
       
       **Regras de Negócio:**
-      - Usuário deve estar autenticado
+      - Rota pública (não requer autenticação)
       - Retorna o arquivo binário diretamente (não JSON)
       - Content-Type é definido automaticamente baseado na extensão do arquivo
       - Suporta formatos: jpg, jpeg, png
       - Índice baseado em 0 (primeira imagem = índice 0)
       - Erro 404 se não houver carrossel, índice inválido ou arquivo não existir fisicamente`,
-      "security": [
-        {
-          "bearerAuth": []
-        }
-      ],
       "parameters": [
         {
           "name": "id",
@@ -662,7 +624,7 @@ const uploadPath = {
       ],
       "responses": {
         "200": {
-          "description": "Imagem do carrossel retornada com sucesso",
+          "description": "Imagem do carrossel retornada com sucesso (arquivo binário)",
           "content": {
             "image/jpeg": {
               "schema": {
@@ -705,7 +667,6 @@ const uploadPath = {
             }
           }
         },
-        "401": swaggerCommonResponses[401](),
         "404": {
           "description": "Carrossel ou imagem não encontrada",
           "content": {
