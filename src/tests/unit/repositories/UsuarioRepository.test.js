@@ -27,10 +27,10 @@ jest.mock('../../../utils/helpers/index.js', () => ({
 
 const MockUsuarioModel = {
   save: jest.fn(),
-  find: jest.fn(),
-  findById: jest.fn(),
+  find: jest.fn().mockResolvedValue([]),
+  findById: jest.fn().mockResolvedValue(null),
   findOne: jest.fn(),
-  findByIdAndUpdate: jest.fn(),
+  findByIdAndUpdate: jest.fn().mockResolvedValue(null),
   findByIdAndDelete: jest.fn(),
 };
 
@@ -87,7 +87,9 @@ describe('UsuarioRepository', () => {
   describe('listar', () => {
     it('deve listar todos os usuários', async () => {
       MockUsuarioModel.find.mockResolvedValue([mockUsuarioData]);
+      
       const usuarios = await usuarioRepository.listar();
+      
       expect(MockUsuarioModel.find).toHaveBeenCalled();
       expect(usuarios).toEqual([mockUsuarioData]);
     });
@@ -103,13 +105,16 @@ describe('UsuarioRepository', () => {
   describe('listarPorId', () => {
     it('deve retornar usuário pelo ID', async () => {
       MockUsuarioModel.findById.mockResolvedValue(mockUsuarioData);
+      
       const usuario = await usuarioRepository.listarPorId(mockUsuarioData._id);
+      
       expect(MockUsuarioModel.findById).toHaveBeenCalledWith(mockUsuarioData._id);
       expect(usuario).toEqual(mockUsuarioData);
     });
 
     it('deve lançar erro se usuário não for encontrado', async () => {
       MockUsuarioModel.findById.mockResolvedValue(null);
+      
       await expect(usuarioRepository.listarPorId(mockUsuarioData._id)).rejects.toThrow('Usuário não encontrado');
     });
 
@@ -123,11 +128,15 @@ describe('UsuarioRepository', () => {
     });
 
     it('deve retornar usuário pelo ID com includeTokens=true', async () => {
-      const mockSelect = jest.fn().mockResolvedValue(mockUsuarioData);
-      MockUsuarioModel.findById.mockReturnValue({ select: mockSelect });
+      // Para este teste, vamos simular o comportamento com select
+      const mockQuery = {
+        select: jest.fn().mockResolvedValue(mockUsuarioData)
+      };
+      MockUsuarioModel.findById.mockReturnValue(mockQuery);
+      
       const usuario = await usuarioRepository.listarPorId(mockUsuarioData._id, true);
       expect(MockUsuarioModel.findById).toHaveBeenCalledWith(mockUsuarioData._id);
-      expect(mockSelect).toHaveBeenCalledWith('+refreshtoken +accesstoken');
+      expect(mockQuery.select).toHaveBeenCalledWith('+refreshtoken +accesstoken');
       expect(usuario).toEqual(mockUsuarioData);
     });
   });
@@ -191,29 +200,36 @@ describe('UsuarioRepository', () => {
 
   describe('alterar', () => {
     it('deve alterar campos do usuário com sucesso', async () => {
-      MockUsuarioModel.findByIdAndUpdate.mockResolvedValue({ ...mockUsuarioData, nome: 'Alterado' });
-      const usuarioAtualizado = await usuarioRepository.alterar(mockUsuarioData._id, { nome: 'Alterado' });
+      const usuarioAtualizado = { ...mockUsuarioData, nome: 'Alterado' };
+      MockUsuarioModel.findByIdAndUpdate.mockResolvedValue(usuarioAtualizado);
+      
+      const resultado = await usuarioRepository.alterar(mockUsuarioData._id, { nome: 'Alterado' });
+      
       expect(MockUsuarioModel.findByIdAndUpdate).toHaveBeenCalledWith(
         mockUsuarioData._id,
         { nome: 'Alterado' },
         { new: true }
       );
-      expect(usuarioAtualizado.nome).toBe('Alterado');
+      expect(resultado.nome).toBe('Alterado');
     });
 
     it('deve alterar o status do usuário com sucesso', async () => {
-      MockUsuarioModel.findByIdAndUpdate.mockResolvedValue({ ...mockUsuarioData, status: 'inativo' });
-      const usuarioAtualizado = await usuarioRepository.alterar(mockUsuarioData._id, { status: 'inativo' });
+      const usuarioAtualizado = { ...mockUsuarioData, status: 'inativo' };
+      MockUsuarioModel.findByIdAndUpdate.mockResolvedValue(usuarioAtualizado);
+      
+      const resultado = await usuarioRepository.alterar(mockUsuarioData._id, { status: 'inativo' });
+      
       expect(MockUsuarioModel.findByIdAndUpdate).toHaveBeenCalledWith(
         mockUsuarioData._id,
         { status: 'inativo' },
         { new: true }
       );
-      expect(usuarioAtualizado.status).toBe('inativo');
+      expect(resultado.status).toBe('inativo');
     });
 
     it('deve lançar erro ao tentar alterar usuário inexistente', async () => {
       MockUsuarioModel.findByIdAndUpdate.mockResolvedValue(null);
+      
       await expect(usuarioRepository.alterar(mockUsuarioData._id, { nome: 'Alterado' })).rejects.toThrow(
         'Usuário não encontrado'
       );

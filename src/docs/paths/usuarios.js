@@ -23,7 +23,26 @@ const usuariosRoutes = {
         `,
             security: [{ bearerAuth: [] }],
             responses: {
-                200: swaggerCommonResponses[200]("#/components/schemas/UsuarioDetalhes"),
+                200: {
+                    description: "Lista de usuários obtida com sucesso",
+                    content: {
+                        "application/json": {
+                            schema: {
+                                type: "object",
+                                properties: {
+                                    error: { type: "boolean", example: false },
+                                    code: { type: "integer", example: 200 },
+                                    message: { type: "string", example: "Requisição bem-sucedida" },
+                                    data: {
+                                        type: "array",
+                                        items: { "$ref": "#/components/schemas/UsuarioDetalhes" }
+                                    },
+                                    errors: { type: "array", example: [] }
+                                }
+                            }
+                        }
+                    }
+                },
                 401: swaggerCommonResponses[401](),
                 498: swaggerCommonResponses[498](),
                 500: swaggerCommonResponses[500]()
@@ -60,7 +79,23 @@ const usuariosRoutes = {
                 }
             },
             responses: {
-                201: swaggerCommonResponses[201]("#/components/schemas/UsuarioDetalhes"),
+                201: {
+                    description: "Usuário criado com sucesso",
+                    content: {
+                        "application/json": {
+                            schema: {
+                                type: "object",
+                                properties: {
+                                    error: { type: "boolean", example: false },
+                                    code: { type: "integer", example: 201 },
+                                    message: { type: "string", example: "Recurso criado com sucesso" },
+                                    data: { "$ref": "#/components/schemas/UsuarioDetalhes" },
+                                    errors: { type: "array", example: [] }
+                                }
+                            }
+                        }
+                    }
+                },
                 400: {
                     description: "Erro de validação",
                     content: {
@@ -131,7 +166,23 @@ const usuariosRoutes = {
                 }
             ],
             responses: {
-                200: swaggerCommonResponses[200]("#/components/schemas/UsuarioDetalhes"),
+                200: {
+                    description: "Detalhes do usuário obtidos com sucesso",
+                    content: {
+                        "application/json": {
+                            schema: {
+                                type: "object",
+                                properties: {
+                                    error: { type: "boolean", example: false },
+                                    code: { type: "integer", example: 200 },
+                                    message: { type: "string", example: "Requisição bem-sucedida" },
+                                    data: { "$ref": "#/components/schemas/UsuarioDetalhes" },
+                                    errors: { type: "array", example: [] }
+                                }
+                            }
+                        }
+                    }
+                },
                 400: swaggerCommonResponses[400](),
                 401: swaggerCommonResponses[401](),
                 404: {
@@ -211,7 +262,23 @@ const usuariosRoutes = {
                 }
             },
             responses: {
-                200: swaggerCommonResponses[200]("#/components/schemas/UsuarioDetalhes"),
+                200: {
+                    description: "Usuário atualizado com sucesso",
+                    content: {
+                        "application/json": {
+                            schema: {
+                                type: "object",
+                                properties: {
+                                    error: { type: "boolean", example: false },
+                                    code: { type: "integer", example: 200 },
+                                    message: { type: "string", example: "Usuário atualizado com sucesso." },
+                                    data: { "$ref": "#/components/schemas/UsuarioDetalhes" },
+                                    errors: { type: "array", example: [] }
+                                }
+                            }
+                        }
+                    }
+                },
                 400: swaggerCommonResponses[400](),
                 401: swaggerCommonResponses[401](),
                 404: {
@@ -291,7 +358,59 @@ const usuariosRoutes = {
                 }
             },
             responses: {
-                200: swaggerCommonResponses[200]("#/components/schemas/UsuarioDetalhes"),
+                200: {
+                    description: "Status do usuário atualizado com sucesso",
+                    content: {
+                        "application/json": {
+                            schema: {
+                                type: "object",
+                                properties: {
+                                    error: { type: "boolean", example: false },
+                                    code: { type: "integer", example: 200 },
+                                    message: { type: "string", example: "Status do usuário atualizado para inativo." },
+                                    data: { "$ref": "#/components/schemas/UsuarioDetalhes" },
+                                    errors: { type: "array", example: [] }
+                                }
+                            },
+                            examples: {
+                                status_ativado: {
+                                    summary: "Status atualizado para ativo",
+                                    value: {
+                                        error: false,
+                                        code: 200,
+                                        message: "Status do usuário atualizado para ativo.",
+                                        data: {
+                                            _id: "507f1f77bcf86cd799439011",
+                                            nome: "João Silva",
+                                            email: "joao@exemplo.com",
+                                            status: "ativo",
+                                            createdAt: "2025-07-08T21:32:36.184Z",
+                                            updatedAt: "2025-07-08T21:32:36.184Z"
+                                        },
+                                        errors: []
+                                    }
+                                },
+                                status_desativado: {
+                                    summary: "Status atualizado para inativo",
+                                    value: {
+                                        error: false,
+                                        code: 200,
+                                        message: "Status do usuário atualizado para inativo.",
+                                        data: {
+                                            _id: "507f1f77bcf86cd799439011",
+                                            nome: "João Silva",
+                                            email: "joao@exemplo.com",
+                                            status: "inativo",
+                                            createdAt: "2025-07-08T21:32:36.184Z",
+                                            updatedAt: "2025-07-08T21:32:36.184Z"
+                                        },
+                                        errors: []
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
                 400: {
                     description: "Erro de validação",
                     content: {
