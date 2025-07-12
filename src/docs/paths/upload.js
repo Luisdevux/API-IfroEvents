@@ -453,25 +453,40 @@ const uploadPath = {
       ],
       "responses": {
         "200": {
-          "description": "Imagem de capa retornada com sucesso (arquivo binário)",
+          "description": "Imagem de capa retornada com sucesso",
+          "headers": {
+            "Content-Type": {
+              "description": "Tipo de conteúdo da imagem",
+              "schema": {
+                "type": "string",
+                "enum": ["image/jpeg", "image/png", "image/jpg"]
+              }
+            }
+          },
           "content": {
             "image/jpeg": {
               "schema": {
                 "type": "string",
-                "format": "binary"
-              }
+                "format": "binary",
+                "description": "Arquivo binário da imagem JPEG - Para visualizar, abra a URL diretamente no navegador"
+              },
+              "example": "Conteúdo binário da imagem. Para visualizar a imagem completa, faça a requisição através do navegador ou cliente HTTP e abra a resposta como imagem."
             },
             "image/png": {
               "schema": {
                 "type": "string",
-                "format": "binary"
-              }
+                "format": "binary",
+                "description": "Arquivo binário da imagem PNG - Para visualizar, abra a URL diretamente no navegador"
+              },
+              "example": "Conteúdo binário da imagem. Para visualizar a imagem completa, faça a requisição através do navegador ou cliente HTTP e abra a resposta como imagem."
             },
             "image/jpg": {
               "schema": {
                 "type": "string",
-                "format": "binary"
-              }
+                "format": "binary",
+                "description": "Arquivo binário da imagem JPG - Para visualizar, abra a URL diretamente no navegador"
+              },
+              "example": "Conteúdo binário da imagem. Para visualizar a imagem completa, faça a requisição através do navegador ou cliente HTTP e abra a resposta como imagem."
             }
           }
         },
@@ -534,13 +549,40 @@ const uploadPath = {
       ],
       "responses": {
         "200": {
-          "description": "Vídeo retornado com sucesso (arquivo binário)",
+          "description": "Vídeo retornado com sucesso",
+          "headers": {
+            "Content-Type": {
+              "description": "Tipo de conteúdo do vídeo",
+              "schema": {
+                "type": "string",
+                "enum": ["video/mp4", "video/avi", "video/mov"]
+              }
+            }
+          },
           "content": {
             "video/mp4": {
               "schema": {
                 "type": "string",
-                "format": "binary"
-              }
+                "format": "binary",
+                "description": "Arquivo binário do vídeo MP4 - Para visualizar, abra a URL diretamente no navegador"
+              },
+              "example": "Conteúdo binário do vídeo. Para reproduzir o vídeo completo, faça a requisição através do navegador ou cliente HTTP e abra a resposta como vídeo."
+            },
+            "video/avi": {
+              "schema": {
+                "type": "string",
+                "format": "binary",
+                "description": "Arquivo binário do vídeo AVI - Para visualizar, abra a URL diretamente no navegador"
+              },
+              "example": "Conteúdo binário do vídeo. Para reproduzir o vídeo completo, faça a requisição através do navegador ou cliente HTTP e abra a resposta como vídeo."
+            },
+            "video/mov": {
+              "schema": {
+                "type": "string",
+                "format": "binary",
+                "description": "Arquivo binário do vídeo MOV - Para visualizar, abra a URL diretamente no navegador"
+              },
+              "example": "Conteúdo binário do vídeo. Para reproduzir o vídeo completo, faça a requisição através do navegador ou cliente HTTP e abra a resposta como vídeo."
             }
           }
         },
@@ -624,25 +666,40 @@ const uploadPath = {
       ],
       "responses": {
         "200": {
-          "description": "Imagem do carrossel retornada com sucesso (arquivo binário)",
+          "description": "Imagem do carrossel retornada com sucesso",
+          "headers": {
+            "Content-Type": {
+              "description": "Tipo de conteúdo da imagem",
+              "schema": {
+                "type": "string",
+                "enum": ["image/jpeg", "image/png", "image/jpg"]
+              }
+            }
+          },
           "content": {
             "image/jpeg": {
               "schema": {
                 "type": "string",
-                "format": "binary"
-              }
+                "format": "binary",
+                "description": "Arquivo binário da imagem JPEG do carrossel - Para visualizar, abra a URL diretamente no navegador"
+              },
+              "example": "Conteúdo binário da imagem do carrossel. Para visualizar a imagem completa, faça a requisição através do navegador ou cliente HTTP e abra a resposta como imagem."
             },
             "image/png": {
               "schema": {
                 "type": "string",
-                "format": "binary"
-              }
+                "format": "binary",
+                "description": "Arquivo binário da imagem PNG do carrossel - Para visualizar, abra a URL diretamente no navegador"
+              },
+              "example": "Conteúdo binário da imagem do carrossel. Para visualizar a imagem completa, faça a requisição através do navegador ou cliente HTTP e abra a resposta como imagem."
             },
             "image/jpg": {
               "schema": {
                 "type": "string",
-                "format": "binary"
-              }
+                "format": "binary",
+                "description": "Arquivo binário da imagem JPG do carrossel - Para visualizar, abra a URL diretamente no navegador"
+              },
+              "example": "Conteúdo binário da imagem do carrossel. Para visualizar a imagem completa, faça a requisição através do navegador ou cliente HTTP e abra a resposta como imagem."
             }
           }
         },
