@@ -438,7 +438,7 @@ const uploadPath = {
     "get": {
       "tags": ["Upload de Mídias"],
       "summary": "Obter imagem de capa do evento",
-      "description": "Retorna o arquivo binário da imagem de capa do evento. O Content-Type é definido automaticamente baseado na extensão do arquivo (jpg, jpeg, png).",
+      "description": "**ROTA PÚBLICA** - Retorna o arquivo binário da imagem de capa do evento. O Content-Type é definido automaticamente baseado na extensão do arquivo (jpg, jpeg, png). Esta rota não requer autenticação para permitir acesso público às imagens.",
       "parameters": [
         {
           "name": "id",
@@ -454,30 +454,39 @@ const uploadPath = {
       "responses": {
         "200": {
           "description": "Imagem de capa retornada com sucesso",
+          "headers": {
+            "Content-Type": {
+              "description": "Tipo de conteúdo da imagem",
+              "schema": {
+                "type": "string",
+                "enum": ["image/jpeg", "image/png", "image/jpg"]
+              }
+            }
+          },
           "content": {
             "image/jpeg": {
               "schema": {
                 "type": "string",
-                "format": "binary"
-              }
+                "format": "binary",
+                "description": "Arquivo binário da imagem JPEG - Para visualizar, abra a URL diretamente no navegador"
+              },
+              "example": "Conteúdo binário da imagem. Para visualizar a imagem completa, faça a requisição através do navegador ou cliente HTTP e abra a resposta como imagem."
             },
             "image/png": {
               "schema": {
                 "type": "string",
-                "format": "binary"
-              }
+                "format": "binary",
+                "description": "Arquivo binário da imagem PNG - Para visualizar, abra a URL diretamente no navegador"
+              },
+              "example": "Conteúdo binário da imagem. Para visualizar a imagem completa, faça a requisição através do navegador ou cliente HTTP e abra a resposta como imagem."
             },
             "image/jpg": {
               "schema": {
                 "type": "string",
-                "format": "binary"
-              }
-            }
-          },
-          "examples": {
-            "url_exemplo": {
-              "summary": "Exemplo de URL para acessar a imagem",
-              "value": "https://seuservidor.com/uploads/capa/1673432100000-capa.jpg"
+                "format": "binary",
+                "description": "Arquivo binário da imagem JPG - Para visualizar, abra a URL diretamente no navegador"
+              },
+              "example": "Conteúdo binário da imagem. Para visualizar a imagem completa, faça a requisição através do navegador ou cliente HTTP e abra a resposta como imagem."
             }
           }
         },
@@ -518,19 +527,14 @@ const uploadPath = {
     "get": {
       "tags": ["Upload de Mídias"],
       "summary": "Obter vídeo do evento",
-      "description": `Retorna o arquivo binário do vídeo do evento.
+      "description": `**ROTA PÚBLICA** - Retorna o arquivo binário do vídeo do evento.
       
       **Regras de Negócio:**
-      - Usuário deve estar autenticado
+      - Rota pública (não requer autenticação) 
       - Retorna o arquivo binário diretamente (não JSON)
       - Content-Type é definido automaticamente baseado na extensão do arquivo
       - Suporta formatos: mp4
       - Erro 404 se não houver vídeo ou arquivo não existir fisicamente`,
-      "security": [
-        {
-          "bearerAuth": []
-        }
-      ],
       "parameters": [
         {
           "name": "id",
@@ -546,37 +550,42 @@ const uploadPath = {
       "responses": {
         "200": {
           "description": "Vídeo retornado com sucesso",
+          "headers": {
+            "Content-Type": {
+              "description": "Tipo de conteúdo do vídeo",
+              "schema": {
+                "type": "string",
+                "enum": ["video/mp4", "video/avi", "video/mov"]
+              }
+            }
+          },
           "content": {
             "video/mp4": {
               "schema": {
                 "type": "string",
-                "format": "binary"
-              }
-            },
-          }
-        },
-        "400": {
-          "description": "ID do evento inválido",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ErrorResponse"
+                "format": "binary",
+                "description": "Arquivo binário do vídeo MP4 - Para visualizar, abra a URL diretamente no navegador"
               },
-              "examples": {
-                "evento_id_invalido": {
-                  "summary": "ID do evento inválido",
-                  "value": {
-                    "statusCode": 400,
-                    "error": "Erro de validação",
-                    "message": "ID do evento inválido. Deve ser um ObjectId válido.",
-                    "details": []
-                  }
-                }
-              }
+              "example": "Conteúdo binário do vídeo. Para reproduzir o vídeo completo, faça a requisição através do navegador ou cliente HTTP e abra a resposta como vídeo."
+            },
+            "video/avi": {
+              "schema": {
+                "type": "string",
+                "format": "binary",
+                "description": "Arquivo binário do vídeo AVI - Para visualizar, abra a URL diretamente no navegador"
+              },
+              "example": "Conteúdo binário do vídeo. Para reproduzir o vídeo completo, faça a requisição através do navegador ou cliente HTTP e abra a resposta como vídeo."
+            },
+            "video/mov": {
+              "schema": {
+                "type": "string",
+                "format": "binary",
+                "description": "Arquivo binário do vídeo MOV - Para visualizar, abra a URL diretamente no navegador"
+              },
+              "example": "Conteúdo binário do vídeo. Para reproduzir o vídeo completo, faça a requisição através do navegador ou cliente HTTP e abra a resposta como vídeo."
             }
           }
         },
-        "401": swaggerCommonResponses[401](),
         "404": {
           "description": "Vídeo não encontrado",
           "content": {
@@ -624,20 +633,15 @@ const uploadPath = {
     "get": {
       "tags": ["Upload de Mídias"],
       "summary": "Obter imagem específica do carrossel",
-      "description": `Retorna o arquivo binário de uma imagem específica do carrossel baseada no índice.
+      "description": `**ROTA PÚBLICA** - Retorna o arquivo binário de uma imagem específica do carrossel baseada no índice.
       
       **Regras de Negócio:**
-      - Usuário deve estar autenticado
+      - Rota pública (não requer autenticação)
       - Retorna o arquivo binário diretamente (não JSON)
       - Content-Type é definido automaticamente baseado na extensão do arquivo
       - Suporta formatos: jpg, jpeg, png
       - Índice baseado em 0 (primeira imagem = índice 0)
       - Erro 404 se não houver carrossel, índice inválido ou arquivo não existir fisicamente`,
-      "security": [
-        {
-          "bearerAuth": []
-        }
-      ],
       "parameters": [
         {
           "name": "id",
@@ -663,24 +667,39 @@ const uploadPath = {
       "responses": {
         "200": {
           "description": "Imagem do carrossel retornada com sucesso",
+          "headers": {
+            "Content-Type": {
+              "description": "Tipo de conteúdo da imagem",
+              "schema": {
+                "type": "string",
+                "enum": ["image/jpeg", "image/png", "image/jpg"]
+              }
+            }
+          },
           "content": {
             "image/jpeg": {
               "schema": {
                 "type": "string",
-                "format": "binary"
-              }
+                "format": "binary",
+                "description": "Arquivo binário da imagem JPEG do carrossel - Para visualizar, abra a URL diretamente no navegador"
+              },
+              "example": "Conteúdo binário da imagem do carrossel. Para visualizar a imagem completa, faça a requisição através do navegador ou cliente HTTP e abra a resposta como imagem."
             },
             "image/png": {
               "schema": {
                 "type": "string",
-                "format": "binary"
-              }
+                "format": "binary",
+                "description": "Arquivo binário da imagem PNG do carrossel - Para visualizar, abra a URL diretamente no navegador"
+              },
+              "example": "Conteúdo binário da imagem do carrossel. Para visualizar a imagem completa, faça a requisição através do navegador ou cliente HTTP e abra a resposta como imagem."
             },
             "image/jpg": {
               "schema": {
                 "type": "string",
-                "format": "binary"
-              }
+                "format": "binary",
+                "description": "Arquivo binário da imagem JPG do carrossel - Para visualizar, abra a URL diretamente no navegador"
+              },
+              "example": "Conteúdo binário da imagem do carrossel. Para visualizar a imagem completa, faça a requisição através do navegador ou cliente HTTP e abra a resposta como imagem."
             }
           }
         },
@@ -705,7 +724,6 @@ const uploadPath = {
             }
           }
         },
-        "401": swaggerCommonResponses[401](),
         "404": {
           "description": "Carrossel ou imagem não encontrada",
           "content": {
