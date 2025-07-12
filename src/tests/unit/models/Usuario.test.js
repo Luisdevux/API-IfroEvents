@@ -50,7 +50,7 @@ describe('Modelo de Usuário', () => {
 
         expect(savedUser.nome).toBe(userDataTest.nome);
         expect(savedUser.email).toBe(userDataTest.email);
-        expect(savedUser.senha).toBe(userDataTest.senha);
+        expect(savedUser.senha).not.toBe(userDataTest.senha);
         expect(savedUser.createdAt).toBeInstanceOf(Date);
         expect(savedUser.updatedAt).toBeInstanceOf(Date);
     });

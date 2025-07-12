@@ -1,6 +1,0 @@
-const mongoose = require('mongoose');
-const usuarioId = new mongoose.Types.ObjectId();
-
-const usuarioFake = {
-    // Your usuarioFake object properties here
-};

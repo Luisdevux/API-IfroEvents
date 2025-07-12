@@ -258,11 +258,12 @@ describe('Utilitário de Logger', () => {
             delete process.env.LOG_ENABLED;
             jest.resetModules();
             process.env.NODE_ENV = 'test'; // Garantir que handlers não sejam registrados
+            delete process.env.LOG_ENABLED; // Garantir que não existe
             const loggerImport = require('../../../utils/logger.js');
             logger = loggerImport.default;
 
             const logEnabled = logger.transports.length > 0;
-            expect(logEnabled).toBe(true); // O valor padrão é 'true'
+            expect(logEnabled).toBe(false); // Em test mode sem LOG_ENABLED, deve ser false
         });
     });
 

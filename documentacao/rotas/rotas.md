@@ -255,20 +255,20 @@ Gerar um QR Code com o link de inscrição do evento.
 - Link externo incluso na resposta.
 - Em caso de erro, retornar mensagem apropriada.
 
-### 3.8 GET /eventos/anteriores/slideshow
+---
+
+### 3.8 Slideshow para Totem
 
 #### Caso de Uso
-Exibir uma lista visual contínua de eventos passados no modo de descanso do totem.
-
-#### Regras de Negócio
-- Somente eventos com `dataEvento < hoje`.
-- **Campos otimizados:** apenas título, descrição e imagem de capa.
-- Padrão de visualização passiva, sem interação.
+Para o slideshow do totem com eventos passados, utilize a rota `GET /eventos` com os seguintes parâmetros:
+- `?tipo=historico` (filtra eventos passados automaticamente)
+- `&apenasVisiveis=true` (otimizado para totem)
+- `&limit=50` (quantidade adequada para slideshow)
 
 #### Resultado
-- Lista simplificada de eventos passados.
-- Ideal para exibição contínua (slideshow).
-- Em caso de falha, retornar mensagem de erro.
+- Lista de eventos passados com mídias de capa incluídas.
+- Ideal para exibição contínua no totem.
+- Dados otimizados para visualização pública.
 
 ---
 
