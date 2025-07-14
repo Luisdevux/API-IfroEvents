@@ -122,19 +122,19 @@ docker compose up --build --force-recreate -d
 ### Rodando Seeds com Docker
 
 ```bash
-docker compose exec -it plataforma-eventos-api npm run seed
+docker exec -it plataforma-eventos-api npm run seed
 ```
 
 ### Rodando Testes com Docker
 
 ```bash
-docker compose exec -it plataforma-eventos-api npm run test
+docker exec -it plataforma-eventos-api npm run test
 ```
 
 ### Parando os containers
 
 ```bash
-docker-compose down
+docker compose down
 ```
 
 ## 📁 Estrutura do Projeto
