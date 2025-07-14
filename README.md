@@ -14,7 +14,6 @@ Back-end da plataforma **IFRO Events**, desenvolvida para gerenciamento e divulg
 - [Testes](#-testes)
 - [Docker](#-docker)
 - [Documentação](#-documentação)
-- [Contribuição](#-contribuição)
 
 ## 🚀 Funcionalidades
 
@@ -118,6 +117,18 @@ npm run seed
 
 ```bash
 docker compose up --build --force-recreate -d
+```
+
+### Rodando Seeds com Docker
+
+```bash
+docker compose exec -it plataforma-eventos-api npm run seed
+```
+
+### Rodando Testes com Docker
+
+```bash
+docker compose exec -it plataforma-eventos-api npm run test
 ```
 
 ### Parando os containers
