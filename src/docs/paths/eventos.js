@@ -203,7 +203,6 @@ const eventosPath = {
             "type": "string",
             "enum": ["historico", "ativo", "futuro"]
           },
-          "example": "historico"
         },
         {
           "name": "tags",
@@ -213,7 +212,6 @@ const eventosPath = {
           "schema": {
             "type": "string"
           },
-          "example": "tecnologia,inovação"
         },
         {
           "name": "dataInicio",
@@ -238,12 +236,12 @@ const eventosPath = {
         {
           "name": "apenasVisiveis",
           "in": "query",
-          "description": "Mostrar apenas eventos visíveis (específico para totem). Use 'true' para slideshow e visualização pública.",
+          "description": "Mostrar apenas eventos visíveis (específico para totem). Use 'true' para slideshow e visualização pública ou faça logout.",
           "required": false,
           "schema": {
             "type": "boolean"
           },
-          "example": true
+          "example": false
         },
         {
           "name": "page",
