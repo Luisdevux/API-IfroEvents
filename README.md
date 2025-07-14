@@ -74,7 +74,7 @@ npm install
 
 ### Arquivo `.env`
 
-Crie um arquivo `.env` na raiz do projeto com base no exemplo abaixo ou no .env.example do projeto, único requisito é definição de porta:
+Crie um arquivo `.env` na raiz do projeto com base no exemplo abaixo ou no .env.example do projeto:
 
 ```env
 PORT=5015
