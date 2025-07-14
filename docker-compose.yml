@@ -1,7 +1,7 @@
 
 services:
   mongodb:
-    container_name: mongodb
+    container_name: mongodb-eventos
     image: mongo:8
     volumes:
       - vol-mongodb:/data/db
@@ -10,16 +10,16 @@ services:
     restart: unless-stopped
     
   api:
-    container_name: plataforma-de-divulgacao-de-eventos-api
+    container_name: plataforma-eventos-api
     build: ./
     env_file:
       - .env
     environment:
-      - DB_URL=mongodb://mongodb:27017/IfroEvents
-      - DB_URL_TEST=mongodb://mongodb:27017/IfroEvents_test
-      - APP_PORT=5011
+      - DB_URL=mongodb://mongodb-eventos:27017/IfroEvents
+      - DB_URL_TEST=mongodb://mongodb-eventos:27017/IfroEvents_test
+      - APP_PORT=5015
     ports:
-      - 5011:5011
+      - 5015:5015
     depends_on:
       - mongodb
     restart: unless-stopped

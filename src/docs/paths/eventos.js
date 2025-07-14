@@ -7,7 +7,7 @@ const eventosPath = {
     "post": {
       "tags": ["Eventos"],
       "summary": "Cadastrar novo evento",
-      "description": `Cria um novo evento com mídias opcionais. Aceita multipart/form-data para upload de arquivos.
+      "description": `**ROTA PROTEGIDA** - Cria um novo evento com mídias opcionais. Aceita multipart/form-data para upload de arquivos.
       
       **Regras de Negócio:**
       - Usuário deve estar autenticado
@@ -203,7 +203,6 @@ const eventosPath = {
             "type": "string",
             "enum": ["historico", "ativo", "futuro"]
           },
-          "example": "historico"
         },
         {
           "name": "tags",
@@ -213,7 +212,6 @@ const eventosPath = {
           "schema": {
             "type": "string"
           },
-          "example": "tecnologia,inovação"
         },
         {
           "name": "dataInicio",
@@ -238,12 +236,12 @@ const eventosPath = {
         {
           "name": "apenasVisiveis",
           "in": "query",
-          "description": "Mostrar apenas eventos visíveis (específico para totem). Use 'true' para slideshow e visualização pública.",
+          "description": "Mostrar apenas eventos visíveis (específico para totem). Use 'true' para slideshow e visualização pública ou faça logout.",
           "required": false,
           "schema": {
             "type": "boolean"
           },
-          "example": true
+          "example": false
         },
         {
           "name": "page",
@@ -431,37 +429,6 @@ const eventosPath = {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/EventoDetalheResponse"
-              },
-              "examples": {
-                "sucesso": {
-                  "value": {
-                    "statusCode": 200,
-                    "message": "Evento recuperado com sucesso",
-                    "data": {
-                      "_id": "60b5f8c8d8f8f8f8f8f8f8",
-                      "titulo": "Workshop de Node.js",
-                      "descricao": "Aprenda Node.js do zero ao avançado",
-                      "dataInicio": "2024-01-15T10:00:00.000Z",
-                      "dataTermino": "2024-01-15T18:00:00.000Z",
-                      "local": "Centro de Convenções",
-                      "endereco": "Rua das Flores, 123",
-                      "linkInscricao": "https://exemplo.com/inscricao",
-                      "categoria": "Tecnologia",
-                      "tipoEvento": "workshop",
-                      "capacidade": 50,
-                      "organizador": {
-                        "_id": "60b5f8c8d8f8f8f8f8f8f8f9",
-                        "nome": "João Silva"
-                      },
-                      "status": "ativo",
-                      "midiaCapa": [],
-                      "midiaVideo": [],
-                      "midiaCarrossel": [],
-                      "createdAt": "2024-01-01T12:00:00.000Z",
-                      "updatedAt": "2024-01-01T12:00:00.000Z"
-                    }
-                  }
-                }
               }
             }
           }
@@ -472,21 +439,6 @@ const eventosPath = {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/ErrorResponse"
-              },
-              "examples": {
-                "id_invalido": {
-                  "value": {
-                    "statusCode": 400,
-                    "error": "Erro de validação",
-                    "message": "ID fornecido não é válido",
-                    "details": [
-                      {
-                        "field": "id",
-                        "message": "ID deve ser um ObjectId válido"
-                      }
-                    ]
-                  }
-                }
               }
             }
           }
@@ -497,16 +449,6 @@ const eventosPath = {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/ErrorResponse"
-              },
-              "examples": {
-                "nao_autorizado": {
-                  "value": {
-                    "statusCode": 401,
-                    "error": "Não autorizado",
-                    "message": "Usuário não possui permissão para acessar este recurso",
-                    "details": []
-                  }
-                }
               }
             }
           }
@@ -517,16 +459,6 @@ const eventosPath = {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/ErrorResponse"
-              },
-              "examples": {
-                "nao_encontrado": {
-                  "value": {
-                    "statusCode": 404,
-                    "error": "Recurso não encontrado",
-                    "message": "Recurso não encontrado em Evento.",
-                    "details": []
-                  }
-                }
               }
             }
           }
@@ -537,16 +469,6 @@ const eventosPath = {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/ErrorResponse"
-              },
-              "examples": {
-                "erro_interno": {
-                  "value": {
-                    "statusCode": 500,
-                    "error": "Erro interno",
-                    "message": "Ocorreu um erro inesperado no servidor",
-                    "details": []
-                  }
-                }
               }
             }
           }
@@ -556,7 +478,7 @@ const eventosPath = {
     "patch": {
       "tags": ["Eventos"],
       "summary": "Atualizar evento",
-      "description": `Atualiza um evento existente. Apenas o organizador pode atualizar o evento.
+      "description": `**ROTA PROTEGIDA** - Permite atualizar parcialmente os dados de um evento existente.
       
       **Regras de Negócio:**
       - Requer autenticação (token JWT)
@@ -599,33 +521,6 @@ const eventosPath = {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/EventoDetalheResponse"
-              },
-              "examples": {
-                "sucesso": {
-                  "value": {
-                    "statusCode": 200,
-                    "message": "Evento atualizado com sucesso",
-                    "data": {
-                      "_id": "60b5f8c8d8f8f8f8f8f8f8f8",
-                      "titulo": "Workshop de Node.js Avançado",
-                      "descricao": "Aprenda Node.js do zero ao avançado - Atualizado",
-                      "dataInicio": "2024-01-15T10:00:00.000Z",
-                      "dataTermino": "2024-01-15T18:00:00.000Z",
-                      "local": "Centro de Convenções",
-                      "endereco": "Rua das Flores, 123",
-                      "linkInscricao": "https://exemplo.com/inscricao",
-                      "categoria": "Tecnologia",
-                      "tipoEvento": "workshop",
-                      "capacidade": 50,
-                      "organizador": {
-                        "_id": "60b5f8c8d8f8f8f8f8f8f8f9",
-                        "nome": "João Silva"
-                      },
-                      "status": "ativo",
-                      "updatedAt": "2024-01-01T14:00:00.000Z"
-                    }
-                  }
-                }
               }
             }
           }
@@ -636,21 +531,6 @@ const eventosPath = {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/ErrorResponse"
-              },
-              "examples": {
-                "validacao": {
-                  "value": {
-                    "statusCode": 400,
-                    "error": "Erro de validação",
-                    "message": "Dados inválidos fornecidos",
-                    "details": [
-                      {
-                        "field": "titulo",
-                        "message": "Título é obrigatório"
-                      }
-                    ]
-                  }
-                }
               }
             }
           }
@@ -661,16 +541,6 @@ const eventosPath = {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/ErrorResponse"
-              },
-              "examples": {
-                "nao_autorizado": {
-                  "value": {
-                    "statusCode": 401,
-                    "error": "Não autorizado",
-                    "message": "Usuário não possui permissão para acessar este recurso",
-                    "details": []
-                  }
-                }
               }
             }
           }
@@ -681,16 +551,6 @@ const eventosPath = {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/ErrorResponse"
-              },
-              "examples": {
-                "acesso_negado": {
-                  "value": {
-                    "statusCode": 403,
-                    "error": "Acesso negado",
-                    "message": "Você não tem permissão para realizar esta ação",
-                    "details": []
-                  }
-                }
               }
             }
           }
@@ -701,16 +561,6 @@ const eventosPath = {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/ErrorResponse"
-              },
-              "examples": {
-                "nao_encontrado": {
-                  "value": {
-                    "statusCode": 404,
-                    "error": "Recurso não encontrado",
-                    "message": "Recurso não encontrado em Evento.",
-                    "details": []
-                  }
-                }
               }
             }
           }
@@ -721,16 +571,6 @@ const eventosPath = {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/ErrorResponse"
-              },
-              "examples": {
-                "erro_interno": {
-                  "value": {
-                    "statusCode": 500,
-                    "error": "Erro interno",
-                    "message": "Ocorreu um erro inesperado no servidor",
-                    "details": []
-                  }
-                }
               }
             }
           }
@@ -740,7 +580,15 @@ const eventosPath = {
     "delete": {
       "tags": ["Eventos"],
       "summary": "Deletar evento",
-      "description": "Remove um evento do sistema. Apenas o organizador pode deletar o evento.",
+      "description": `**ROTA PROTEGIDA** - Remove um evento permanentemente do sistema. Operação irreversível que inclui exclusão de todas as mídias associadas.
+      
+      **Regras de Negócio:**
+      - Usuário deve estar autenticado
+      - Apenas o organizador do evento pode deletar
+      - Operação é irreversível
+      - Todas as mídias associadas são removidas do servidor
+      - Registros de upload são removidos do banco de dados
+      - Evento não pode ser recuperado após exclusão`,
       "security": [
         {
           "bearerAuth": []
@@ -772,37 +620,9 @@ const eventosPath = {
                     "statusCode": 200,
                     "message": "Evento deletado com sucesso",
                     "data": {
-                      "message": "Evento deletado com sucesso",
-                      "data": {
-                        "_id": "60b5f8c8d8f8f8f8f8f8f8f8",
-                        "titulo": "Workshop de Node.js"
-                      }
+                      "message": "Evento removido com sucesso",
+                      "data": null
                     }
-                  }
-                }
-              }
-            }
-          }
-        },
-        "400": {
-          "description": "ID inválido",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ErrorResponse"
-              },
-              "examples": {
-                "id_invalido": {
-                  "value": {
-                    "statusCode": 400,
-                    "error": "Erro de validação",
-                    "message": "ID fornecido não é válido",
-                    "details": [
-                      {
-                        "field": "id",
-                        "message": "ID deve ser um ObjectId válido"
-                      }
-                    ]
                   }
                 }
               }
@@ -857,7 +677,7 @@ const eventosPath = {
                 "$ref": "#/components/schemas/ErrorResponse"
               },
               "examples": {
-                "nao_encontrado": {
+                "evento_nao_encontrado": {
                   "value": {
                     "statusCode": 404,
                     "error": "Recurso não encontrado",
@@ -1028,7 +848,7 @@ const eventosPath = {
     "patch": {
       "tags": ["Eventos"],
       "summary": "Alterar status do evento",
-      "description": `Altera o status de um evento entre ativo e inativo. Controla a visibilidade do evento na plataforma.
+      "description": `**ROTA PROTEGIDA** - Altera o status de um evento entre ativo e inativo. Controla a visibilidade do evento na plataforma.
       
       **Regras de Negócio:**
       - Usuário deve estar autenticado
@@ -1238,7 +1058,7 @@ const eventosPath = {
     "patch": {
       "tags": ["Eventos"],
       "summary": "Compartilhar permissão de evento",
-      "description": `Compartilha permissão de edição de um evento com outro usuário via email. Permite colaboração na gestão do evento.
+      "description": `**ROTA PROTEGIDA** - Compartilha permissão de edição de um evento com outro usuário via email. Permite colaboração na gestão do evento.
       
       **Regras de Negócio:**
       - Usuário deve estar autenticado
@@ -1346,142 +1166,6 @@ const eventosPath = {
                     "error": "Conflito de recurso",
                     "message": "Usuário usuario@exemplo.com já possui permissão ativa para este evento.",
                     "details": []
-                  }
-                }
-              }
-            }
-          }
-        },
-        "401": {
-          "description": "Usuário não autorizado",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ErrorResponse"
-              },
-              "examples": {
-                "nao_autorizado": {
-                  "value": {
-                    "statusCode": 401,
-                    "error": "Não autorizado",
-                    "message": "Usuário não possui permissão para acessar este recurso",
-                    "details": []
-                  }
-                }
-              }
-            }
-          }
-        },
-        "403": {
-          "description": "Acesso negado",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ErrorResponse"
-              },
-              "examples": {
-                "acesso_negado": {
-                  "value": {
-                    "statusCode": 403,
-                    "error": "Acesso negado",
-                    "message": "Você não tem permissão para realizar esta ação",
-                    "details": []
-                  }
-                }
-              }
-            }
-          }
-        },
-        "404": {
-          "description": "Evento não encontrado",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ErrorResponse"
-              },
-              "examples": {
-                "evento_nao_encontrado": {
-                  "value": {
-                    "statusCode": 404,
-                    "error": "Recurso não encontrado",
-                    "message": "Recurso não encontrado em Evento.",
-                    "details": []
-                  }
-                }
-              }
-            }
-          }
-        },
-        "500": {
-          "description": "Erro interno do servidor",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ErrorResponse"
-              },
-              "examples": {
-                "erro_interno": {
-                  "value": {
-                    "statusCode": 500,
-                    "error": "Erro interno",
-                    "message": "Ocorreu um erro inesperado no servidor",
-                    "details": []
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  },
-  "/eventos/{id}": {
-    "delete": {
-      "tags": ["Eventos"],
-      "summary": "Deletar evento",
-      "description": `Remove um evento permanentemente do sistema. Operação irreversível que inclui exclusão de todas as mídias associadas.
-      
-      **Regras de Negócio:**
-      - Usuário deve estar autenticado
-      - Apenas o organizador do evento pode deletar
-      - Operação é irreversível
-      - Todas as mídias associadas são removidas do servidor
-      - Registros de upload são removidos do banco de dados
-      - Evento não pode ser recuperado após exclusão`,
-      "security": [
-        {
-          "bearerAuth": []
-        }
-      ],
-      "parameters": [
-        {
-          "name": "id",
-          "in": "path",
-          "required": true,
-          "description": "ID do evento",
-          "schema": {
-            "type": "string",
-            "pattern": "^[0-9a-fA-F]{24}$"
-          }
-        }
-      ],
-      "responses": {
-        "200": {
-          "description": "Evento deletado com sucesso",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SuccessResponse"
-              },
-              "examples": {
-                "sucesso": {
-                  "value": {
-                    "statusCode": 200,
-                    "message": "Evento deletado com sucesso",
-                    "data": {
-                      "message": "Evento removido com sucesso",
-                      "data": null
-                    }
                   }
                 }
               }
