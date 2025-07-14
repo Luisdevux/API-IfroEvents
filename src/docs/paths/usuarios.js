@@ -3,72 +3,26 @@ import swaggerCommonResponses from "../schemas/swaggerCommonResponses.js";
 
 const usuariosRoutes = {
     "/usuarios": {
-        get: {
-            tags: ["Usuários"],
-            summary: "Lista todos os usuários",
-            description: `
-        + Caso de uso: Listagem de usuários para gerenciamento e consulta.
-        
-        + Função de Negócio:
-            - Permitir à front-end, App Mobile e serviços server-to-server obter uma lista de usuários cadastrados.
-            + Não possui parâmetros específicos, retorna todos os usuários ativos.
-
-        + Regras de Negócio:
-            - Apenas usuários autenticados podem acessar esta rota.
-            - Senhas são removidas da resposta por segurança.
-            - Retorna dados básicos dos usuários (ID, nome, email, status).
-        
-        + Resultado Esperado:
-            - HTTP 200 OK com lista de usuários conforme **UsuarioDetalhes**.
-        `,
-            security: [{ bearerAuth: [] }],
-            responses: {
-                200: {
-                    description: "Lista de usuários obtida com sucesso",
-                    content: {
-                        "application/json": {
-                            schema: {
-                                type: "object",
-                                properties: {
-                                    error: { type: "boolean", example: false },
-                                    code: { type: "integer", example: 200 },
-                                    message: { type: "string", example: "Requisição bem-sucedida" },
-                                    data: {
-                                        type: "array",
-                                        items: { "$ref": "#/components/schemas/UsuarioDetalhes" }
-                                    },
-                                    errors: { type: "array", example: [] }
-                                }
-                            }
-                        }
-                    }
-                },
-                401: swaggerCommonResponses[401](),
-                498: swaggerCommonResponses[498](),
-                500: swaggerCommonResponses[500]()
-            }
-        },
         post: {
             tags: ["Usuários"],
             summary: "Cria um novo usuário",
             description: `
-        + Caso de uso: Criação de usuário por administrador.
+            + Caso de uso: Criação de usuário por administrador (Caso no futuro haja implementação de administrador master).
         
-        + Função de Negócio:
-            - Permitir à front-end, App Mobile e serviços server-to-server criar novos usuários no sistema.
-            + Recebe no corpo da requisição:
-                - Objeto conforme schema **UsuarioPost**, contendo campos como nome, email, senha, etc.
-
-        + Regras de Negócio:
-            - Validação de campos obrigatórios (nome, email, senha).
-            - Verificação de unicidade para o email.
-            - Senha é criptografada antes do armazenamento.
-            - Status inicial é definido como 'ativo'.
-            - Senha é removida da resposta por segurança.
+            + Função de Negócio:
+                - Permitir ao front-end, criar novos usuários no sistema.
+                + Recebe no corpo da requisição:
+                    - Objeto conforme schema **UsuarioPost**, contendo campos como nome, email, senha, etc.
         
-        + Resultado Esperado:
-            - HTTP 201 Created com corpo conforme **UsuarioDetalhes**, contendo dados do usuário criado (sem senha).
-        `,
+            + Regras de Negócio:
+                - Validação de campos obrigatórios (nome, email, senha).
+                - Verificação de unicidade para o email.
+                - Senha é criptografada antes do armazenamento.
+                - Status inicial é definido como 'ativo'.
+                - Senha é removida da resposta por segurança.
+            
+            + Resultado Esperado:
+                - HTTP 201 Created com corpo conforme **UsuarioDetalhes**, contendo dados do usuário criado (sem senha).`,
             security: [{ bearerAuth: [] }],
             requestBody: {
                 required: true,
@@ -127,12 +81,57 @@ const usuariosRoutes = {
                             }
                         }
                     }
+                }
+            }
+        },
+        get: {
+            tags: ["Usuários"],
+            summary: "Lista todos os usuários",
+            description: `
+        + Caso de uso: Listagem de usuários para gerenciamento e consulta.
+        
+        + Função de Negócio:
+            - Permitir ao front-end, obter uma lista de usuários cadastrados.
+            + Não possui parâmetros específicos, retorna todos os usuários ativos.
+
+        + Regras de Negócio:
+            - Apenas usuários autenticados podem acessar esta rota.
+            - Senhas são removidas da resposta por segurança.
+            - Retorna dados básicos dos usuários (ID, nome, email, status).
+        
+        + Resultado Esperado:
+            - HTTP 200 OK com lista de usuários conforme **UsuarioDetalhes**.
+        `,
+            security: [{ bearerAuth: [] }],
+            responses: {
+                200: {
+                    description: "Lista de usuários obtida com sucesso",
+                    content: {
+                        "application/json": {
+                            schema: {
+                                type: "object",
+                                properties: {
+                                    error: { type: "boolean", example: false },
+                                    code: { type: "integer", example: 200 },
+                                    message: { type: "string", example: "Requisição bem-sucedida" },
+                                    data: {
+                                        type: "array",
+                                        items: { "$ref": "#/components/schemas/UsuarioDetalhes" }
+                                    },
+                                    errors: { type: "array", example: [] }
+                                }
+                            }
+                        }
+                    }
                 },
                 401: swaggerCommonResponses[401](),
                 498: swaggerCommonResponses[498](),
                 500: swaggerCommonResponses[500]()
             }
-        }
+        },
+        401: swaggerCommonResponses[401](),
+        498: swaggerCommonResponses[498](),
+        500: swaggerCommonResponses[500]()
     },
     "/usuarios/{id}": {
         get: {
@@ -142,7 +141,7 @@ const usuariosRoutes = {
             + Caso de uso: Consulta de detalhes de usuário específico.
             
             + Função de Negócio:
-                - Permitir à front-end, App Mobile ou serviços obter todas as informações de um usuário cadastrado.
+                - Permitir ao front-end obter todas as informações de um usuário cadastrado.
                 + Recebe como path parameter:
                     - **id**: identificador do usuário (MongoDB ObjectId).
 
@@ -228,7 +227,7 @@ const usuariosRoutes = {
             + Caso de uso: Atualização parcial de dados do usuário.
             
             + Função de Negócio:
-                - Permitir ao perfil administrador ou usuário autorizado modificar os campos desejados.
+                - Permitir modificar os campos desejados de um usuário.
                 + Recebe:
                     - **id** no path.  
                     - No corpo, objeto conforme **UsuarioPutPatch** com os campos a alterar.
@@ -326,7 +325,7 @@ const usuariosRoutes = {
             + Caso de uso: Ativação/desativação de usuário.
             
             + Função de Negócio:
-                - Permitir ao perfil administrador alterar o status de um usuário (ativo/inativo).
+                - Permitir alterar o status de um usuário e também para caso de "exclusão" de usuário(ativo/inativo).
                 + Recebe:
                     - **id** no path.
                     - **status** no corpo da requisição.
@@ -335,6 +334,7 @@ const usuariosRoutes = {
                 - Apenas valores 'ativo' ou 'inativo' são permitidos.
                 - Usuário inativo não pode fazer login.
                 - Mudança de status é registrada no sistema.
+                - Ao usuário "excluir" (inativar), não remove do banco, apenas altera o status.
 
             + Resultado Esperado:
                 - HTTP 200 OK com mensagem de confirmação da mudança de status.
