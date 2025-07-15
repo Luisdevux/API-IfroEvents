@@ -11,7 +11,7 @@ import swaggerCommonResponses from "../schemas/swaggerCommonResponses.js";
 
 // Função para definir as URLs do servidor dependendo do ambiente
 const getServersInCorrectOrder = () => {
-    const devUrl = { url: process.env.SWAGGER_DEV_URL || "http://localhost:5011" };
+    const devUrl = { url: process.env.SWAGGER_DEV_URL || "http://localhost:5015" };
     const prodUrl = { url: process.env.SWAGGER_PROD_URL || "https://exemplo.ifroevents.com/IfroEvents" };
 
     if (process.env.NODE_ENV === "production") return [prodUrl, devUrl];
