@@ -385,17 +385,17 @@ const eventosSchemas = {
         description: "Tags do evento (**OBRIGATÓRIO** - mínimo 1 tag). Para multipart/form-data: envie como JSON string '[\"tag1\", \"tag2\"]' ou como CSV 'tag1,tag2,tag3'. Para application/json: use array normal.",
         example: '["tecnologia", "inovação", "palestras"]'
       },
-      capa: {
+      midiaCapa: {
         type: "string",
         format: "binary",
         description: "Imagem de capa do evento"
       },
-      video: {
+      midiaVideo: {
         type: "string", 
         format: "binary",
         description: "Vídeo do evento"
       },
-      carrossel: {
+      midiaCarrossel: {
         type: "array",
         items: {
           type: "string",
